@@ -27,19 +27,28 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Python App"
+args = "Django Server"
 
 [[workflows.workflow]]
-name = "Python App"
+name = "Django Server"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python main.py"
+args = "python manage.py runserver 0.0.0.0:5000"
+waitForPort = 5000
 
 [workflows.workflow.metadata]
-outputType = "console"
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
 
 [[ports]]
 localPort = 8000
 externalPort = 80
+
+[[ports]]
+localPort = 33313
+externalPort = 3000

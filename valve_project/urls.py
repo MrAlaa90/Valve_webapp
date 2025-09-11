@@ -19,9 +19,14 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from valves.views import home
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('valves.urls')),
+    path('', home, name='home'),  # الصفحة الرئيسية فقط
+    path('valves-frontend/', home, name='valve-list-frontend'),  # Frontend URLs
+    path('maintenance-history-frontend/', home, name='maintenance-history-frontend'),
 ]
 
 if settings.DEBUG:

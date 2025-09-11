@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
-import dj_database_url
 
 # CSRF_TRUSTED_ORIGINS = ['https://*.replit.app'] # في بعض الحالات ممكن تحتاجها
 SESSION_COOKIE_SECURE = True
@@ -80,7 +79,7 @@ ROOT_URLCONF = 'valve_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'valve_project' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -99,10 +98,10 @@ WSGI_APPLICATION = 'valve_project.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'), # هنا هنستخدم متغير بيئة واحد بس
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 

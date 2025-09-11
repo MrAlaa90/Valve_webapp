@@ -28,18 +28,9 @@
                     {# ممكن تضيف روابط تانية هنا #}
                 </ul>
                 <ul class="navbar-nav ms-auto"> {# ms-auto لضبط الاتجاه في RTL #}
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">مرحباً, {{ user.username }}</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'logout' %}">تسجيل الخروج</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">تسجيل الدخول</a>
-                        </li>
-                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">نظام إدارة البلوف</a>
+                    </li>
                 </ul>
             </div>
         </div>
