@@ -47,7 +47,9 @@ ALLOWED_HOSTS = [
 'e93917a4-45b4-424f-b6e2-903ff19201f5-00-3naa6mos9jf4u.kirk.replit.dev/', 
 'e93917a4-45b4-424f-b6e2-903ff19201f5-00-3naa6mos9jf4u.kirk.replit.dev',
 'localhost',
-'127.0.0.1']
+'127.0.0.1', 
+    '.replit.app.*', 
+'*' ]
 
 
 # Application definition
@@ -78,7 +80,7 @@ ROOT_URLCONF = 'valve_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -139,8 +141,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media' # ده المجلد اللي هتتخزن فيه الصور المرفوعة
+

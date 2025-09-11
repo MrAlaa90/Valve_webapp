@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ValveList, ValveDetail, SparePartList, SparePartDetail, PartCodeList, PartCodeDetail, MaintenanceHistoryList, MaintenanceHistoryDetail, MaintenancePartList, MaintenancePartDetail
+from .views import ValveList, ValveDetail, SparePartList, SparePartDetail, PartCodeList, PartCodeDetail, MaintenanceHistoryList, MaintenanceHistoryDetail, MaintenancePartList, MaintenancePartDetail, home
 
 urlpatterns = [
     path('valves/', ValveList.as_view(), name='valve-list'),
@@ -12,4 +12,7 @@ urlpatterns = [
     path('maintenance-history/<int:pk>/', MaintenanceHistoryDetail.as_view(), name='maintenance-history-detail'),
     path('maintenance-parts/', MaintenancePartList.as_view(), name='maintenance-parts-list'),
     path('maintenance-parts/<int:pk>/', MaintenancePartDetail.as_view(), name='maintenance-parts-detail'),
+    path('', home, name='home'), # ده المسار الجديد للصفحة الرئيسية
+    path('valves-frontend/', home, name='valve-list-frontend'), # ده مسار مؤقت هيتعدل
+    path('maintenance-history-frontend/', home, name='maintenance-history-frontend'), # ده مسار مؤقت هيتعدل
 ]

@@ -42,3 +42,7 @@ class MaintenancePartList(generics.ListCreateAPIView):
 class MaintenancePartDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = MaintenancePart.objects.all()
     serializer_class = MaintenancePartSerializer 
+
+
+def home(request):
+    return render(request, 'valves/home.html')
