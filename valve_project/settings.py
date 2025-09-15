@@ -12,20 +12,24 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 
 # CSRF_TRUSTED_ORIGINS = ['https://*.replit.app'] # في بعض الحالات ممكن تحتاجها
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://*.replit.app',
+# CSRF_TRUSTED_ORIGINS = [
+    # 'https://*.replit.app',
     # إذا كان رابط الـ Repl الخاص بك يتغير كثيراً، يمكن أن تضيفه هنا أيضاً
     # مثال: 'https://e93917a4-45b4-424f-b6e2-903ff19201f5-00-3naa6mos9jf4u.kirk.replit.dev'
-]
+# ]
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-
+try:
+    from.import env
+except ImportError:
+    pass
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -61,6 +65,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'valves',# App
+    'crispy_forms',
+    'crispy_bootstrap5',
     'rest_framework', # Django REST Framework
 ]
 
@@ -98,10 +104,14 @@ WSGI_APPLICATION = 'valve_project.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default = 'postgresql://postgres:oLuJyRpwytHgStPPgHgGDetPozvMRKcN@switchyard.proxy.rlwy.net:32792/railway',
+        conn_max_age=600
+    ) 
+    # {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    # }
 }
 
 
@@ -152,3 +162,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media' # ده المجلد اللي هتتخزن فيه الصور المرفوعة
 
+LOGIN_URL = 'login' # اسم الـ URL بتاع صفحة تسجيل الدخول
+LOGIN_REDIRECT_URL = 'home' # اسم الـ URL للصفحة اللي هيتوجه ليها بعد تسجيل الدخول بنجاح
+LOGOUT_REDIRECT_URL = 'home' # اسم الـ URL للصفحة اللي هيتوجه ليها بعد تسجيل الخروج
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إضافة بلف جديد{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">إضافة بلف جديد</h2>
+    
+    {% if error %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'valve-create' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="tag_number" class="form-label">رقم الوسم</label>
+            <input type="text" class="form-control" id="tag_number" name="tag_number" required>
+        </div>
+        <div class="mb-3">
+            <label for="name" class="form-label">الاسم</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+            <label for="location" class="form-label">الموقع</label>
+            <input type="text" class="form-control" id="location" name="location">
+        </div>
+        <div class="mb-3">
+            <label for="valve_type" class="form-label">نوع البلف</label>
+            <input type="text" class="form-control" id="valve_type" name="valve_type">
+        </div>
+        <div class="mb-3">
+            <label for="status" class="form-label">الحالة</label>
+            <select class="form-select" id="status" name="status">
+                <option value="Good">جيد</option>
+                <option value="Fair">متوسط</option>
+                <option value="Stale">قديم</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="installation_date" class="form-label">تاريخ التركيب</label>
+            <input type="date" class="form-control" id="installation_date" name="installation_date">
+        </div>
+        <div class="mb-3">
+            <label for="last_maintenance_date" class="form-label">تاريخ آخر صيانة</label>
+            <input type="date" class="form-control" id="last_maintenance_date" name="last_maintenance_date">
+        </div>
+        <div class="mb-3">
+            <label for="notes" class="form-label">ملاحظات</label>
+            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="drawing_link" class="form-label">رابط الرسمة</label>
+            <input type="url" class="form-control" id="drawing_link" name="drawing_link">
+        </div>
+        
+        <button type="submit" class="btn btn-primary">حفظ البلف</button>
+        <a href="{% url 'valve-list-frontend' %}" class="btn btn-secondary">إلغاء</a>
+    </form>
+</div>
+{% endblock %}

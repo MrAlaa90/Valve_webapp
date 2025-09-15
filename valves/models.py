@@ -2,8 +2,16 @@ from django.db import models
 
 # Valve model 
 class Valve(models.Model):
-    valve_id = models.CharField(max_length=100, unique=True, primary_key=True)
-    drawing_link = models.URLField(max_length=200, blank=True, null=True)
+    valve_id = models.AutoField(primary_key=True)
+    tag_number = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    valve_type = models.CharField(max_length=100)
+    status = models.CharField(max_length=100)
+    installation_date = models.DateField()
+    last_maintenance_date = models.DateField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
+    drawing_link = models.URLField(max_length=500, blank=True, null=True)
 
     def __str__(self):
         return self.valve_id

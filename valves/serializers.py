@@ -4,7 +4,21 @@ from .models import Valve, SparePart, PartCode, MaintenanceHistory, MaintenanceP
 class ValveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Valve
-        fields = '__all__'
+        fields = [
+            'valve_id',
+            'tag_number',
+            'name',
+            'location',
+            'valve_type',
+            'status',
+            'installation_date',
+            'last_maintenance_date',
+            'notes',
+            'drawing_link'
+            ]
+        read_only_fields = ['valve_id']
+        # لو كنت عامل fields = '__all__'، يبقى الـ id هيظهر تلقائياً
+        # لكن الأفضل دايماً تحدد الحقول صراحة.
 
 class SparePartSerializer(serializers.ModelSerializer):
     class Meta:

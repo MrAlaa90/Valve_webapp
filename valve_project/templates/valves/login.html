@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تسجيل الدخول{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg mt-5">
+            <div class="card-header text-center bg-dark text-white">
+                <h3>تسجيل الدخول</h3>
+            </div>
+            <div class="card-body p-4">
+                {% if form.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        اسم المستخدم أو كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى.
+                    </div>
+                {% endif %}
+
+                {% if next %}
+                    {% if user.is_authenticated %}
+                        <div class="alert alert-warning" role="alert">
+                            ليس لديك صلاحية للوصول إلى هذه الصفحة. يرجى تسجيل الدخول بحساب له الصلاحيات المناسبة.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info" role="alert">
+                            يرجى تسجيل الدخول للوصول إلى هذه الصفحة.
+                        </div>
+                    {% endif %}
+                {% endif %}
+
+                <form method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">اسم المستخدم:</label>
+                        <input type="text" name="username" id="id_username" class="form-control" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label for="id_password" class="form-label">كلمة المرور:</label>
+                        <input type="password" name="password" id="id_password" class="form-control" required>
+                    </div>
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">تسجيل الدخول</button>
+                    </div>
+                    <input type="hidden" name="next" value="{{ next }}">
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <small>إذا لم يكن لديك حساب، يرجى التواصل مع المسؤول.</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

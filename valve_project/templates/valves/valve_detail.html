@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تفاصيل البلف{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">تفاصيل البلف: {{ valve.tag_number }}</h2>
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>الاسم:</strong> {{ valve.name }}</p>
+            <p><strong>رقم الوسم:</strong> {{ valve.tag_number }}</p>
+            <p><strong>الموقع:</strong> {{ valve.location }}</p>
+            <p><strong>النوع:</strong> {{ valve.valve_type }}</p>
+            <p><strong>الحالة:</strong> {{ valve.status }}</p>
+            <p><strong>تاريخ التركيب:</strong> {{ valve.installation_date|date:"Y-m-d" }}</p>
+            <p><strong>آخر صيانة:</strong> {{ valve.last_maintenance_date|date:"Y-m-d" }}</p>
+            <p><strong>ملاحظات:</strong> {{ valve.notes }}</p>
+            {% if valve.drawing_link %}
+                <p>
+                    <strong>رابط الرسمة:</strong>
+                    <a href="{{ valve.drawing_link }}" target="_blank">اضغط هنا للفتح</a>
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <a href="{% url 'valve-list-frontend' %}" class="btn btn-secondary">العودة للقائمة</a>
+    {# تأكد من أن 'valve-update' موجود في urls.py وموجه لـ view صحيحة #}
+    <a href="{% url 'valve-update' pk=valve.valve_id %}" class="btn btn-warning">تعديل البلف</a>
+
+</div>
+{% endblock %}
