@@ -13,7 +13,7 @@
     </div>
     {% endif %}
 
-    <form method="post" action="{% url 'valve-create' %}">
+    <form method="post" action="{% url 'valves:valve-create-frontend' %}">
         {% csrf_token %}
         <div class="mb-3">
             <label for="tag_number" class="form-label">رقم الوسم</label>
@@ -57,7 +57,7 @@
         </div>
         
         <button type="submit" class="btn btn-primary">حفظ البلف</button>
-        <a href="{% url 'valve-list-frontend' %}" class="btn btn-secondary">إلغاء</a>
+        <a href="{% url 'valves:valve-list-frontend' %}" class="btn btn-secondary">إلغاء</a>
     </form>
 </div>
 {% endblock %}

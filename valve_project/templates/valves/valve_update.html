@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+<!-- ده القالب الخاص بتعديل بيانات البلف -->
+
+{% block title %}تعديل البلف رقم {{ pk }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <h1 class="mb-4">تعديل بيانات البلف</h1>
+
+            <!-- رسائل Django (نجاح/خطأ) -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Form التعديل -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="post" action="{% url 'valves:valve-update-frontend' pk=pk %}">
+                        {% csrf_token %}
+
+                        <!-- حقل Tag Number -->
+                        <div class="mb-3">
+                            <label for="tag_number" class="form-label">رقم التعريف (Tag Number)</label>
+                            <input type="text" class="form-control" id="tag_number" name="tag_number" value="{{ valve.tag_number|default:'' }}" required>
+                        </div>
+
+                        <!-- حقل Name -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label">اسم البلف</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ valve.name|default:'' }}" required>
+                        </div>
+
+                        <!-- حقل Location -->
+                        <div class="mb-3">
+                            <label for="location" class="form-label">الموقع</label>
+                            <input type="text" class="form-control" id="location" name="location" value="{{ valve.location|default:'' }}">
+                        </div>
+
+                        <!-- حقل Valve Type -->
+                        <div class="mb-3">
+                            <label for="valve_type" class="form-label">نوع البلف</label>
+                            <input type="text" class="form-control" id="valve_type" name="valve_type" value="{{ valve.valve_type|default:'' }}">
+                        </div>
+
+                        <!-- حقل Status (هنستخدم قائمة منسدلة هنا للتبسيط) -->
+                        <div class="mb-3">
+                            <label for="status" class="form-label">الحالة</label>
+                            <select class="form-select" id="status" name="status" required>
+                                {% comment %} تحديد القيمة المختارة بناءً على البيانات الحالية {% endcomment %}
+                                <option value="شغال" {% if valve.status == 'شغال' %}selected{% endif %}>شغال</option>
+                                <option value="متوقف" {% if valve.status == 'متوقف' %}selected{% endif %}>متوقف</option>
+                                <option value="تحت الصيانة" {% if valve.status == 'تحت الصيانة' %}selected{% endif %}>تحت الصيانة</option>
+                                <option value="خارج الخدمة" {% if valve.status == 'خارج الخدمة' %}selected{% endif %}>خارج الخدمة</option>
+                            </select>
+                        </div>
+
+                        <!-- حقل Installation Date -->
+                        <div class="mb-3">
+                            <label for="installation_date" class="form-label">تاريخ التركيب</label>
+                            {% comment %} استخدام تنسيق YYYY-MM-DD لعرضه بشكل صحيح في حقل التاريخ {% endcomment %}
+                            <input type="date" class="form-control" id="installation_date" name="installation_date" 
+                                value="{% if valve.installation_date %}{{ valve.installation_date|date:'Y-m-d' }}{% endif %}">
+                        </div>
+
+                        <!-- حقل Last Maintenance Date -->
+                        <div class="mb-3">
+                            <label for="last_maintenance_date" class="form-label">آخر تاريخ صيانة</label>
+                            <input type="date" class="form-control" id="last_maintenance_date" name="last_maintenance_date" 
+                                value="{% if valve.last_maintenance_date %}{{ valve.last_maintenance_date|date:'Y-m-d' }}{% endif %}">
+                        </div>
+                        
+                        <!-- حقل Drawing Link -->
+                        <div class="mb-3">
+                            <label for="drawing_link" class="form-label">رابط الرسم الهندسي</label>
+                            <input type="url" class="form-control" id="drawing_link" name="drawing_link" value="{{ valve.drawing_link|default:'' }}">
+                        </div>
+
+                        <!-- حقل Notes -->
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">ملاحظات</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="3">{{ valve.notes|default:'' }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning me-2">حفظ التعديلات</button>
+                        <a href="{% url 'valves:valve-detail-frontend' pk=pk %}" class="btn btn-secondary">إلغاء</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -48,13 +48,31 @@ class MaintenancePartDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 
-@login_required
+
 def home(request):
-    return render(request, 'valves/home.html')
+    """
+    View for the home page, including statistics about the valves.
+    """
+    try:
+        total_valves = Valve.objects.count()
+        # نفترض أن لديك حالات مثل 'Needs Maintenance' و 'Operational' في نموذج Valve
+        # قم بتعديل هذه القيم لتطابق القيم الفعلية في حقل 'status' لديك
+        needs_maintenance_valves = Valve.objects.filter(status='Needs Maintenance').count()
+        operational_valves = Valve.objects.filter(status='Operational').count()
+    except Exception:
+        # في حالة حدوث أي خطأ، نعرض أصفارًا كقيم افتراضية
+        total_valves = needs_maintenance_valves = operational_valves = 0
+        messages.warning(request, "لم يتم تحميل الإحصائيات بشكل صحيح.")
+    context = {
+        'total_valves': total_valves,
+        'needs_maintenance_valves': needs_maintenance_valves,
+        'operational_valves': operational_valves,
+    }
+    return render(request, 'valves/home.html', context)
 @login_required
 def valve_list_frontend(request):
       # هنا هنجلب البيانات من الـ API الخاص بينا
-    api_url = request.build_absolute_uri('/api/valves/') # بناء رابط الـ API بشكل صحيح
+    api_url = request.build_absolute_uri('/valves/api/valves/') # بناء رابط الـ API بشكل صحيح
     try:
         response = requests.get(api_url)
         response.raise_for_status() # عشان يرمي استثناء لو فيه خطأ في الرد (4xx أو 5xx)
@@ -85,64 +103,148 @@ def valve_list_frontend(request):
 @login_required # لو المستخدم لازم يكون مسجل دخول عشان يشوف التفاصيل
 def valve_detail_frontend(request, pk):
     # ده API بتاعك اللي بيجيب بيانات بلف واحد بالـ pk بتاعه
-    api_url = f"http://127.0.0.1:8000/api/valves/{pk}/"
+    # api_url = f"http://127.0.0.1:8000/api/valves/{pk}/"
+    api_url = request.build_absolute_uri(f'/valves/api/valves/{pk}/')
+    valve_data = None
+    maintenance_records = []
+    spare_parts = []
+    error_message = None
     try:
         response = requests.get(api_url)
         response.raise_for_status() # هيرفع HTTPError لو الـ request فشلت
         valve_data = response.json()
-        context = {'valve': valve_data}
-        return render(request, 'valves/valve_detail.html', context)
+
+        # بعد جلب بيانات البلف بنجاح، نجلب البيانات المرتبطة به
+        if valve_data:
+            # جلب سجلات الصيانة المرتبطة بالبلف
+            maintenance_api_url = request.build_absolute_uri(f'/valves/api/maintenance-history/?valve={pk}')
+            maintenance_response = requests.get(maintenance_api_url)
+            if maintenance_response.status_code == 200:
+                maintenance_records = maintenance_response.json()
+
+            # يمكنك إضافة منطق مشابه لجلب قطع الغيار المرتبطة هنا إذا كان الـ API يدعم ذلك
+            # spare_parts_api_url = request.build_absolute_uri(f'/api/spare-parts/?valve={pk}')
+            # ...
+
+    except requests.exceptions.HTTPError as err:
+        # التعامل مع خطأ 404 لو البلف مش موجود
+        if response.status_code == 404:
+            error_message = f"البلف برقم {pk} غير موجود."
+        else:
+            error_message = f"خطأ في HTTP أثناء جلب البيانات: {err}"      
     except requests.exceptions.RequestException as e:
-        # ممكن تعمل صفحة خطأ مخصصة هنا أو ترجع رسالة بسيطة
-        return render(request, 'error_template.html', {'error': f"Error fetching valve details: {e}"})
+        error_message = f"خطأ في الاتصال بالـ API: {e}"
+    
+    context = {
+        'valve': valve_data,
+        'maintenance_records': maintenance_records,
+        'spare_parts': spare_parts, # حتى لو كانت فارغة حالياً، نمررها للقالب
+        'pk': pk,
+        'error': error_message
+    }    
+    return render(request, 'valves/valve_detail.html', context)
 
 @login_required
 def valve_create_frontend(request):
-    error_message = None # متغير جديد لتخزين رسالة الخطأ
-    if request.method == 'POST':
-        # API URL لإضافة بلف جديد
-        api_url = "http://127.0.0.1:8000/api/valves/"
-        
-        # جمع البيانات من الـ form
-        valve_data = {
-            'tag_number': request.POST.get('tag_number'),
-            'name': request.POST.get('name'),
-            'location': request.POST.get('location'),
-            'valve_type': request.POST.get('valve_type'),
-            'status': request.POST.get('status'),
-            'installation_date': request.POST.get('installation_date'),
-            'last_maintenance_date': request.POST.get('last_maintenance_date'),
-            'notes': request.POST.get('notes'),
-            'drawing_link': request.POST.get('drawing_link'),
-        }
-        try:
-            response = requests.post(api_url, data=valve_data)
-            response.raise_for_status()  # هيرفع HTTPError لو فيه مشكلة
-            return redirect('valve-list-frontend')
-        
-        except requests.exceptions.HTTPError as err:
-            # هنا بنتعامل مع أخطاء الـ API بالتحديد
-            if response.status_code == 400:
-                try:
-                    # بنحاول نجيب رسالة الخطأ من الـ JSON اللي الـ API بيرجعه
-                    error_details = response.json()
-                    error_message = f"خطأ في البيانات: {error_details}"
-                except ValueError:
-                    error_message = f"خطأ من الخادم (400): {response.text}"
-            else:
-                error_message = f"خطأ في HTTP: {err}"
-        
-        except requests.exceptions.RequestException as e:
-            error_message = f"خطأ في الاتصال: {e}"
-    
-    # بنعرض الـ form تاني وبنبعت معاها رسالة الخطأ
-    return render(request, 'valves/valve_create.html', {'error': error_message})
-# ... هتضيف الـ view بتاعت التعديل هنا بعدين
+    """
+    عرض نموذج إنشاء بلف جديد.
+    (تم تبسيط هذه الدالة لتعتمد على JavaScript في القالب لإرسال البيانات عبر API POST).
+    """
+    context = {
+        'title': 'إضافة بلف جديد',
+        'is_edit': False,
+        'pk': None 
+    }
+    # هنا يتم عرض القالب الذي يحتوي على منطق الـ API في JavaScript
+    return render(request, 'valves/valve_form.html', context)
+
+
 @login_required
 def valve_update_frontend(request, pk):
-    # View فارغة لصفحة التعديل
-    # بعدين هنحط هنا كود تعديل بلف
-    return render(request, 'valves/valve_update.html') # أو redirect مؤقتاً
+    """
+    عرض نموذج تعديل بلف موجود.
+    (تم تبسيط هذه الدالة لتعتمد على JavaScript في القالب لجلب البيانات وإرسال التعديلات عبر API PUT).
+    """
+    context = {
+        'title': f'تعديل البلف رقم {pk}',
+        'is_edit': True,
+        'pk': pk # تمرير المفتاح الرئيسي لتشغيل منطق الجلب والتعديل في JavaScript
+    }
+    # هنا يتم عرض القالب الذي يحتوي على منطق الـ API في JavaScript
+    return render(request, 'valves/valve_form.html', context)
+
+@login_required
+def spare_part_form_frontend(request, pk=None):
+    """
+    Handles the frontend form for creating or updating a Spare Part.
+    It fetches or sends data to the internal API endpoints.
+    """
+    api_base_url = request.build_absolute_uri('/valves/api/spare-parts/')
+    is_update = pk is not None
+    part_data = None
+    error_message = None
+
+    # 1. GET request: Fetch existing data for update
+    if is_update:
+        api_detail_url = f'{api_base_url}{pk}/'
+        try:
+            response = requests.get(api_detail_url)
+            response.raise_for_status()
+            part_data = response.json()
+        except requests.exceptions.RequestException as err:
+            error_message = f"فشل في جلب بيانات قطعة الغيار: {err}"
+            messages.error(request, error_message)
+
+    # 2. POST request: Handle form submission (Create or Update)
+    if request.method == 'POST':
+        form_data = {
+            'part_number': request.POST.get('part_number'),
+            'name': request.POST.get('name'),
+            'description': request.POST.get('description'),
+            'quantity_in_stock': request.POST.get('quantity_in_stock'),
+            'min_stock_level': request.POST.get('min_stock_level'),
+            'unit_of_measure': request.POST.get('unit_of_measure'),
+        }
+
+        try:
+            if is_update:
+                # PUT for update
+                response = requests.put(api_detail_url, json=form_data)
+                action_text = "تعديل"
+            else:
+                # POST for create
+                response = requests.post(api_base_url, json=form_data)
+                action_text = "إضافة"
+
+            response.raise_for_status()
+
+            # في حالة النجاح
+            messages.success(request, f"تم {action_text} قطعة الغيار بنجاح!")
+            if not is_update:
+                # بعد الإضافة، إعادة توجيه إلى صفحة القائمة
+                return redirect('valves:spare-part-list-frontend')
+            else:
+                # في حالة التعديل، قم بتحديث البيانات المعروضة
+                part_data = response.json()
+
+        except requests.exceptions.HTTPError as err:
+            # معالجة أخطاء الـ API (مثل 400 Bad Request)
+            error_details = response.json() if response.status_code == 400 else str(err)
+            error_message = f"فشل في {action_text} قطعة الغيار: {error_details}"
+            messages.error(request, error_message)
+        except requests.exceptions.RequestException as err:
+            error_message = f"خطأ في الاتصال بالـ API: {err}"
+            messages.error(request, error_message)
+
+    context = {
+        'part': part_data,
+        'pk': pk,
+        'is_update': is_update,
+        'error': error_message
+    }
+    return render(request, 'valves/spare_part_form.html', context)
+
+
 
 @login_required
 def maintenance_history_frontend(request):
@@ -195,14 +297,143 @@ def part_code_list_frontend(request):
 
 @login_required
 def valve_delete_frontend(request, pk):
-    if request.method == 'POST':
-        api_url = request.build_absolute_uri(f'/api/valves/{pk}/')
+    """
+    التعامل مع طلب حذف بلف معين عبر الـ API (DELETE).
+    الصفحة دي تعرض نموذج تأكيد الحذف.
+    """
+    api_detail_url = request.build_absolute_uri(f'/valves/api/valves/{pk}/')
+    
+    # 1. في حالة طلب GET: بنعرض صفحة تأكيد الحذف
+    if request.method == 'GET':
+        valve_data = {}
         try:
-            # هنا بنبعت طلب DELETE للـ API عشان يمسح البلف
-            response = requests.delete(api_url)
-            response.raise_for_status() # عشان نتحقق من نجاح العملية
-            messages.success(request, 'تم حذف البلف بنجاح.')
+            # بنجيب البيانات بس عشان نعرض اسم البلف في رسالة التأكيد
+            response = requests.get(api_detail_url)
+            response.raise_for_status() 
+            valve_data = response.json()
         except requests.exceptions.RequestException as e:
-            messages.error(request, f'حدث خطأ أثناء حذف البلف: {e}')
-        
-    return redirect('valve-list-frontend')
+            messages.error(request, f"خطأ: فشل جلب بيانات البلف رقم {pk}. {e}")
+            return redirect('valves:valve-list-frontend')
+            
+        context = {
+            'valve': valve_data,
+            'pk': pk
+        }
+        return render(request, 'valves/valve_confirm_delete.html', context)
+
+    # 2. في حالة طلب POST: بننفذ عملية الحذف
+    elif request.method == 'POST':
+        try:
+            response = requests.delete(api_detail_url)
+            # 204 No Content هو الرد الطبيعي للحذف الناجح
+            if response.status_code == 204:
+                messages.success(request, f"تم حذف البلف رقم {pk} بنجاح.")
+            else:
+                response.raise_for_status() # لو فيه أي خطأ تاني (4xx, 5xx)
+            
+            # التوجيه لقائمة البلوف بعد الحذف
+            return redirect('valves:valve-list-frontend')
+            
+        except requests.exceptions.HTTPError as err:
+            messages.error(request, f"خطأ في الحذف: البلف رقم {pk} لم يتم حذفه. {err}")
+        except requests.exceptions.RequestException as e:
+            messages.error(request, f"خطأ في الاتصال بالشبكة أثناء محاولة الحذف: {e}")
+            
+        # لو فشل الحذف، نرجع لصفحة القائمة
+        return redirect('valves:valve-list-frontend')
+
+
+@login_required
+def part_code_form_frontend(request, pk=None):
+    """
+    Handles the frontend form for creating or updating a Part Code.
+    It fetches or sends data to the internal API endpoints.
+    """
+    api_base_url = request.build_absolute_uri('/valves/api/part-codes/')
+    is_update = pk is not None
+    code_data = None
+    error_message = None
+
+    if is_update:
+        api_detail_url = f'{api_base_url}{pk}/'
+        # 1. GET request for existing data
+        try:
+            response = requests.get(api_detail_url)
+            response.raise_for_status()
+            code_data = response.json()
+        except requests.exceptions.HTTPError as err:
+            error_message = f"فشل في جلب بيانات كود القطعة: {err}"
+            messages.error(request, error_message)
+        except requests.exceptions.RequestException as err:
+            error_message = f"خطأ في الاتصال بالـ API: {err}"
+            messages.error(request, error_message)
+
+    if request.method == 'POST':
+        # 2. POST/PUT request for form submission
+        form_data = {
+            'code_number': request.POST.get('code_number'),
+            'description': request.POST.get('description'),
+            'standard_unit': request.POST.get('standard_unit'),
+            'associated_valve': request.POST.get('associated_valve'), # يجب التأكد أن هذا يمرر ID
+        }
+
+        try:
+            if is_update:
+                # PUT for update
+                response = requests.put(api_detail_url, json=form_data)
+                action_text = "تعديل"
+            else:
+                # POST for create
+                response = requests.post(api_base_url, json=form_data)
+                action_text = "إضافة"
+            
+            response.raise_for_status()
+            
+            # في حالة النجاح
+            messages.success(request, f"تم {action_text} كود القطعة بنجاح!")
+            if not is_update:
+                 # بعد الإضافة، إعادة توجيه إلى صفحة القائمة أو التفاصيل
+                return redirect('valves:part-code-list-frontend')
+            else:
+                # في حالة التعديل، قم بتحديث البيانات المعروضة
+                code_data = response.json()
+
+
+        except requests.exceptions.HTTPError as err:
+            # معالجة أخطاء الـ API (مثل 400 Bad Request)
+            error_message = f"فشل في {action_text} كود القطعة: {response.text}"
+            messages.error(request, error_message)
+        except requests.exceptions.RequestException as err:
+            error_message = f"خطأ في الاتصال بالـ API: {err}"
+            messages.error(request, error_message)
+    UNIT_CHOICES = ['Piece', 'Meter', 'KG', 'Liter']
+    context = {
+        'code': code_data,
+        'pk': pk,
+        'is_update': is_update,
+        'unit_choices': UNIT_CHOICES,
+        # 'valve_choices': [قائمة بالبلوف للمساعدة في تحديد البلف المرتبط]
+    }
+    return render(request, 'valves/part_code_form.html', context)
+
+@login_required
+def maintenance_form_frontend(request, pk=None):
+    """
+    عرض نموذج إنشاء أو تعديل سجل صيانة (Maintenance Record Form).
+    
+    الهدف: عرض النموذج وتجهيز البيانات الأولية للبلف إذا كان وضع إنشاء جديد.
+    """
+    context = {
+        'pk': pk,
+        'title': 'إضافة سجل صيانة جديد' if pk is None else 'تعديل سجل صيانة',
+        'is_edit': pk is not None
+    }
+
+    # إذا كان المستخدم قادماً من صفحة تفاصيل البلف (للإنشاء)
+    if 'valve_id' in request.GET and pk is None:
+         # هنا يجب أن نستخدم valve_id لطلب بيانات البلف من الـ API 
+         # وتمريرها للقالب كبيانات أولية (سنقوم بتنفيذ هذا لاحقاً).
+         context['initial_valve_id'] = request.GET.get('valve_id')
+
+    # حالياً، نعرض القالب فقط لحل مشكلة ImportError
+    return render(request, 'valves/maintenance_form.html', context)

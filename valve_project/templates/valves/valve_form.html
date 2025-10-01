@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+<div class="row justify-content-center">
+<div class="col-lg-10 col-xl-8">
+<div class="card shadow-lg border-primary">
+<div class="card-header bg-primary text-white">
+<h4 class="mb-0 text-center"><i class="fas fa-industry me-2"></i> {{ title }}</h4>
+</div>
+<div class="card-body p-4">
+<!-- Form for Valve Data -->
+<form id="valveForm" class="row g-3">
+{% csrf_token %}
+<!-- Hidden field for method override (for PUT requests in API) -->
+<input type="hidden" name="_method" id="methodOverride" value="{{ is_edit|yesno:'PUT,POST' }}">
+
+            <div class="col-md-6">
+                <label for="tagNumber" class="form-label">رقم العلامة (Tag Number) <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="tagNumber" name="tag_number" required>
+                <div class="invalid-feedback" id="tagNumberError"></div>
+            </div>
+            <div class="col-md-6">
+                <label for="name" class="form-label">الاسم أو الوصف القصير <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="name" name="name" required>
+                <div class="invalid-feedback" id="nameError"></div>
+            </div>
+
+            <div class="col-md-6">
+                <label for="location" class="form-label">الموقع/الوحدة <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="location" name="location" required>
+                <div class="invalid-feedback" id="locationError"></div>
+            </div>
+
+            <div class="col-md-6">
+                <label for="valveType" class="form-label">نوع البلف</label>
+                <select class="form-select" id="valveType" name="valve_type">
+                    <option value="" selected>اختر النوع...</option>
+                    <option value="Globe">بلف كروي (Globe)</option>
+                    <option value="Gate">بلف بوابة (Gate)</option>
+                    <option value="Ball">بلف كروي (Ball)</option>
+                    <option value="Check">بلف فحص (Check)</option>
+                    <option value="Butterfly">بلف فراشة (Butterfly)</option>
+                    <option value="Relief">بلف تنفيس (Relief)</option>
+                    <option value="Control">بلف تحكم (Control)</option>
+                </select>
+                <div class="invalid-feedback" id="valveTypeError"></div>
+            </div>
+
+            <div class="col-md-6">
+                <label for="manufacturer" class="form-label">الشركة المصنعة</label>
+                <input type="text" class="form-control" id="manufacturer" name="manufacturer">
+            </div>
+            <div class="col-md-6">
+                <label for="modelNumber" class="form-label">رقم الموديل</label>
+                <input type="text" class="form-control" id="modelNumber" name="model_number">
+            </div>
+
+            <div class="col-md-6">
+                <label for="installationDate" class="form-label">تاريخ التركيب</label>
+                <input type="date" class="form-control" id="installationDate" name="installation_date">
+            </div>
+
+            <div class="col-md-6">
+                <label for="status" class="form-label">الحالة الحالية</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="Good">جيدة</option>
+                    <option value="Fair">مقبولة</option>
+                    <option value="Needs Maintenance">تحتاج صيانة</option>
+                    <option value="Critical">حرجة</option>
+                </select>
+            </div>
+            
+            <div class="col-12">
+                <label for="notes" class="form-label">ملاحظات إضافية</label>
+                <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+            </div>
+            
+            <div class="col-12">
+                <label for="drawingLink" class="form-label">رابط الرسم الهندسي (إذا وجد)</label>
+                <input type="url" class="form-control" id="drawingLink" name="drawing_link">
+            </div>
+
+            <!-- Error and Success Messages -->
+            <div class="col-12">
+                <div id="messageBox" class="mt-3" style="display: none;"></div>
+            </div>
+
+            <!-- Form Buttons -->
+            <div class="col-12 d-flex justify-content-between pt-3">
+                <a href="{% url 'valves:valve-list-frontend' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i> إلغاء والعودة
+                </a>
+                <button type="submit" id="submitButton" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> حفظ البلف
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+const form = document.getElementById('valveForm');
+const messageBox = document.getElementById('messageBox');
+const submitButton = document.getElementById('submitButton');
+
+// تعريف مسار قائمة البلوف بشكل نظيف كمسار مطلق، لضمان عدم وجود شُرَط مائلة زائدة
+const VALVE_LIST_URL = '/valves/';
+
+// API endpoint setup
+const pk = {{ pk|default:'null'|safe }};
+const API_URL_BASE = '/valves/api/valves/';
+const isEdit = pk !== null;
+const endpoint = isEdit ? ${API_URL_BASE}${pk}/ : API_URL_BASE;
+
+// --- Utility Functions ---
+
+/**
+
+Shows a message in the designated message box.
+
+@param {string} message - The message content.
+
+@param {string} type - 'success', 'danger', or 'warning'.
+*/
+function showMessage(message, type) {
+messageBox.style.display = 'block';
+messageBox.className = mt-3 alert alert-${type};
+messageBox.innerHTML = message;
+}
+
+/**
+
+Clears previous validation errors.
+*/
+function clearErrors() {
+document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+messageBox.style.display = 'none';
+}
+
+/**
+
+Applies validation errors to form fields.
+
+@param {object} errors - Object containing field names and error messages.
+*/
+function applyErrors(errors) {
+clearErrors();
+for (const field in errors) {
+// Convert Django field names (snake_case) to JS element IDs (camelCase if needed, but here we use name attribute)
+const input = document.querySelector([name=&quot;${field}&quot;]);
+const errorDiv = document.getElementById(${field}Error);
+
+ if (input) {
+     input.classList.add(&#39;is-invalid&#39;);
+     if (errorDiv) {
+         // Display only the first error for simplicity
+         errorDiv.textContent = errors[field][0];
+     }
+ } else if (field === &#39;non_field_errors&#39; || field === &#39;detail&#39;) {
+     // Display general API errors
+     showMessage(errors[field], &#39;danger&#39;);
+ }
+
+}
+}
+
+// --- Data Fetching (For Edit Mode) ---
+
+/**
+
+Fetches valve data from the API and populates the form fields.
+*/
+async function loadValveData() {
+if (!isEdit) return; // Only run in edit mode
+
+try {
+const response = await fetch(endpoint, {
+headers: {
+'Accept': 'application/json',
+},
+});
+
+ if (!response.ok) {
+     throw new Error(`Failed to fetch valve data: ${response.statusText}`);
+ }
+
+ const valveData = await response.json();
+
+ // Populate form fields
+ document.getElementById(&#39;tagNumber&#39;).value = valveData.tag_number || &#39;&#39;;
+ document.getElementById(&#39;name&#39;).value = valveData.name || &#39;&#39;;
+ document.getElementById(&#39;location&#39;).value = valveData.location || &#39;&#39;;
+ document.getElementById(&#39;valveType&#39;).value = valveData.valve_type || &#39;&#39;;
+ document.getElementById(&#39;manufacturer&#39;).value = valveData.manufacturer || &#39;&#39;;
+ document.getElementById(&#39;modelNumber&#39;).value = valveData.model_number || &#39;&#39;;
+ document.getElementById(&#39;notes&#39;).value = valveData.notes || &#39;&#39;;
+ document.getElementById(&#39;drawingLink&#39;).value = valveData.drawing_link || &#39;&#39;;
+ document.getElementById(&#39;status&#39;).value = valveData.status || &#39;Good&#39;; 
+
+ // Handle date format (API returns YYYY-MM-DD, perfect for input type=&quot;date&quot;)
+ if (valveData.installation_date) {
+     document.getElementById(&#39;installationDate&#39;).value = valveData.installation_date;
+ }
+
+} catch (error) {
+console.error('Error loading valve data:', error);
+showMessage(حدث خطأ أثناء تحميل بيانات البلف: ${error.message}, 'danger');
+}
+}
+
+// Load data if in edit mode
+// We only call loadValveData if we are in edit mode.
+if (isEdit) {
+loadValveData();
+}
+
+// --- Form Submission ---
+
+form.addEventListener('submit', async function(e) {
+e.preventDefault();
+
+clearErrors();
+submitButton.disabled = true;
+submitButton.innerHTML = `&lt;span class=&quot;spinner-border spinner-border-sm&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; جارٍ الحفظ...`;
+
+const formData = new FormData(form);
+const data = Object.fromEntries(formData.entries());
+
+// Remove the method override from the actual payload
+delete data[&#39;_method&#39;];
+const method = document.getElementById(&#39;methodOverride&#39;).value;
+
+// Clean up empty strings for PUT requests to avoid sending nulls unnecessarily, 
+// though Django&#39;s API should handle it.
+if (method === &#39;PUT&#39;) {
+    for (const key in data) {
+        if (data[key] === &#39;&#39; || data[key] === null) {
+            delete data[key];
+        }
+    }
+}
+
+// Prepare headers and body
+const headers = {
+    &#39;Content-Type&#39;: &#39;application/json&#39;,
+    &#39;X-CSRFToken&#39;: formData.get(&#39;csrfmiddlewaretoken&#39;),
+};
+
+try {
+    const response = await fetch(endpoint, {
+        method: method,
+        headers: headers,
+        body: JSON.stringify(data),
+    });
+
+    const responseData = await response.json();
+
+    if (response.ok) {
+        showMessage(`تم ${isEdit ? &#39;تعديل&#39; : &#39;إضافة&#39;} البلف بنجاح!`, &#39;success&#39;);
+        
+        // Redirect logic
+        if (!isEdit) {
+            // *** تم التعديل لاستخدام window.location.replace لضمان إعادة توجيه أنظف ***
+            setTimeout(() =&gt; {
+                window.location.replace(VALVE_LIST_URL); 
+            }, 1500);
+        } else {
+            // Redirect to the updated valve&#39;s detail page (يظل كما هو للتعديل)
+            setTimeout(() =&gt; {
+                window.location.replace(`/valves/${pk}`); 
+            }, 1500);
+        }
+        
+    } else if (response.status === 400) {
+        // Validation error
+        applyErrors(responseData);
+        showMessage(&#39;يرجى تصحيح الأخطاء في النموذج.&#39;, &#39;danger&#39;);
+    } else {
+        // Other API error
+        showMessage(`حدث خطأ: ${responseData.detail || response.statusText}`, &#39;danger&#39;);
+    }
+
+} catch (error) {
+    console.error(&#39;Fetch Error:&#39;, error);
+    showMessage(`تعذر الاتصال بالخادم: ${error.message}`, &#39;danger&#39;);
+} finally {
+    submitButton.disabled = false;
+    submitButton.innerHTML = `&lt;i class=&quot;fas fa-save me-1&quot;&gt;&lt;/i&gt; حفظ البلف`;
+}
+
+});
+
+});
+</script>
+
+{% endblock %}

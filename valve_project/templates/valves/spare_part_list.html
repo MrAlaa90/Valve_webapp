@@ -1,9 +1,87 @@
-{% extends 'valves/base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}قائمة قطع الغيار{% endblock %}
 
 {% block content %}
-<h1>قائمة قطع الغيار</h1>
-{# هنا هتضيف الكود لعرض البيانات #}
-{% endblock %}
+
+<div class="row">
+<div class="col-12">
+<h1 class="display-5 text-center mb-4">
+<i class="fas fa-tools text-primary me-2"></i>
+إدارة قطع الغيار
+</h1>
+<p class="lead text-center text-muted">استعراض وإدارة جميع قطع الغيار المستخدمة في صيانة البلوف.</p>
+</div>
+</div>
+
+<div class="row mb-4">
+<div class="col-12 text-end">
+{# نفترض وجود مسار لإنشاء قطعة غيار جديدة #}
+<a href="{% url 'valves:spare-part-create-frontend' %}" class="btn btn-success shadow-sm">
+<i class="fas fa-plus me-1"></i> إضافة قطعة غيار جديدة
+</a>
+</div>
+</div>
+
+<div class="row">
+<div class="col-12">
+{% if spare_parts %}
+<div class="table-responsive bg-white rounded shadow-sm p-3">
+<table class="table table-hover table-striped">
+<thead class="table-dark">
+<tr>
+<th scope="col">#</th>
+<th scope="col">كود القطعة</th>
+<th scope="col">اسم القطعة</th>
+<th scope="col">المخزون (الكمية)</th>
+<th scope="col">السعر (ريال)</th>
+<th scope="col">إجراءات</th>
+</tr>
+</thead>
+<tbody>
+{% for part in spare_parts %}
+<tr>
+<th scope="row">{{ forloop.counter }}</th>
+<td>{{ part.part_code }}</td>
+<td>{{ part.name }}</td>
+<td>
+{% if part.quantity <= 5 %}
+<span class="badge bg-danger">{{ part.quantity }} (منخفض)</span>
+{% else %}
+<span class="badge bg-success">{{ part.quantity }}</span>
+{% endif %}
+</td>
+<td>{{ part.price|default:"N/A" }}</td>
+<td>
+{# نفترض وجود مسار لتفاصيل أو تعديل القطعة باستخدام الـ ID #}
+<a href="{% url 'valves:spare-part-detail-frontend' pk=part.id %}" class="btn btn-sm btn-info text-white me-2" title="تفاصيل/تعديل">
+<i class="fas fa-edit"></i>
+</a>
+<a href="#" class="btn btn-sm btn-danger" title="حذف"
+onclick="return confirm('هل أنت متأكد من حذف قطعة الغيار: {{ part.name }}؟');">
+<i class="fas fa-trash-alt"></i>
+</a>
+</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="6" class="text-center">لا توجد قطع غيار مسجلة بعد.</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<div class="alert alert-warning text-center shadow-sm" role="alert">
+<h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i> لا توجد بيانات</h4>
+<p>يرجى إضافة قطعة غيار جديدة للبدء في إدارة المخزون.</p>
+<hr>
+<a href="{% url 'valves:spare-part-create-frontend' %}" class="btn btn-warning">
+<i class="fas fa-plus me-1"></i> إضافة أول قطعة غيار
+</a>
+</div>
+{% endif %}
+</div>
+</div>
+{% endblock content %}

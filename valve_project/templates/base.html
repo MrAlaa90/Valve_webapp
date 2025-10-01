@@ -13,9 +13,7 @@
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <button class="btn btn-secondary me-2" id="theme-toggle">
-            <i class="fas fa-sun"></i>
-        </button>
+        
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'home' %}">نظام إدارة البلوف</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,19 +22,24 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="{% url 'home' %}">الرئيسية</a>
+                    <a class="nav-link" href="{% url 'valves:valve-list-frontend' %}">البلوف</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'valve-list-frontend' %}">البلوف</a>
+                    <a class="nav-link" href="{% url 'valves:maintenance-history-frontend' %}">سجل الصيانة</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'maintenance-history-frontend' %}">سجل الصيانة</a>
+                    <a class="nav-link" href="{% url 'valves:spare-part-list-frontend' %}">قطع الغيار</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">التقارير</a>
+                    <a class="nav-link" href="{% url 'valves:part-code-list-frontend' %}">أكواد القطع</a>
                 </li>
             </ul>
             <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <button id="theme-toggle" class="btn btn-outline-light">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">

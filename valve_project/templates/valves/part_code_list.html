@@ -1,9 +1,88 @@
-{% extends 'valves/base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}قائمة أكواد القطع{% endblock %}
 
 {% block content %}
-<h1>قائمة أكواد القطع</h1>
-{# هنا هتضيف الكود لعرض البيانات #}
-{% endblock %}
+
+<div class="row">
+<div class="col-12">
+<h1 class="display-5 text-center mb-4">
+<i class="fas fa-barcode text-secondary me-2"></i>
+أكواد القطع المعيارية
+</h1>
+<p class="lead text-center text-muted">إدارة الأكواد التعريفية لقطع الغيار المختلفة (مثل نوع القطعة والوصف القياسي).</p>
+</div>
+</div>
+
+<div class="row mb-4">
+<div class="col-12 text-end">
+{# نفترض وجود مسار لإنشاء كود قطعة جديد #}
+<a href="{% url 'valves:part-code-create-frontend' %}" class="btn btn-success shadow-sm">
+<i class="fas fa-plus me-1"></i> إضافة كود قطعة جديد
+</a>
+</div>
+</div>
+
+<div class="row">
+<div class="col-12">
+{% if part_codes %}
+<div class="table-responsive bg-white rounded shadow-sm p-3">
+<table class="table table-hover table-striped">
+<thead class="table-dark">
+<tr>
+<th scope="col">#</th>
+<th scope="col">الكود التعريفي</th>
+<th scope="col">وصف الكود</th>
+<th scope="col">البلف المرتبط</th>
+<th scope="col">إجراءات</th>
+</tr>
+</thead>
+<tbody>
+{% for code in part_codes %}
+<tr>
+<th scope="row">{{ forloop.counter }}</th>
+<td class="font-monospace text-uppercase">{{ code.code_number }}</td>
+<td>{{ code.description }}</td>
+<td>
+{# نعرض اسم البلف المرتبط بالكود (إذا كان متوفراً) #}
+{% if code.associated_valve %}
+<a href="{% url 'valves:valve-detail-frontend' pk=code.associated_valve.id %}" class="text-primary fw-bold">
+{{ code.associated_valve.name }}
+</a>
+{% else %}
+<span class="text-muted">غير محدد</span>
+{% endif %}
+</td>
+<td>
+{# نفترض وجود مسار لتفاصيل أو تعديل الكود باستخدام الـ ID #}
+<a href="{% url 'valves:part-code-detail-frontend' pk=code.id %}" class="btn btn-sm btn-info text-white me-2" title="تفاصيل/تعديل">
+<i class="fas fa-edit"></i>
+</a>
+<a href="#" class="btn btn-sm btn-danger" title="حذف"
+onclick="return confirm('هل أنت متأكد من حذف كود القطعة: {{ code.code_number }}؟');">
+<i class="fas fa-trash-alt"></i>
+</a>
+</td>
+</tr>
+{% empty %}
+<tr>
+<td colspan="5" class="text-center">لا توجد أكواد قطع مسجلة بعد.</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<div class="alert alert-warning text-center shadow-sm" role="alert">
+<h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i> لا توجد بيانات</h4>
+<p>يرجى إضافة كود قطعة جديد للبدء في توثيق الأكواد القياسية.</p>
+<hr>
+<a href="{% url 'valves:part-code-create-frontend' %}" class="btn btn-warning">
+<i class="fas fa-plus me-1"></i> إضافة أول كود قطعة
+</a>
+</div>
+{% endif %}
+</div>
+</div>
+{% endblock content %}

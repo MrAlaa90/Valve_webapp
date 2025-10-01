@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+<div class="row justify-content-center">
+<div class="col-md-8">
+<div class="card shadow-lg border-success">
+<div class="card-header bg-success text-white">
+<h4 class="mb-0">{{ title }}</h4>
+</div>
+<div class="card-body">
+<div class="alert alert-info text-center">
+<i class="fas fa-hammer me-2"></i>
+<strong>مرحباً!</strong> هذه صفحة نموذج سجل الصيانة.
+
+
+
+
+
+سنقوم ببناء نموذج إدخال البيانات والتفاعل مع الـ API هنا في الخطوة القادمة.
+</div>
+
+                {% if pk %}
+                    <p class="text-center">أنت الآن في وضع **تعديل** السجل رقم: <code>{{ pk }}</code></p>
+                {% elif initial_valve_id %}
+                    <p class="text-center">أنت الآن في وضع **إنشاء** سجل للبلف رقم: <code>{{ initial_valve_id }}</code></p>
+                {% endif %}
+                
+                <div class="d-grid mt-4">
+                    <a href="{% url 'valves:valve-list-frontend' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> العودة إلى القائمة الرئيسية
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}

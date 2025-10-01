@@ -8,7 +8,7 @@
     <div class="col-12">
         <h1 class="mb-4 text-center">قائمة البلوف</h1>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="{% url 'valve-create' %}" class="btn btn-primary">إضافة بلف جديد</a> 
+            <a href="{% url 'valves:valve-create-frontend' %}" class="btn btn-primary">إضافة بلف جديد</a> 
             <div class="input-group w-25">
                 <input type="text" class="form-control" placeholder="بحث عن بلف..." aria-label="بحث عن بلف">
                 <button class="btn btn-outline-secondary" type="button">بحث</button>
@@ -44,9 +44,9 @@
                                             <td>{{ valve.installation_date|date:"Y-m-d" }}</td> {# تنسيق التاريخ #}
                                             <td>{{ valve.last_maintenance_date|date:"Y-m-d" }}</td> {# تنسيق التاريخ #}
                                             <td>
-                                                <a href="{% url 'valve-detail-frontend' pk=valve.pk %}" class="btn btn-info btn-sm">عرض</a>
-                                                <a href="{% url 'valve-update-frontend' pk=valve.pk %}" class="btn btn-warning btn-sm">تعديل</a>
-                                                <form action="{% url 'valve-delete-frontend' pk=valve.pk %}" method="post" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا البلف؟');">
+                                                <a href="{% url 'valves:valve-detail-frontend' pk=valve.valve_id %}" class="btn btn-info btn-sm">عرض</a>
+                                                <a href="{% url 'valves:valve-update-frontend' pk=valve.valve_id %}" class="btn btn-warning btn-sm">تعديل</a>
+                                                <form action="{% url 'valves:valve-delete-frontend' pk=valve.valve_id %}" method="post" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا البلف؟');">
                                                     {% csrf_token %}
                                                     <input type="hidden" name="_method" value="DELETE">
                                                     <button type="submit" class="btn btn-danger btn-sm">حذف</button>
@@ -57,7 +57,7 @@
                                     {% endfor %}
                                 {% else %}
                                     <tr>
-                                        <td colspan="8" class="text-center">لا توجد بلوف لعرضها حالياً. <a href="{% url 'valve-create' %}">أضف بلف جديد؟</a></td>
+                                        <td colspan="8" class="text-center">لا توجد بلوف لعرضها حالياً. <a href="{% url 'valves:valve-create-frontend' %}">أضف بلف جديد؟</a></td>
                                     </tr>
                                 {% endif %}
                         </tbody>

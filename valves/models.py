@@ -14,7 +14,7 @@ class Valve(models.Model):
     drawing_link = models.URLField(max_length=500, blank=True, null=True)
 
     def __str__(self):
-        return self.valve_id
+        return self.name
 
 # Spare part model 
 class SparePart(models.Model):

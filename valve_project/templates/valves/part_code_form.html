@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if is_update %}تعديل{% else %}إضافة{% endif %} كود قطعة{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center mt-5">
+<div class="col-md-7 col-lg-6">
+<div class="card shadow-lg border-0 rounded-3">
+<div class="card-header bg-secondary text-white text-center py-3">
+<h4 class="mb-0">
+<i class="fas fa-barcode me-2"></i>
+{% if is_update %}تعديل بيانات كود القطعة{% else %}إضافة كود قطعة جديد{% endif %}
+</h4>
+</div>
+<div class="card-body p-4">
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} text-center">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                {# حقل الكود التعريفي #}
+                <div class="mb-3">
+                    <label for="id_code_number" class="form-label fw-bold">الكود التعريفي (الرمز):</label>
+                    {# نفترض أن الـ View يمرر البيانات في متغير code #}
+                    <input type="text" class="form-control text-uppercase" id="id_code_number" name="code_number" 
+                           value="{{ code.code_number|default_if_none:'' }}" required 
+                           placeholder="مثال: GASKET-M8 أو PUMP-SEAL-01">
+                    <div class="form-text">يجب أن يكون رمزاً فريداً لتعريف نوع القطعة.</div>
+                </div>
+                
+                {# حقل الوصف #}
+                <div class="mb-3">
+                    <label for="id_description" class="form-label fw-bold">الوصف الكامل للكود:</label>
+                    <textarea class="form-control" id="id_description" name="description" rows="3" 
+                              placeholder="وصف تفصيلي لقطعة الغيار التي يمثلها هذا الكود">{{ code.description|default_if_none:'' }}</textarea>
+                </div>
+
+                {# حقل الوحدة القياسية #}
+                <div class="mb-3">
+                    <label for="id_standard_unit" class="form-label fw-bold">الوحدة القياسية:</label>
+                    {# يمكن استخدام قائمة خيارات ثابتة أو يتم جلبها من الـ View #}
+                    <select class="form-select" id="id_standard_unit" name="standard_unit" required>
+                        <option value="">-- اختر وحدة قياس --</option>
+                        {% with code.standard_unit|default_if_none:'' as current_unit %}
+                            {% for unit_choice in unit_choices %}
+                                <option value="{{ unit_choice }}" 
+                                    {% if current_unit == unit_choice %}selected{% endif %}>
+                                    {{ unit_choice }}
+                                </option>
+                            {% endfor %}
+                        {% endwith %}
+                    </select>
+                    <div class="form-text">الوحدة التي يتم بها عد أو قياس هذه القطعة.</div>
+                </div>
+
+                {# حقل البلف المرتبط (لتضييق النطاق) #}
+                <div class="mb-3">
+                    <label for="id_associated_valve" class="form-label fw-bold">البلف المرتبط (اختياري/عام):</label>
+                    {# نفترض تمرير قائمة البلوف كـ valve_choices #}
+                    <select class="form-select" id="id_associated_valve" name="associated_valve">
+                        <option value="">-- عام (ينطبق على جميع البلوف) --</option>
+                        {# مثال افتراضي: يجب استبداله بـ for loop على valve_choices #}
+                        {% comment %}
+                        {% for valve_choice in valve_choices %}
+                            <option value="{{ valve_choice.id }}" 
+                                {% if code.associated_valve.id == valve_choice.id %}selected{% endif %}>
+                                {{ valve_choice.name }} - {{ valve_choice.tag_number }}
+                            </option>
+                        {% endfor %}
+                        {% endcomment %}
+                    </select>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-save me-2"></i>
+                        {% if is_update %}حفظ التعديلات{% else %}إضافة الكود{% endif %}
+                    </button>
+                    <a href="{% url 'valves:part-code-list-frontend' %}" class="btn btn-outline-secondary mt-2">
+                        إلغاء والعودة للقائمة
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock content %}
