@@ -1,11 +1,191 @@
-from .forms import ValveForm # استيراد الفورم الجديد
-from django.contrib import messages # عشان نظهر رسائل للمستخدم
+from django.contrib import messages # To show messages to the user
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.views import LoginView
 from rest_framework import generics
-from .models import Valve, SparePart, PartCode, MaintenanceHistory, MaintenancePart
-from .serializers import ValveSerializer, SparePartSerializer, PartCodeSerializer, MaintenanceHistorySerializer, MaintenancePartSerializer
-import requests
+from django_filters.rest_framework import DjangoFilterBackend # Added
+from .models import (
+    Valve, PartCode, MaintenanceHistory, MaintenancePart,
+    Factory, ValveStatus, Shutdown, ValveType, Manufacturer
+)
+from .serializers import ValveSerializer, PartCodeSerializer, MaintenanceHistorySerializer, MaintenancePartSerializer
+from .forms import ShutdownReportForm, MaintenanceHistoryForm
+from django.core.paginator import Paginator
+from django.db.models import Q
+from .filters import PartCodeFilter # Added
+from django.template.defaultfilters import slugify
+
+class CustomLoginView(LoginView):
+    template_name = 'registration/login.html' # Make sure this template exists
+    redirect_authenticated_user = True
+
+@login_required
+def valve_detail_frontend(request, pk):
+    """
+    Display detailed information about a specific valve, including its maintenance history,
+    spare parts, and related documents.
+    """
+    valve = get_object_or_404(
+        Valve.objects.select_related(
+            'valve_type', 'status', 'manufacturer', 'factory'
+        ).prefetch_related(
+            'images',
+            'maintenance_records',
+            'part_codes'
+        ), 
+        pk=pk
+    )
+    
+    # Get maintenance records ordered by date
+    maintenance_records = valve.maintenance_records.all().order_by('-maintenance_date')
+    
+    # Get associated part codes
+    part_codes = valve.part_codes.all()
+    
+    context = {
+        'valve': valve,
+        'maintenance_records': maintenance_records,
+        'part_codes': part_codes,
+    }
+    return render(request, 'valves/valve_detail.html', context)
+
+@login_required
+def valve_create_frontend(request):
+    """
+    Handle creation of a new valve through the frontend interface.
+    GET: Display the valve creation form
+    POST: Process the submitted form and create a new valve
+    """
+    if request.method == 'POST':
+        # Extract form data
+        tag_number = request.POST.get('tag_number')
+        name = request.POST.get('name')
+        serial_number = request.POST.get('serial_number')
+        valve_type_id = request.POST.get('valve_type')
+        status_id = request.POST.get('status')
+        manufacturer_id = request.POST.get('manufacturer')
+        factory_id = request.POST.get('factory')
+        location = request.POST.get('location')
+        description = request.POST.get('description')
+
+        try:
+            # Create new valve object
+            valve = Valve.objects.create(
+                tag_number=tag_number,
+                name=name,
+                serial_number=serial_number,
+                valve_type_id=valve_type_id,
+                status_id=status_id,
+                manufacturer_id=manufacturer_id,
+                factory_id=factory_id,
+                location=location,
+                description=description
+            )
+            messages.success(request, f'Valve {valve.tag_number} was created successfully.')
+            return redirect('valve-detail-frontend', pk=valve.pk)
+        except Exception as e:
+            messages.error(request, f'Error creating valve: {str(e)}')
+            return redirect('valve-create-frontend')
+
+    # For GET requests, prepare the form context
+    context = {
+        'valve_types': ValveType.objects.all().order_by('name'),
+        'statuses': ValveStatus.objects.all().order_by('name'),
+        'manufacturers': Manufacturer.objects.all().order_by('name'),
+        'factories': Factory.objects.all().order_by('name'),
+    }
+    return render(request, 'valves/valve_form.html', context)
+
+@login_required
+def valve_list_frontend(request):
+    """
+    Handles the frontend display of a list of valves with filtering, searching, and pagination.
+    """
+    valves_list = Valve.objects.select_related('valve_type', 'status', 'manufacturer', 'factory').all().order_by('tag_number')
+    
+    factories = Factory.objects.all().order_by('name')
+    statuses = ValveStatus.objects.all().order_by('name')
+
+    selected_factory_slug = request.GET.get('factory', '')
+    selected_status = request.GET.get('status', '')
+    search_query = request.GET.get('q', '')
+    
+    # Filtering
+    if selected_factory_slug:
+        try:
+            # Find the factory by its slugified name
+            factory_obj = next(f for f in factories if slugify(f.name) == selected_factory_slug)
+            valves_list = valves_list.filter(factory=factory_obj)
+        except StopIteration:
+            # Handle case where slug doesn't match any factory
+            pass
+            
+    if selected_status:
+        valves_list = valves_list.filter(status__name=selected_status)
+
+    # Searching
+    if search_query:
+        valves_list = valves_list.filter(
+            Q(tag_number__icontains=search_query) |
+            Q(name__icontains=search_query) |
+            Q(valve_type__name__icontains=search_query) |
+            Q(location__icontains=search_query)
+        )
+
+    # Pagination
+    paginator = Paginator(valves_list, 15)  # Show 15 valves per page
+    page_number = request.GET.get('page')
+    valves = paginator.get_page(page_number)
+
+    context = {
+        'valves': valves,
+        'factories': factories,
+        'statuses': statuses,
+        'selected_factory': selected_factory_slug,
+        'selected_status': selected_status,
+        'search_query': search_query,
+    }
+    return render(request, 'valves/valve_list.html', context)
+
+@login_required
+def home(request):
+    """
+    View for the home page, displaying dashboard with valve statistics.
+    """
+    try:
+        factories = Factory.objects.all()
+        main_factories = []
+        zld_factory = None
+        
+        for factory in factories:
+            factory_valves = Valve.objects.filter(factory=factory)
+            factory.total_valves = factory_valves.count()
+            factory.operational_valves = factory_valves.filter(status__name='Operational').count()
+            factory.needs_maintenance_valves = factory_valves.filter(status__name='Needs Maintenance').count()
+            
+            if 'ZLD' in factory.name.upper():
+                zld_factory = factory
+            else:
+                main_factories.append(factory)
+
+        recent_maintenance = MaintenanceHistory.objects.all().order_by('-maintenance_date')[:5]
+        recent_valves = Valve.objects.all().order_by('-valve_id')[:5]
+
+    except Exception as e:
+        messages.error(request, f"Error loading dashboard data: {str(e)}")
+        main_factories = []
+        zld_factory = None
+        recent_maintenance = []
+        recent_valves = []
+
+    context = {
+        'main_factories': main_factories,
+        'zld_factory': zld_factory,
+        'recent_maintenance': recent_maintenance,
+        'recent_valves': recent_valves,
+    }
+    return render(request, 'valves/home.html', context)
+
 class ValveList(generics.ListCreateAPIView):
     queryset = Valve.objects.all()
     serializer_class = ValveSerializer
@@ -14,17 +194,14 @@ class ValveDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Valve.objects.all()
     serializer_class = ValveSerializer
 
-class SparePartList(generics.ListCreateAPIView):
-    queryset = SparePart.objects.all()
-    serializer_class = SparePartSerializer
 
-class SparePartDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = SparePart.objects.all()
-    serializer_class = SparePartSerializer
+
 
 class PartCodeList(generics.ListCreateAPIView):
     queryset = PartCode.objects.all()
     serializer_class = PartCodeSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PartCodeFilter
 
 class PartCodeDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = PartCode.objects.all()
@@ -46,394 +223,272 @@ class MaintenancePartDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = MaintenancePart.objects.all()
     serializer_class = MaintenancePartSerializer 
 
-
-
-
-def home(request):
-    """
-    View for the home page, including statistics about the valves.
-    """
-    try:
-        total_valves = Valve.objects.count()
-        # نفترض أن لديك حالات مثل 'Needs Maintenance' و 'Operational' في نموذج Valve
-        # قم بتعديل هذه القيم لتطابق القيم الفعلية في حقل 'status' لديك
-        needs_maintenance_valves = Valve.objects.filter(status='Needs Maintenance').count()
-        operational_valves = Valve.objects.filter(status='Operational').count()
-    except Exception:
-        # في حالة حدوث أي خطأ، نعرض أصفارًا كقيم افتراضية
-        total_valves = needs_maintenance_valves = operational_valves = 0
-        messages.warning(request, "لم يتم تحميل الإحصائيات بشكل صحيح.")
-    context = {
-        'total_valves': total_valves,
-        'needs_maintenance_valves': needs_maintenance_valves,
-        'operational_valves': operational_valves,
-    }
-    return render(request, 'valves/home.html', context)
 @login_required
-def valve_list_frontend(request):
-      # هنا هنجلب البيانات من الـ API الخاص بينا
-    api_url = request.build_absolute_uri('/valves/api/valves/') # بناء رابط الـ API بشكل صحيح
-    try:
-        response = requests.get(api_url)
-        response.raise_for_status() # عشان يرمي استثناء لو فيه خطأ في الرد (4xx أو 5xx)
-        valves_data = response.json() # تحويل الرد إلى JSON
-    except requests.exceptions.RequestException as e:
-        messages.error(request, f'حدث خطأ أثناء جلب بيانات البلوف: {e}')
-        valves_data = [] # لو فيه خطأ، نعرض قائمة فارغة
+def maintenance_form_frontend(request, pk=None):
+    """
+    View for creating and updating maintenance records.
+    """
+    if pk:
+        # Update an existing record
+        record = get_object_or_404(MaintenanceHistory, pk=pk)
+        form = MaintenanceHistoryForm(request.POST or None, request.FILES or None, instance=record)
+        title = "Update Maintenance Record"
+    else:
+        # Create a new record
+        record = None
+        form = MaintenanceHistoryForm(request.POST or None, request.FILES or None)
+        title = "Create New Maintenance Record"
 
-    context = {
-        'valves': valves_data # نمرر البيانات للقالب
-    }
-    return render(request, 'valves/valve_list.html', context)
-
-# @login_required
-# def valve_create(request):
-#     if request.method == 'POST':
-#         form = ValveForm(request.POST)
-#         if form.is_valid():
-#             form.save() # حفظ البلف الجديد في قاعدة البيانات
-#             messages.success(request, 'تمت إضافة البلف بنجاح!') # رسالة نجاح
-#             return redirect('valve-list-frontend') # ارجع لقائمة البلوف بعد الحفظ
-#         else:
-#             messages.error(request, 'حدث خطأ. يرجى مراجعة البيانات المدخلة.') # رسالة خطأ
-#     else:
-#         form = ValveForm() # لو طلب الصفحة لأول مرة، اعرض فورم فاضي
-#     return render(request, 'valves/valve_create.html', {'form': form})
-
-@login_required # لو المستخدم لازم يكون مسجل دخول عشان يشوف التفاصيل
-def valve_detail_frontend(request, pk):
-    # ده API بتاعك اللي بيجيب بيانات بلف واحد بالـ pk بتاعه
-    # api_url = f"http://127.0.0.1:8000/api/valves/{pk}/"
-    api_url = request.build_absolute_uri(f'/valves/api/valves/{pk}/')
-    valve_data = None
-    maintenance_records = []
-    spare_parts = []
-    error_message = None
-    try:
-        response = requests.get(api_url)
-        response.raise_for_status() # هيرفع HTTPError لو الـ request فشلت
-        valve_data = response.json()
-
-        # بعد جلب بيانات البلف بنجاح، نجلب البيانات المرتبطة به
-        if valve_data:
-            # جلب سجلات الصيانة المرتبطة بالبلف
-            maintenance_api_url = request.build_absolute_uri(f'/valves/api/maintenance-history/?valve={pk}')
-            maintenance_response = requests.get(maintenance_api_url)
-            if maintenance_response.status_code == 200:
-                maintenance_records = maintenance_response.json()
-
-            # يمكنك إضافة منطق مشابه لجلب قطع الغيار المرتبطة هنا إذا كان الـ API يدعم ذلك
-            # spare_parts_api_url = request.build_absolute_uri(f'/api/spare-parts/?valve={pk}')
-            # ...
-
-    except requests.exceptions.HTTPError as err:
-        # التعامل مع خطأ 404 لو البلف مش موجود
-        if response.status_code == 404:
-            error_message = f"البلف برقم {pk} غير موجود."
+    if request.method == 'POST':
+        if form.is_valid():
+            instance = form.save()
+            messages.success(request, "Maintenance record saved successfully!")
+            return redirect('valves:maintenance-detail-frontend', pk=instance.pk)
         else:
-            error_message = f"خطأ في HTTP أثناء جلب البيانات: {err}"      
-    except requests.exceptions.RequestException as e:
-        error_message = f"خطأ في الاتصال بالـ API: {e}"
-    
-    context = {
-        'valve': valve_data,
-        'maintenance_records': maintenance_records,
-        'spare_parts': spare_parts, # حتى لو كانت فارغة حالياً، نمررها للقالب
-        'pk': pk,
-        'error': error_message
-    }    
-    return render(request, 'valves/valve_detail.html', context)
+            messages.error(request, "Please correct the errors below.")
 
-@login_required
-def valve_create_frontend(request):
-    """
-    عرض نموذج إنشاء بلف جديد.
-    (تم تبسيط هذه الدالة لتعتمد على JavaScript في القالب لإرسال البيانات عبر API POST).
-    """
     context = {
-        'title': 'إضافة بلف جديد',
-        'is_edit': False,
-        'pk': None 
+        'form': form,
+        'title': title,
+        'pk': pk
     }
-    # هنا يتم عرض القالب الذي يحتوي على منطق الـ API في JavaScript
-    return render(request, 'valves/valve_form.html', context)
-
+    return render(request, 'valves/maintenance_form.html', context)
 
 @login_required
 def valve_update_frontend(request, pk):
     """
-    عرض نموذج تعديل بلف موجود.
-    (تم تبسيط هذه الدالة لتعتمد على JavaScript في القالب لجلب البيانات وإرسال التعديلات عبر API PUT).
+    Handle updating an existing valve through the frontend interface.
     """
-    context = {
-        'title': f'تعديل البلف رقم {pk}',
-        'is_edit': True,
-        'pk': pk # تمرير المفتاح الرئيسي لتشغيل منطق الجلب والتعديل في JavaScript
-    }
-    # هنا يتم عرض القالب الذي يحتوي على منطق الـ API في JavaScript
-    return render(request, 'valves/valve_form.html', context)
-
-@login_required
-def spare_part_form_frontend(request, pk=None):
-    """
-    Handles the frontend form for creating or updating a Spare Part.
-    It fetches or sends data to the internal API endpoints.
-    """
-    api_base_url = request.build_absolute_uri('/valves/api/spare-parts/')
-    is_update = pk is not None
-    part_data = None
-    error_message = None
-
-    # 1. GET request: Fetch existing data for update
-    if is_update:
-        api_detail_url = f'{api_base_url}{pk}/'
-        try:
-            response = requests.get(api_detail_url)
-            response.raise_for_status()
-            part_data = response.json()
-        except requests.exceptions.RequestException as err:
-            error_message = f"فشل في جلب بيانات قطعة الغيار: {err}"
-            messages.error(request, error_message)
-
-    # 2. POST request: Handle form submission (Create or Update)
+    valve = get_object_or_404(Valve, pk=pk)
+    
     if request.method == 'POST':
-        form_data = {
-            'part_number': request.POST.get('part_number'),
-            'name': request.POST.get('name'),
-            'description': request.POST.get('description'),
-            'quantity_in_stock': request.POST.get('quantity_in_stock'),
-            'min_stock_level': request.POST.get('min_stock_level'),
-            'unit_of_measure': request.POST.get('unit_of_measure'),
-        }
-
         try:
-            if is_update:
-                # PUT for update
-                response = requests.put(api_detail_url, json=form_data)
-                action_text = "تعديل"
-            else:
-                # POST for create
-                response = requests.post(api_base_url, json=form_data)
-                action_text = "إضافة"
-
-            response.raise_for_status()
-
-            # في حالة النجاح
-            messages.success(request, f"تم {action_text} قطعة الغيار بنجاح!")
-            if not is_update:
-                # بعد الإضافة، إعادة توجيه إلى صفحة القائمة
-                return redirect('valves:spare-part-list-frontend')
-            else:
-                # في حالة التعديل، قم بتحديث البيانات المعروضة
-                part_data = response.json()
-
-        except requests.exceptions.HTTPError as err:
-            # معالجة أخطاء الـ API (مثل 400 Bad Request)
-            error_details = response.json() if response.status_code == 400 else str(err)
-            error_message = f"فشل في {action_text} قطعة الغيار: {error_details}"
-            messages.error(request, error_message)
-        except requests.exceptions.RequestException as err:
-            error_message = f"خطأ في الاتصال بالـ API: {err}"
-            messages.error(request, error_message)
-
-    context = {
-        'part': part_data,
-        'pk': pk,
-        'is_update': is_update,
-        'error': error_message
-    }
-    return render(request, 'valves/spare_part_form.html', context)
-
-
-
-@login_required
-def maintenance_history_frontend(request):
-    api_url = request.build_absolute_uri('/api/maintenance-history/')
-    try:
-        response = requests.get(api_url)
-        response.raise_for_status()
-        maintenance_data = response.json()
-    except requests.exceptions.RequestException as e:
-        messages.error(request, f'حدث خطأ أثناء جلب بيانات سجل الصيانة: {e}')
-        maintenance_data = []
-    context = {
-        'maintenance_history': maintenance_data
-    }
-    return render(request, 'valves/maintenance_history.html', context)
-
-# View لعرض قائمة قطع الغيار
-@login_required
-def spare_part_list_frontend(request):
-    api_url = request.build_absolute_uri('/api/spare-parts/')
-    try:
-        response = requests.get(api_url)
-        response.raise_for_status()
-        parts_data = response.json()
-    except requests.exceptions.RequestException as e:
-        messages.error(request, f'حدث خطأ أثناء جلب بيانات قطع الغيار: {e}')
-        parts_data = []
+            # Update valve data
+            valve.tag_number = request.POST.get('tag_number')
+            valve.name = request.POST.get('name')
+            valve.serial_number = request.POST.get('serial_number')
+            valve.valve_type_id = request.POST.get('valve_type')
+            valve.status_id = request.POST.get('status')
+            valve.manufacturer_id = request.POST.get('manufacturer')
+            valve.factory_id = request.POST.get('factory')
+            valve.location = request.POST.get('location')
+            valve.description = request.POST.get('description')
+            valve.save()
+            
+            messages.success(request, f'Valve {valve.tag_number} was updated successfully.')
+            return redirect('valve-detail-frontend', pk=valve.pk)
+        except Exception as e:
+            messages.error(request, f'Error updating valve: {str(e)}')
     
     context = {
-        'spare_parts': parts_data
+        'valve': valve,
+        'valve_types': ValveType.objects.all().order_by('name'),
+        'statuses': ValveStatus.objects.all().order_by('name'),
+        'manufacturers': Manufacturer.objects.all().order_by('name'),
+        'factories': Factory.objects.all().order_by('name'),
     }
-    return render(request, 'valves/spare_part_list.html', context)
-
-# View لعرض قائمة أكواد قطع الغيار
-@login_required
-def part_code_list_frontend(request):
-    api_url = request.build_absolute_uri('/api/part-codes/')
-    try:
-        response = requests.get(api_url)
-        response.raise_for_status()
-        codes_data = response.json()
-    except requests.exceptions.RequestException as e:
-        messages.error(request, f'حدث خطأ أثناء جلب بيانات أكواد القطع: {e}')
-        codes_data = []
-
-    context = {
-        'part_codes': codes_data
-    }
-    return render(request, 'valves/part_code_list.html', context)    
+    return render(request, 'valves/valve_form.html', context)
 
 @login_required
 def valve_delete_frontend(request, pk):
     """
-    التعامل مع طلب حذف بلف معين عبر الـ API (DELETE).
-    الصفحة دي تعرض نموذج تأكيد الحذف.
+    Handle deletion of a valve.
     """
-    api_detail_url = request.build_absolute_uri(f'/valves/api/valves/{pk}/')
+    valve = get_object_or_404(Valve, pk=pk)
     
-    # 1. في حالة طلب GET: بنعرض صفحة تأكيد الحذف
-    if request.method == 'GET':
-        valve_data = {}
+    if request.method == 'POST':
         try:
-            # بنجيب البيانات بس عشان نعرض اسم البلف في رسالة التأكيد
-            response = requests.get(api_detail_url)
-            response.raise_for_status() 
-            valve_data = response.json()
-        except requests.exceptions.RequestException as e:
-            messages.error(request, f"خطأ: فشل جلب بيانات البلف رقم {pk}. {e}")
-            return redirect('valves:valve-list-frontend')
-            
-        context = {
-            'valve': valve_data,
-            'pk': pk
-        }
-        return render(request, 'valves/valve_confirm_delete.html', context)
+            valve.delete()
+            messages.success(request, f'Valve {valve.tag_number} was deleted successfully.')
+            return redirect('valve-list-frontend')
+        except Exception as e:
+            messages.error(request, f'Error deleting valve: {str(e)}')
+            return redirect('valve-detail-frontend', pk=pk)
+    
+    context = {'valve': valve}
+    return render(request, 'valves/valve_confirm_delete.html', context)
 
-    # 2. في حالة طلب POST: بننفذ عملية الحذف
-    elif request.method == 'POST':
-        try:
-            response = requests.delete(api_detail_url)
-            # 204 No Content هو الرد الطبيعي للحذف الناجح
-            if response.status_code == 204:
-                messages.success(request, f"تم حذف البلف رقم {pk} بنجاح.")
-            else:
-                response.raise_for_status() # لو فيه أي خطأ تاني (4xx, 5xx)
-            
-            # التوجيه لقائمة البلوف بعد الحذف
-            return redirect('valves:valve-list-frontend')
-            
-        except requests.exceptions.HTTPError as err:
-            messages.error(request, f"خطأ في الحذف: البلف رقم {pk} لم يتم حذفه. {err}")
-        except requests.exceptions.RequestException as e:
-            messages.error(request, f"خطأ في الاتصال بالشبكة أثناء محاولة الحذف: {e}")
-            
-        # لو فشل الحذف، نرجع لصفحة القائمة
-        return redirect('valves:valve-list-frontend')
+@login_required
+def maintenance_history_frontend(request):
+    """
+    Display list of all maintenance records with filtering and pagination.
+    """
+    maintenance_list = MaintenanceHistory.objects.select_related(
+        'valve'
+    ).order_by('-maintenance_date')
+    
+    search_query = request.GET.get('q', '')
+    if search_query:
+        maintenance_list = maintenance_list.filter(
+            Q(valve__tag_number__icontains=search_query) |
+            Q(maintenance_type__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    
+    paginator = Paginator(maintenance_list, 15)
+    page_number = request.GET.get('page')
+    maintenance_records = paginator.get_page(page_number)
+    
+    context = {
+        'maintenance_records': maintenance_records,
+        'search_query': search_query,
+    }
+    return render(request, 'valves/maintenance_list.html', context)
 
+@login_required
+def maintenance_detail_frontend(request, pk):
+    """
+    Display detailed information about a specific maintenance record.
+    """
+    maintenance = get_object_or_404(
+        MaintenanceHistory.objects.select_related('valve'),
+        pk=pk
+    )
+    
+    context = {
+        'maintenance': maintenance,
+        'parts': maintenance.parts.all(),
+    }
+    return render(request, 'valves/maintenance_detail.html', context)
+
+@login_required
+def part_code_list_frontend(request):
+    """
+    Display list of all part codes with filtering and pagination.
+    """
+    part_codes_list = PartCode.objects.all().order_by('sap_code')
+    
+    search_query = request.GET.get('q', '')
+    if search_query:
+        part_codes_list = part_codes_list.filter(
+            Q(sap_code__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    
+    paginator = Paginator(part_codes_list, 15)
+    page_number = request.GET.get('page')
+    part_codes = paginator.get_page(page_number)
+    
+    context = {
+        'part_codes': part_codes,
+        'search_query': search_query,
+    }
+    return render(request, 'valves/part_code_list.html', context)
 
 @login_required
 def part_code_form_frontend(request, pk=None):
     """
-    Handles the frontend form for creating or updating a Part Code.
-    It fetches or sends data to the internal API endpoints.
+    Handle creation and updating of part codes.
     """
-    api_base_url = request.build_absolute_uri('/valves/api/part-codes/')
-    is_update = pk is not None
-    code_data = None
-    error_message = None
-
-    if is_update:
-        api_detail_url = f'{api_base_url}{pk}/'
-        # 1. GET request for existing data
-        try:
-            response = requests.get(api_detail_url)
-            response.raise_for_status()
-            code_data = response.json()
-        except requests.exceptions.HTTPError as err:
-            error_message = f"فشل في جلب بيانات كود القطعة: {err}"
-            messages.error(request, error_message)
-        except requests.exceptions.RequestException as err:
-            error_message = f"خطأ في الاتصال بالـ API: {err}"
-            messages.error(request, error_message)
-
+    if pk:
+        part_code = get_object_or_404(PartCode, pk=pk)
+        title = "Update Part Code"
+    else:
+        part_code = None
+        title = "Create New Part Code"
+    
     if request.method == 'POST':
-        # 2. POST/PUT request for form submission
-        form_data = {
-            'code_number': request.POST.get('code_number'),
-            'description': request.POST.get('description'),
-            'standard_unit': request.POST.get('standard_unit'),
-            'associated_valve': request.POST.get('associated_valve'), # يجب التأكد أن هذا يمرر ID
-        }
-
         try:
-            if is_update:
-                # PUT for update
-                response = requests.put(api_detail_url, json=form_data)
-                action_text = "تعديل"
+            if part_code:
+                # Update existing part code
+                part_code.sap_code = request.POST.get('code')
+                part_code.description = request.POST.get('description')
+                part_code.save()
+                messages.success(request, f'Part code {part_code.sap_code} was updated successfully.')
             else:
-                # POST for create
-                response = requests.post(api_base_url, json=form_data)
-                action_text = "إضافة"
-            
-            response.raise_for_status()
-            
-            # في حالة النجاح
-            messages.success(request, f"تم {action_text} كود القطعة بنجاح!")
-            if not is_update:
-                 # بعد الإضافة، إعادة توجيه إلى صفحة القائمة أو التفاصيل
-                return redirect('valves:part-code-list-frontend')
-            else:
-                # في حالة التعديل، قم بتحديث البيانات المعروضة
-                code_data = response.json()
-
-
-        except requests.exceptions.HTTPError as err:
-            # معالجة أخطاء الـ API (مثل 400 Bad Request)
-            error_message = f"فشل في {action_text} كود القطعة: {response.text}"
-            messages.error(request, error_message)
-        except requests.exceptions.RequestException as err:
-            error_message = f"خطأ في الاتصال بالـ API: {err}"
-            messages.error(request, error_message)
-    UNIT_CHOICES = ['Piece', 'Meter', 'KG', 'Liter']
+                # Create new part code
+                part_code = PartCode.objects.create(
+                    sap_code=request.POST.get('code'),
+                    description=request.POST.get('description')
+                )
+                messages.success(request, f'Part code {part_code.sap_code} was created successfully.')
+            return redirect('part-code-detail-frontend', pk=part_code.pk)
+        except Exception as e:
+            messages.error(request, f'Error saving part code: {str(e)}')
+    
     context = {
-        'code': code_data,
-        'pk': pk,
-        'is_update': is_update,
-        'unit_choices': UNIT_CHOICES,
-        # 'valve_choices': [قائمة بالبلوف للمساعدة في تحديد البلف المرتبط]
+        'part_code': part_code,
+        'title': title,
     }
     return render(request, 'valves/part_code_form.html', context)
 
 @login_required
-def maintenance_form_frontend(request, pk=None):
+def part_code_detail_frontend(request, pk):
     """
-    عرض نموذج إنشاء أو تعديل سجل صيانة (Maintenance Record Form).
+    Display detailed information about a specific part code.
+    """
+    part_code = get_object_or_404(PartCode, pk=pk)
     
-    الهدف: عرض النموذج وتجهيز البيانات الأولية للبلف إذا كان وضع إنشاء جديد.
-    """
     context = {
-        'pk': pk,
-        'title': 'إضافة سجل صيانة جديد' if pk is None else 'تعديل سجل صيانة',
-        'is_edit': pk is not None
+        'part_code': part_code,
+        'valves': part_code.valves.all(),
     }
+    return render(request, 'valves/part_code_detail.html', context)
 
-    # إذا كان المستخدم قادماً من صفحة تفاصيل البلف (للإنشاء)
-    if 'valve_id' in request.GET and pk is None:
-         # هنا يجب أن نستخدم valve_id لطلب بيانات البلف من الـ API 
-         # وتمريرها للقالب كبيانات أولية (سنقوم بتنفيذ هذا لاحقاً).
-         context['initial_valve_id'] = request.GET.get('valve_id')
+@login_required
+def part_code_delete_frontend(request, pk):
+    """
+    Handle deletion of a part code.
+    """
+    part_code = get_object_or_404(PartCode, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            part_code.delete()
+            messages.success(request, f'Part code {part_code.sap_code} was deleted successfully.')
+            return redirect('part-code-list-frontend')
+        except Exception as e:
+            messages.error(request, f'Error deleting part code: {str(e)}')
+            return redirect('part-code-detail-frontend', pk=pk)
+    
+    context = {'part_code': part_code}
+    return render(request, 'valves/part_code_confirm_delete.html', context)
 
-    # حالياً، نعرض القالب فقط لحل مشكلة ImportError
-    return render(request, 'valves/maintenance_form.html', context)
+@login_required
+def valve_images_gallery_frontend(request, pk):
+    """
+    Display image gallery for a specific valve.
+    """
+    valve = get_object_or_404(
+        Valve.objects.prefetch_related('images'),
+        pk=pk
+    )
+    
+    context = {
+        'valve': valve,
+        'images': valve.images.all(),
+    }
+    return render(request, 'valves/valve_gallery.html', context)
+
+@login_required
+def shutdown_report(request):
+    """
+    Handle creation and display of shutdown reports.
+    """
+    if request.method == 'POST':
+        form = ShutdownReportForm(request.POST)
+        if form.is_valid():
+            shutdown = form.save()
+            messages.success(request, 'Shutdown report created successfully.')
+            return redirect('shutdown-report-print', pk=shutdown.pk)
+    else:
+        form = ShutdownReportForm()
+    
+    context = {
+        'form': form,
+        'shutdowns': Shutdown.objects.all().order_by('-start_date')[:10]
+    }
+    return render(request, 'valves/shutdown_report.html', context)
+
+@login_required
+def shutdown_report_print(request):
+    """
+    Generate printable version of the shutdown report.
+    """
+    shutdowns = Shutdown.objects.all().order_by('-start_date')
+    
+    context = {
+        'shutdowns': shutdowns,
+        'print_mode': True
+    }
+    return render(request, 'valves/shutdown_report_print.html', context)

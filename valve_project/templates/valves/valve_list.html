@@ -1,80 +1,93 @@
 {% extends 'base.html' %}
-{% load static %}
-
-{% block title %}قائمة البلوف{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h1 class="mb-4 text-center">قائمة البلوف</h1>
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="{% url 'valves:valve-create-frontend' %}" class="btn btn-primary">إضافة بلف جديد</a> 
-            <div class="input-group w-25">
-                <input type="text" class="form-control" placeholder="بحث عن بلف..." aria-label="بحث عن بلف">
-                <button class="btn btn-outline-secondary" type="button">بحث</button>
-            </div>
-        </div>
+<div class="container mt-4">
+    <h2>Valves List</h2>
 
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped">
-                        <thead>
-                            <tr>
-                                <th scope="col">الرقم التعريفي</th>
-                                <th scope="col">الاسم</th>
-                                <th scope="col">الموقع</th>
-                                <th scope="col">النوع</th>
-                                <th scope="col">الحالة</th>
-                                <th scope="col">تاريخ التثبيت</th>
-                                <th scope="col">آخر صيانة</th>
-                                <th scope="col">الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                                {% if valves %}
-                                    {% for valve in valves %}
-                                        {% if valve.valve_id%}
-                                        <tr>
-                                            <td>{{ valve.tag_number }}</td>
-                                            <td>{{ valve.name }}</td>
-                                            <td>{{ valve.location }}</td>
-                                            <td>{{ valve.valve_type }}</td>
-                                            <td>{{ valve.status }}</td>
-                                            <td>{{ valve.installation_date|date:"Y-m-d" }}</td> {# تنسيق التاريخ #}
-                                            <td>{{ valve.last_maintenance_date|date:"Y-m-d" }}</td> {# تنسيق التاريخ #}
-                                            <td>
-                                                <a href="{% url 'valves:valve-detail-frontend' pk=valve.valve_id %}" class="btn btn-info btn-sm">عرض</a>
-                                                <a href="{% url 'valves:valve-update-frontend' pk=valve.valve_id %}" class="btn btn-warning btn-sm">تعديل</a>
-                                                <form action="{% url 'valves:valve-delete-frontend' pk=valve.valve_id %}" method="post" style="display:inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا البلف؟');">
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="_method" value="DELETE">
-                                                    <button type="submit" class="btn btn-danger btn-sm">حذف</button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                        {% endif %}
-                                    {% endfor %}
-                                {% else %}
-                                    <tr>
-                                        <td colspan="8" class="text-center">لا توجد بلوف لعرضها حالياً. <a href="{% url 'valves:valve-create-frontend' %}">أضف بلف جديد؟</a></td>
-                                    </tr>
-                                {% endif %}
-                        </tbody>
-                    </table>
-                </div>
+    <!-- Search and Filter Form -->
+    <form method="get" class="mb-4" id="filter-form">
+        <div class="row">
+            <div class="col-md-6">
+                <input type="text" name="q" class="form-control" placeholder="Search by Tag, Name, Type, Location..."
+                    value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <select name="factory" class="form-control" id="factory-select">
+                    <option value="">All Factories</option>
+                    {% for factory in factories %}
+                    <option value="{{ factory.name|slugify }}">{{ factory.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
             </div>
         </div>
-        
-        <nav aria-label="Page navigation example" class="mt-4">
-            <ul class="pagination justify-content-center">
-                <li class="page-item disabled"><a class="page-link" href="#">السابق</a></li>
-                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                <li class="page-item"><a class="page-link" href="#">التالي</a></li>
-            </ul>
-        </nav>
-    </div>
+    </form>
+
+    <table class="table table-striped">
+        <thead class="table-primary text-white">
+            <tr>
+                <th>Tag Number</th>
+                <th>Factory</th>
+                <th>Type</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for valve in valves %}
+            <tr>
+                <td>{{ valve.tag_number }}</td>
+                <td>
+                    {% if valve.factory %}
+                    <span class="badge bg-{{ valve.factory.get_color }}">{{ valve.factory.name }}</span>
+                    {% else %}
+                    <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>{{ valve.valve_type.name }}</td>
+                <td>{{ valve.location }}</td>
+                <td>{{ valve.status.name }}</td>
+                <td>
+                    <a href="{% url 'valves:valve-detail-frontend' pk=valve.pk %}?{{ request.GET.urlencode }}"
+                        class="btn btn-sm btn-info">Details</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No valves found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if valves.has_previous %}
+            <li class="page-item"><a class="page-link"
+                    href="?page=1&amp;factory={{ selected_factory }}&amp;status={{ selected_status }}&amp;q={{ search_query }}">&laquo;
+                    First</a></li>
+            <li class="page-item"><a class="page-link"
+                    href="?page={{ valves.previous_page_number }}&amp;factory={{ selected_factory }}&amp;status={{ selected_status }}&amp;q={{ search_query }}">Previous</a>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled"><a class="page-link" href="#">Page {{ valves.number }} of {{
+                    valves.paginator.num_pages }}</a></li>
+
+            {% if valves.has_next %}
+            <li class="page-item"><a class="page-link"
+                    href="?page={{ valves.next_page_number }}&amp;factory={{ selected_factory }}&amp;status={{ selected_status }}&amp;q={{ search_query }}">Next</a>
+            </li>
+            <li class="page-item"><a class="page-link"
+                    href="?page={{ valves.paginator.num_pages }}&amp;factory={{ selected_factory }}&amp;status={{ selected_status }}&amp;q={{ search_query }}">Last
+                    &raquo;</a></li>
+            {% endif %}
+        </ul>
+    </nav>
 </div>
+
 {% endblock %}
