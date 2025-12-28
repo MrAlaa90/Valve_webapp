@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% block title %}{{ title }}{% endblock %}
 
@@ -16,72 +17,117 @@
 <form id="valveForm" class="row g-3">
 {% csrf_token %}
 <!-- Hidden field for method override (for PUT requests in API) -->
-<input type="hidden" name="_method" id="methodOverride" value="{{ is_edit|yesno:'PUT,POST' }}">
+<input type="hidden" name="_method" id="methodOverride" value="{{ is_update|yesno:'PUT,POST' }}">
 
             <div class="col-md-6">
-                <label for="tagNumber" class="form-label">رقم العلامة (Tag Number) <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="tagNumber" name="tag_number" required>
-                <div class="invalid-feedback" id="tagNumberError"></div>
+                <label for="id_tag_number" class="form-label">{% trans "Tag Number" %} <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="id_tag_number" name="tag_number" required>
+                <div class="invalid-feedback" id="id_tag_number_error"></div>
             </div>
             <div class="col-md-6">
-                <label for="name" class="form-label">الاسم أو الوصف القصير <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="name" name="name" required>
-                <div class="invalid-feedback" id="nameError"></div>
-            </div>
-
-            <div class="col-md-6">
-                <label for="location" class="form-label">الموقع/الوحدة <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="location" name="location" required>
-                <div class="invalid-feedback" id="locationError"></div>
+                <label for="id_name" class="form-label">{% trans "Name or Short Description" %} <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="id_name" name="name" required>
+                <div class="invalid-feedback" id="id_name_error"></div>
             </div>
 
             <div class="col-md-6">
-                <label for="valveType" class="form-label">نوع البلف</label>
-                <select class="form-select" id="valveType" name="valve_type">
-                    <option value="" selected>اختر النوع...</option>
-                    <option value="Globe">بلف كروي (Globe)</option>
-                    <option value="Gate">بلف بوابة (Gate)</option>
-                    <option value="Ball">بلف كروي (Ball)</option>
-                    <option value="Check">بلف فحص (Check)</option>
-                    <option value="Butterfly">بلف فراشة (Butterfly)</option>
-                    <option value="Relief">بلف تنفيس (Relief)</option>
-                    <option value="Control">بلف تحكم (Control)</option>
+                <label for="id_location" class="form-label">{% trans "Location/Unit" %} <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="id_location" name="location" required>
+                <div class="invalid-feedback" id="id_location_error"></div>
+            </div>
+
+            <div class="col-md-6">
+                <label for="id_valve_type" class="form-label">{% trans "Valve Type" %}</label>
+                <select class="form-select" id="id_valve_type" name="valve_type">
+                    <option value="" selected>{% trans "Choose type..." %}</option>
+                    <option value="Globe">{% trans "Globe Valve" %}</option>
+                    <option value="Gate">{% trans "Gate Valve" %}</option>
+                    <option value="Ball">{% trans "Ball Valve" %}</option>
+                    <option value="Check">{% trans "Check Valve" %}</option>
+                    <option value="Butterfly">{% trans "Butterfly Valve" %}</option>
+                    <option value="Relief">{% trans "Relief Valve" %}</option>
+                    <option value="Control">{% trans "Control Valve" %}</option>
                 </select>
-                <div class="invalid-feedback" id="valveTypeError"></div>
+                <div class="invalid-feedback" id="id_valve_type_error"></div>
             </div>
 
             <div class="col-md-6">
-                <label for="manufacturer" class="form-label">الشركة المصنعة</label>
-                <input type="text" class="form-control" id="manufacturer" name="manufacturer">
+                <label for="id_manufacturer" class="form-label">{% trans "Manufacturer" %}</label>
+                <input type="text" class="form-control" id="id_manufacturer" name="manufacturer">
             </div>
             <div class="col-md-6">
-                <label for="modelNumber" class="form-label">رقم الموديل</label>
-                <input type="text" class="form-control" id="modelNumber" name="model_number">
-            </div>
-
-            <div class="col-md-6">
-                <label for="installationDate" class="form-label">تاريخ التركيب</label>
-                <input type="date" class="form-control" id="installationDate" name="installation_date">
+                <label for="id_model_number" class="form-label">{% trans "Model Number" %}</label>
+                <input type="text" class="form-control" id="id_model_number" name="model_number">
             </div>
 
             <div class="col-md-6">
-                <label for="status" class="form-label">الحالة الحالية</label>
-                <select class="form-select" id="status" name="status">
-                    <option value="Good">جيدة</option>
-                    <option value="Fair">مقبولة</option>
-                    <option value="Needs Maintenance">تحتاج صيانة</option>
-                    <option value="Critical">حرجة</option>
+                <label for="id_installation_date" class="form-label">{% trans "Installation Date" %}</label>
+                <input type="date" class="form-control" id="id_installation_date" name="installation_date">
+            </div>
+
+            <div class="col-md-6">
+                <label for="id_status" class="form-label">{% trans "Current Status" %}</label>
+                <select class="form-select" id="id_status" name="status">
+                    <option value="Good">{% trans "Good" %}</option>
+                    <option value="Fair">{% trans "Fair" %}</option>
+                    <option value="Needs Maintenance">{% trans "Needs Maintenance" %}</option>
+                    <option value="Critical">{% trans "Critical" %}</option>
                 </select>
             </div>
             
             <div class="col-12">
-                <label for="notes" class="form-label">ملاحظات إضافية</label>
-                <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                <label for="id_notes" class="form-label">{% trans "Additional Notes" %}</label>
+                <textarea class="form-control" id="id_notes" name="notes" rows="3"></textarea>
             </div>
             
             <div class="col-12">
-                <label for="drawingLink" class="form-label">رابط الرسم الهندسي (إذا وجد)</label>
-                <input type="url" class="form-control" id="drawingLink" name="drawing_link">
+                <label for="id_drawing_link" class="form-label">{% trans "Drawing Link (if available)" %}</label>
+                <input type="url" class="form-control" id="id_drawing_link" name="drawing_link">
+            </div>
+
+            <!-- Image Upload Section (only for updates) -->
+            {% if is_update %}
+            <div class="col-12 mt-4 pt-3 border-top">
+                <h5 class="mb-3">{% trans "Valve Images" %}</h5>
+                
+                <!-- Existing Images -->
+                <div id="existing-images-container" class="row g-2 mb-3">
+                    <!-- Images will be loaded here by JavaScript -->
+                </div>
+
+                <!-- New Image Upload -->
+                <div class="mb-3">
+                    <label for="imageUpload" class="form-label">{% trans "Upload New Images" %}</label>
+                    <input class="form-control" type="file" id="imageUpload" multiple>
+                    <div class="form-text">{% trans "You can select multiple images to upload." %}</div>
+                </div>
+                <div class="mb-3">
+                    <label for="imageCategory" class="form-label">{% trans "Image Category" %}</label>
+                    <select class="form-select" id="imageCategory" name="image_category">
+                        <option value="Valves_Specs">{% trans "Valve Specs" %}</option>
+                        <option value="P&ID">{% trans "P&ID" %}</option>
+                        <option value="Maintenance_Reports">{% trans "Maintenance Reports" %}</option>
+                    </select>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 mt-3">
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-1"></i>
+                    {% trans "You can add images after creating the valve by editing it." %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Image Deletion Modal -->
+            <div class="modal fade" id="deleteImageModal" tabindex="-1" aria-labelledby="deleteImageModalLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header"><h5 class="modal-title" id="deleteImageModalLabel">{% trans "Confirm Deletion" %}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                  <div class="modal-body">{% trans "Are you sure you want to delete this image?" %}</div>
+                  <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button><button type="button" id="confirmDeleteImageBtn" class="btn btn-danger">{% trans "Delete" %}</button></div>
+                </div>
+              </div>
             </div>
 
             <!-- Error and Success Messages -->
@@ -92,10 +138,10 @@
             <!-- Form Buttons -->
             <div class="col-12 d-flex justify-content-between pt-3">
                 <a href="{% url 'valves:valve-list-frontend' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-times me-1"></i> إلغاء والعودة
+                    <i class="fas fa-times me-1"></i> {% trans "Cancel and Return" %}
                 </a>
                 <button type="submit" id="submitButton" class="btn btn-primary">
-                    <i class="fas fa-save me-1"></i> حفظ البلف
+                    <i class="fas fa-save me-1"></i> {% trans "Save Valve" %}
                 </button>
             </div>
         </form>
@@ -160,7 +206,7 @@ clearErrors();
 for (const field in errors) {
 // Convert Django field names (snake_case) to JS element IDs (camelCase if needed, but here we use name attribute)
 const input = document.querySelector([name=&quot;${field}&quot;]);
-const errorDiv = document.getElementById(${field}Error);
+const errorDiv = document.getElementById(`id_${field}_error`);
 
  if (input) {
      input.classList.add(&#39;is-invalid&#39;);
@@ -199,26 +245,99 @@ headers: {
  const valveData = await response.json();
 
  // Populate form fields
- document.getElementById(&#39;tagNumber&#39;).value = valveData.tag_number || &#39;&#39;;
- document.getElementById(&#39;name&#39;).value = valveData.name || &#39;&#39;;
- document.getElementById(&#39;location&#39;).value = valveData.location || &#39;&#39;;
- document.getElementById(&#39;valveType&#39;).value = valveData.valve_type || &#39;&#39;;
- document.getElementById(&#39;manufacturer&#39;).value = valveData.manufacturer || &#39;&#39;;
- document.getElementById(&#39;modelNumber&#39;).value = valveData.model_number || &#39;&#39;;
- document.getElementById(&#39;notes&#39;).value = valveData.notes || &#39;&#39;;
- document.getElementById(&#39;drawingLink&#39;).value = valveData.drawing_link || &#39;&#39;;
- document.getElementById(&#39;status&#39;).value = valveData.status || &#39;Good&#39;; 
+ document.getElementById('id_tag_number').value = valveData.tag_number || '';
+ document.getElementById('id_name').value = valveData.name || '';
+ document.getElementById('id_location').value = valveData.location || '';
+ document.getElementById('id_valve_type').value = valveData.valve_type || '';
+ document.getElementById('id_manufacturer').value = valveData.manufacturer || '';
+ document.getElementById('id_model_number').value = valveData.model_number || '';
+ document.getElementById('id_notes').value = valveData.notes || '';
+ document.getElementById('id_drawing_link').value = valveData.drawing_link || '';
+ document.getElementById('id_status').value = valveData.status || 'Good'; 
 
- // Handle date format (API returns YYYY-MM-DD, perfect for input type=&quot;date&quot;)
+ loadAndDisplayImages(valveData.images);
+
+ // Handle date format (API returns YYYY-MM-DD, perfect for input type="date")
  if (valveData.installation_date) {
-     document.getElementById(&#39;installationDate&#39;).value = valveData.installation_date;
+     document.getElementById('id_installation_date').value = valveData.installation_date;
  }
 
 } catch (error) {
 console.error('Error loading valve data:', error);
-showMessage(حدث خطأ أثناء تحميل بيانات البلف: ${error.message}, 'danger');
+showMessage(`{% trans "An error occurred while loading valve data" %}: ${error.message}`, 'danger');
 }
 }
+
+// --- Image Handling Functions (For Edit Mode) ---
+
+function loadAndDisplayImages(images) {
+    const container = document.getElementById('existing-images-container');
+    container.innerHTML = ''; // Clear previous images
+    if (images && images.length > 0) {
+        images.forEach(image => {
+            const imgCol = document.createElement('div');
+            imgCol.className = 'col-auto';
+            imgCol.innerHTML = `
+                <div class="position-relative">
+                    <img src="${image.image}" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+                    <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-image-btn" 
+                            data-image-id="${image.id}" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#deleteImageModal">
+                        &times;
+                    </button>
+                </div>
+            `;
+            container.appendChild(imgCol);
+        });
+    } else {
+        container.innerHTML = `<div class="col-12"><p class="text-muted">{% trans "No images uploaded yet." %}</p></div>`;
+    }
+}
+
+async function uploadImages(valveId) {
+    const imageInput = document.getElementById('imageUpload');
+    const files = imageInput.files;
+    if (files.length === 0) return true; // No files to upload
+
+    const formData = new FormData();
+    const imageCategory = document.getElementById('imageCategory').value; // Get selected category
+    for (let i = 0; i < files.length; i++) {
+        formData.append('images', files[i]);
+    }
+    formData.append('category', imageCategory); // Add category to formData
+    formData.append('valve', valveId);
+
+    try {
+        const response = await fetch(`/valves/api/valves/${valveId}/upload_images/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+            body: formData,
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Image upload failed');
+        }
+        return true;
+    } catch (error) {
+        showMessage(`{% trans "Image upload error" %}: ${error.message}`, 'danger');
+        return false;
+    }
+}
+
+let imageIdToDelete = null;
+const deleteImageModal = new bootstrap.Modal(document.getElementById('deleteImageModal'));
+
+document.getElementById('existing-images-container').addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('delete-image-btn')) {
+        imageIdToDelete = e.target.dataset.imageId;
+    }
+});
+
+document.getElementById('confirmDeleteImageBtn').addEventListener('click', async function() {
+    // This button is now just for confirmation. The actual deletion happens after main form save.
+    // We will handle deletion logic within the main form submission flow.
+});
 
 // Load data if in edit mode
 // We only call loadValveData if we are in edit mode.
@@ -233,7 +352,7 @@ e.preventDefault();
 
 clearErrors();
 submitButton.disabled = true;
-submitButton.innerHTML = `&lt;span class=&quot;spinner-border spinner-border-sm&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; جارٍ الحفظ...`;
+submitButton.innerHTML = `&lt;span class=&quot;spinner-border spinner-border-sm&quot; role=&quot;status&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt; {% trans "Saving..." %}`;
 
 const formData = new FormData(form);
 const data = Object.fromEntries(formData.entries());
@@ -268,36 +387,37 @@ try {
     const responseData = await response.json();
 
     if (response.ok) {
-        showMessage(`تم ${isEdit ? &#39;تعديل&#39; : &#39;إضافة&#39;} البلف بنجاح!`, &#39;success&#39;);
-        
-        // Redirect logic
-        if (!isEdit) {
-            // *** تم التعديل لاستخدام window.location.replace لضمان إعادة توجيه أنظف ***
-            setTimeout(() =&gt; {
-                window.location.replace(VALVE_LIST_URL); 
-            }, 1500);
-        } else {
-            // Redirect to the updated valve&#39;s detail page (يظل كما هو للتعديل)
-            setTimeout(() =&gt; {
-                window.location.replace(`/valves/${pk}`); 
+        const valveId = responseData.valve_id;
+        const imagesUploaded = await uploadImages(valveId);
+
+        if (imagesUploaded) {
+            showMessage(`{% trans "Valve" %} ${isEdit ? '{% trans "updated" %}' : '{% trans "added" %}'} {% trans "successfully" %}!`, 'success');
+            
+            // Redirect logic
+            setTimeout(() => {
+                if (isEdit) {
+                    window.location.reload(); // Reload to show new images
+                } else {
+                    window.location.replace(`/valves/${valveId}/`); // Go to new valve's detail page
+                }
             }, 1500);
         }
         
     } else if (response.status === 400) {
         // Validation error
         applyErrors(responseData);
-        showMessage(&#39;يرجى تصحيح الأخطاء في النموذج.&#39;, &#39;danger&#39;);
+        showMessage('{% trans "Please correct the errors in the form." %}', 'danger');
     } else {
         // Other API error
-        showMessage(`حدث خطأ: ${responseData.detail || response.statusText}`, &#39;danger&#39;);
+        showMessage(`{% trans "An error occurred" %}: ${responseData.detail || response.statusText}`, 'danger');
     }
 
 } catch (error) {
     console.error(&#39;Fetch Error:&#39;, error);
-    showMessage(`تعذر الاتصال بالخادم: ${error.message}`, &#39;danger&#39;);
+    showMessage(`{% trans "Unable to connect to server" %}: ${error.message}`, 'danger');
 } finally {
     submitButton.disabled = false;
-    submitButton.innerHTML = `&lt;i class=&quot;fas fa-save me-1&quot;&gt;&lt;/i&gt; حفظ البلف`;
+    submitButton.innerHTML = `&lt;i class=&quot;fas fa-save me-1&quot;&gt;&lt;/i&gt; {% trans "Save Valve" %}`;
 }
 
 });

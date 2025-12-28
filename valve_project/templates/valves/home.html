@@ -1,65 +1,124 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block title %}الرئيسية{% endblock %}
+{% block title %}
+Valves Dashboard
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="jumbotron text-center bg-light p-5 rounded shadow-sm mb-4">
-        <h1 class="display-4">مرحباً بك في نظام إدارة البلوف</h1>
-        <p class="lead">منصة متكاملة لإدارة ومراقبة أصول البلوف وسجل الصيانة.</p>
-        <hr class="my-4">
-        <p>ابدأ بتصفح البلوف أو إدارة سجلات الصيانة.</p>
-        <a class="btn btn-primary btn-lg" href="{% url 'valves:valve-list-frontend' %}" role="button">عرض البلوف</a>
-        <a class="btn btn-secondary btn-lg ms-2" href="{% url 'valves:maintenance-history-frontend' %}" role="button">سجل الصيانة</a>
-        <a href="{% url 'valves:valve-create-frontend' %}" class="list-group-item list-group-item-action">
+<div class="container-fluid px-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
 
-    </div>
 
-    <div class="row text-center mb-5">
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <i class="fas fa-industry fa-4x text-primary mb-3"></i>
-                    <h5 class="card-title">إجمالي البلوف</h5>
-                    <p class="card-text display-3">{{ total_valves }}</p>
+
+    <div class="mt-5">
+        <h2>Factories</h2>
+        <div class="row">
+        {% for factory in main_factories %}
+            <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+                <div class="card h-100 factory-card-{{ factory.get_color }}">
+                    <div class="card-header">
+                        <h3>{{ factory.name }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <a href="{% url 'valves:valve-list-frontend' %}?factory={{ factory.name|slugify }}&color={{ factory.get_color }}" class="text-decoration-none">
+                                    <div class="card text-center shadow-sm mb-3 h-100">
+                                        <div class="card-body">
+                                            <i class="fas fa-water fa-3x text-primary mb-3"></i>
+                                            <h5 class="card-title">Total Valves</h5>
+                                            <p class="card-text fs-2 fw-bold">{{ factory.total_valves }}</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'valves:valve-list-frontend' %}?factory={{ factory.name|slugify }}&status=Operational&color={{ factory.get_color }}" class="text-decoration-none">
+                                    <div class="card text-center shadow-sm mb-3 h-100">
+                                        <div class="card-body">
+                                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                            <h5 class="card-title">Operational</h5>
+                                            <p class="card-text fs-2 fw-bold">{{ factory.operational_valves }}</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a href="{% url 'valves:valve-list-frontend' %}?factory={{ factory.name|slugify }}&status=Needs+Maintenance&color={{ factory.get_color }}" class="text-decoration-none">
+                                    <div class="card text-center shadow-sm h-100">
+                                        <div class="card-body">
+                                            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                                            <h5 class="card-title">Needs Maintenance</h5>
+                                            <p class="card-text fs-2 fw-bold">{{ factory.needs_maintenance_valves }}</p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        {% endfor %}
         </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <i class="fas fa-wrench fa-4x text-warning mb-3"></i>
-                    <h5 class="card-title">بلوف تحتاج صيانة</h5>
-                    <p class="card-text display-3">{{ needs_maintenance_valves }}</p>
+
+        {% if zld_factory %}
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card h-100 factory-card-{{ zld_factory.get_color }}">
+                        <div class="card-header">
+                            <h3>{{ zld_factory.name }}</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <a href="{% url 'valves:valve-list-frontend' %}?factory={{ zld_factory.name|slugify }}&color={{ zld_factory.get_color }}" class="text-decoration-none">
+                                        <div class="card text-center shadow-sm mb-3 h-100">
+                                            <div class="card-body">
+                                                <i class="fas fa-water fa-3x text-primary mb-3"></i>
+                                                <h5 class="card-title">Total Valves</h5>
+                                                <p class="card-text fs-2 fw-bold">{{ zld_factory.total_valves }}</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-md-4">
+                                    <a href="{% url 'valves:valve-list-frontend' %}?factory={{ zld_factory.name|slugify }}&status=Operational&color={{ zld_factory.get_color }}" class="text-decoration-none">
+                                        <div class="card text-center shadow-sm mb-3 h-100">
+                                            <div class="card-body">
+                                                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                                <h5 class="card-title">Operational</h5>
+                                                <p class="card-text fs-2 fw-bold">{{ zld_factory.operational_valves }}</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                                <div class="col-md-4">
+                                    <a href="{% url 'valves:valve-list-frontend' %}?factory={{ zld_factory.name|slugify }}&status=Needs+Maintenance&color={{ zld_factory.get_color }}" class="text-decoration-none">
+                                        <div class="card text-center shadow-sm h-100">
+                                            <div class="card-body">
+                                                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                                                <h5 class="card-title">Needs Maintenance</h5>
+                                                <p class="card-text fs-2 fw-bold">{{ zld_factory.needs_maintenance_valves }}</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-                    <h5 class="card-title">بلوف تعمل بكفاءة</h5>
-                    <p class="card-text display-3">{{ operational_valves }}</p>
-                </div>
-            </div>
-        </div>
+        {% endif %}
     </div>
 
-    <div class="text-center">
-        <h3>روابط سريعة</h3>
-        <div class="list-group d-inline-block mt-3" style="max-width: 500px;">
-            <a href="{% url 'valves:valve-list-frontend' %}" class="list-group-item list-group-item-action">
-                <i class="fas fa-list fa-fw me-2"></i>عرض كل البلوف
-            </a>
-            <a href="{% url 'valves:valve-create-frontend' %}" class="list-group-item list-group-item-action">
-                <i class="fas fa-plus-circle fa-fw me-2"></i>إضافة بلف جديد
-            </a>
-            <a href="{% url 'valves:maintenance-history-frontend' %}" class="list-group-item list-group-item-action">
-                <i class="fas fa-history fa-fw me-2"></i>عرض سجل الصيانة
-            </a>
-            {# ممكن إضافة روابط أخرى هنا #}
-        </div>
-    </div>
+
 </div>
 {% endblock %}

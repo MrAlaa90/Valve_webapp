@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-10">
+        
+        {% if error %}
+            <div class="alert alert-danger text-center">{{ error }}</div>
+        {% elif record %}
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="display-6">
+                    <i class="fas fa-wrench me-2 text-warning"></i> 
+                    {% trans "Maintenance Record for Valve" %}: <span class="text-primary">{{ record.valve.tag_number|default:"N/A" }}</span>
+                </h1>
+                <div>
+                    <a href="{% url 'valves:maintenance-update-frontend' pk=record.maintenance_id %}" class="btn btn-warning me-2">
+                        <i class="fas fa-edit me-1"></i> {% trans "Edit Record" %}
+                    </a>
+                    <a href="{% url 'valves:maintenance-history-frontend' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> {% trans "Back to List" %}
+                    </a>
+                </div>
+            </div>
+
+            <div class="card shadow-lg mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i> {% trans "Basic Record Information" %}</h5>
+                </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>{% trans "Valve" %}:</strong> <a href="{% url 'valves:valve-detail-frontend' pk=record.valve.pk %}">{{ record.valve.tag_number }}</a></p>
+                <p><strong>{% trans "Maintenance Date" %}:</strong> {{ record.maintenance_date|date:"Y-m-d" }}</p>
+                <p><strong>{% trans "Technician" %}:</strong> {{ record.technician.name }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>{% trans "Pressure Test" %}:</strong> {{ record.pressure_test|default:"N/A" }}</p>
+                {% if record.testing_pressure %}
+                <p><strong>{% trans "Testing Pressure" %}:</strong> {{ record.testing_pressure }} Bar</p>
+                {% endif %}
+            </div>
+            <div class="col-12">
+                <p><strong>{% trans "Notes" %}:</strong> {{ record.maintenance_notes|default:"-" }}</p>
+            </div>
+            <div class="col-12">
+                <p><strong>{% trans "Maintenance Activities" %}:</strong> {{ record.maintenance_activities|default:"-" }}</p>
+            </div>
+        </div>
+            </div>
+
+            <div class="card shadow-lg">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-tools me-2"></i> {% trans "Replaced/Used Spare Parts" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if parts_used %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{% trans "Part Name" %}</th>
+                                    <th>{% trans "Part Number" %}</th>
+                                    <th>{% trans "Description / Part Name" %}</th>
+                                    <th>{% trans "SAP Code" %}</th>
+                                    <th>{% trans "Oracle Code" %}</th>
+                                    <th>{% trans "Quantity Used" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for part_used in parts_used %}
+                                <tr>
+                                    <td>{{ part_used.part.part_name }}</td>
+                                    <td>{{ part_used.code.part_number }}</td>
+                                    <td>{{ part_used.code.description|default:part_used.part.part_name|default:"-" }}</td>
+                                    <td>{{ part_used.code.sap_code }}</td>
+                                    <td>{{ part_used.code.oracle_code }}</td>
+                                    <td>{{ part_used.quantity_used }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                        <div class="alert alert-info text-center" role="alert">
+                            {% trans "No spare parts have been recorded for this maintenance record." %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-end">
+                     {# هنا يمكن إضافة زر لإنشاء MaintenancePart جديد ضمن هذا السجل #}
+                </div>
+            </div>
+
+        {% else %}
+            <div class="alert alert-info text-center">
+                <p>{% trans "Unable to load maintenance record data. Please check the ID." %}</p>
+                <a href="{% url 'valves:maintenance-history-frontend' %}" class="btn btn-info">{% trans "Back to Records List" %}</a>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock content %}

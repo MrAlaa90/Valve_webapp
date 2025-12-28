@@ -13,46 +13,31 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
-
-# CSRF_TRUSTED_ORIGINS = ['https://*.replit.app'] # في بعض الحالات ممكن تحتاجها
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
-
-# CSRF_TRUSTED_ORIGINS = [
-    # 'https://*.replit.app',
-    # إذا كان رابط الـ Repl الخاص بك يتغير كثيراً، يمكن أن تضيفه هنا أيضاً
-    # مثال: 'https://e93917a4-45b4-424f-b6e2-903ff19201f5-00-3naa6mos9jf4u.kirk.replit.dev'
-# ]
-
-# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-try:
-    from.import env
-except ImportError:
-    pass
-
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# --- تحميل متغيرات البيئة من ملف .env ---
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!y2ibdjncswl)^q3rj0a8y2jm7x_--mp7vw996x!20b*v86r57'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# قيمة DEBUG تُقرأ من متغيرات البيئة، وتكون False افتراضياً إذا لم يوجد
 DEBUG = True
 
 ALLOWED_HOSTS = [
-'.replit.app',
-'e93917a4-45b4-424f-b6e2-903ff19201f5-00-3naa6mos9jf4u.kirk.replit.dev/', 
-'e93917a4-45b4-424f-b6e2-903ff19201f5-00-3naa6mos9jf4u.kirk.replit.dev',
-'localhost',
-'127.0.0.1', 
-    '.replit.app.*', 
-'*' ]
+    'localhost',
+    '127.0.0.1',
+    # سيتم إضافة رابط ngrok هنا لاحقاً
+    '.ngrok-free.app', # للسماح بأي نطاق فرعي من ngrok
+     '10.0.2.2',
+]
 
 
 # Application definition
@@ -68,11 +53,16 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'rest_framework', # Django REST Framework
+    'rest_framework.authtoken',
+    'djoser',
+    'django_extensions',
+    'django_filters', # Add django-filter
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware', # يجب إضافته هنا
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -89,9 +79,11 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.i18n',
             ],
         },
     },
@@ -103,15 +95,13 @@ WSGI_APPLICATION = 'valve_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# --- إعداد قاعدة البيانات باستخدام متغير البيئة DATABASE_URL ---
 DATABASES = {
     'default': dj_database_url.config(
-        default = 'postgresql://postgres:oLuJyRpwytHgStPPgHgGDetPozvMRKcN@switchyard.proxy.rlwy.net:32792/railway',
+        # يقرأ الرابط من متغير DATABASE_URL في ملف .env
+        default=os.environ.get('DATABASE_URL'),
         conn_max_age=600
     ) 
-    # {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
 }
 
 
@@ -137,7 +127,17 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+
+# قائمة اللغات المدعومة
+LANGUAGES = [
+    ('ar', 'العربية'),
+    ('en', 'English'),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 TIME_ZONE = 'UTC'
 
@@ -149,7 +149,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
@@ -159,11 +159,18 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media' # ده المجلد اللي هتتخزن فيه الصور المرفوعة
+MEDIA_URL = '/assets/'
+MEDIA_ROOT = BASE_DIR / 'assets'
 
-LOGIN_URL = 'login' # اسم الـ URL بتاع صفحة تسجيل الدخول
-LOGIN_REDIRECT_URL = 'home' # اسم الـ URL للصفحة اللي هيتوجه ليها بعد تسجيل الدخول بنجاح
-LOGOUT_REDIRECT_URL = 'home' # اسم الـ URL للصفحة اللي هيتوجه ليها بعد تسجيل الخروج
+LOGIN_URL = 'valves:login' # اسم الـ URL بتاع صفحة تسجيل الدخول
+LOGIN_REDIRECT_URL = 'valves:home' # اسم الـ URL للصفحة اللي هيتوجه ليها بعد تسجيل الدخول بنجاح
+LOGOUT_REDIRECT_URL = 'valves:home' # اسم الـ URL للصفحة اللي هيتوجه ليها بعد تسجيل الخروج
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+# --- إعدادات ngrok (اختياري لكن موصى به) ---
+# هذا يضمن أن Django يثق بالـ Headers التي يرسلها ngrok
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# عند استخدام ngrok، قد تحتاج إلى إضافة النطاق الذي يولده إلى هذه القائمة
+CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app']

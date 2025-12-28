@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}Shutdown Reports{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Shutdown Reports</h2>
+
+    <!-- Shutdown Report Form -->
+    <div class="card mb-4 no-print">
+        <div class="card-header">
+            Create New Shutdown Report
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.media }}
+                <div class="form-group">
+                    <label for="id_factory">Factory</label>
+                    {{ form.factory }}
+                </div>
+                <div class="form-group">
+                    <label for="id_start_date">Start Date</label>
+                    {{ form.start_date }}
+                </div>
+                <div class="form-group">
+                    <label for="id_end_date">End Date</label>
+                    {{ form.end_date }}
+                </div>
+                <div class="form-group">
+                    <label for="id_valves">Affected Valves</label>
+                    <input type="text" id="valve-search" class="form-control" placeholder="Search Valves">
+                    {{ form.valves }}
+                </div>
+                <button type="submit" class="btn btn-primary">Create Report</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="card mb-4 no-print">
+        <div class="card-header">
+            Filter Reports
+        </div>
+        <div class="card-body">
+            <form method="get">
+                <div class="row">
+                    <div class="col-md-3">
+                        <select name="factory" class="form-control">
+                            <option value="">All Factories</option>
+                            {% for factory in factories %}
+                                <option value="{{ factory }}" {% if factory == selected_factory %}selected{% endif %}>{{ factory }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" name="start_date" class="form-control" value="{{ start_date|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" name="end_date" class="form-control" value="{{ end_date|default:'' }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="print-date">Print Date</label>
+                        <input type="date" id="print-date" class="form-control">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-secondary">Filter</button>
+                        <a href="{% url 'valves:shutdown-report-print' %}?factory={{ selected_factory|default:'' }}&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}" target="_blank" class="btn btn-info">Print</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Shutdown Reports Table -->
+    <div class="card">
+        <div class="card-header">
+            Shutdowns List
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Factory</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Total Valves</th>
+                        <th>Affected Valves</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shutdown in shutdowns %}
+                    <tr>
+                        <td>{{ shutdown.factory }}</td>
+                        <td>{{ shutdown.start_date }}</td>
+                        <td>{{ shutdown.end_date }}</td>
+                        <td>{{ shutdown.valves.count }}</td>
+                        <td>
+                            <ul>
+                                {% for valve in shutdown.valves.all %}
+                                    <li>{{ valve.tag_number }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const printDateInput = document.getElementById('print-date');
+        const printLink = document.querySelector('a.btn-info');
+
+        // Set today's date
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        printDateInput.value = `${yyyy}-${mm}-${dd}`;
+
+        // Update print link
+        function updatePrintLink() {
+            const factory = document.querySelector('select[name=factory]').value;
+            const startDate = document.querySelector('input[name=start_date]').value;
+            const endDate = document.querySelector('input[name=end_date]').value;
+            const printDate = printDateInput.value;
+            printLink.href = `{% url 'valves:shutdown-report-print' %}?factory=${factory}&start_date=${startDate}&end_date=${endDate}&print_date=${printDate}`;
+        }
+
+        printDateInput.addEventListener('change', updatePrintLink);
+        document.querySelector('select[name=factory]').addEventListener('change', updatePrintLink);
+        document.querySelector('input[name=start_date]').addEventListener('change', updatePrintLink);
+        document.querySelector('input[name=end_date]').addEventListener('change', updatePrintLink);
+
+        updatePrintLink();
+
+        const factorySelect = document.getElementById('id_factory');
+        const valvesContainer = document.getElementById('id_valves');
+
+        factorySelect.addEventListener('change', function() {
+            const factory = this.value;
+            if (factory) {
+                fetch(`/valves/api/get-valves-by-factory/?factory=${factory}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        valvesContainer.innerHTML = '';
+                        data.forEach(function(valve, index) {
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.name = 'valves';
+                            checkbox.value = valve.valve_id;
+                            checkbox.id = `id_valves_${index}`;
+                            checkbox.classList.add('form-check-input');
+
+                            const label = document.createElement('label');
+                            label.htmlFor = `id_valves_${index}`;
+                            label.classList.add('form-check-label');
+                            label.appendChild(document.createTextNode(valve.tag_number));
+
+                            const li = document.createElement('li');
+                            li.classList.add('form-check');
+
+                            li.appendChild(checkbox);
+                            li.appendChild(label);
+
+                            valvesContainer.appendChild(li);
+                        });
+                    });
+            } else {
+                valvesContainer.innerHTML = '';
+            }
+        });
+
+        const searchInput = document.getElementById('valve-search');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const checkboxes = valvesContainer.getElementsByTagName('li');
+            Array.from(checkboxes).forEach(function(checkbox) {
+                const label = checkbox.getElementsByTagName('label')[0];
+                if (label.textContent.toLowerCase().includes(searchTerm)) {
+                    checkbox.style.display = '';
+                } else {
+                    checkbox.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

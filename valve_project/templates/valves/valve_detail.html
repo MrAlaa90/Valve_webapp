@@ -1,12 +1,13 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}تفاصيل البلف: {{ valve.tag_number }}{% endblock %}
+{% block title %}{% trans "Valve Details" %}: {{ valve.tag_number }}{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
         <h1 class="display-5 text-center mb-4">
-            <i class="fas fa-info-circle text-primary me-2"></i> تفاصيل البلف
+            <i class="fas fa-info-circle text-primary me-2"></i> {% trans "Valve Details" %}
         </h1>
     </div>
 </div>
@@ -14,13 +15,13 @@
 {% if valve %}
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">البلف: {{ valve.name }} ({{ valve.tag_number }})</h5>
+        <h5 class="mb-0">{% trans "Valve" %}: {{ valve.name }} ({{ valve.tag_number }})</h5>
         <div>
-            <a href="{% url 'valves:valve-update-frontend' pk=pk %}" class="btn btn-sm btn-light me-2">
-                <i class="fas fa-edit me-1"></i> تعديل البلف
+            <a href="{% url 'valves:valve-update-frontend' pk=valve.valve_id %}" class="btn btn-sm btn-light me-2">
+                <i class="fas fa-edit me-1"></i> {% trans "Edit Valve" %}
             </a>
-            <a href="{% url 'valves:valve-list-frontend' %}" class="btn btn-sm btn-outline-light">
-                <i class="fas fa-arrow-left me-1"></i> العودة للقائمة
+            <a href="{% url 'valves:valve-list-frontend' %}?{{ request.GET.urlencode }}" class="btn btn-sm btn-outline-light">
+                <i class="fas fa-arrow-left me-1"></i> {% trans "Back to List" %}
             </a>
         </div>
     </div>
@@ -30,17 +31,28 @@
         <ul class="nav nav-tabs" id="valveTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details-pane" type="button" role="tab" aria-controls="details-pane" aria-selected="true">
-                    <i class="fas fa-list-alt me-1"></i> التفاصيل الأساسية
+                    <i class="fas fa-list-alt me-1"></i> {% trans "Basic Details" %}
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance-pane" type="button" role="tab" aria-controls="maintenance-pane" aria-selected="false">
-                    <i class="fas fa-history me-1"></i> سجل الصيانة ({{ maintenance_records|length }})
+                    <i class="fas fa-history me-1"></i> {% trans "Maintenance History" %} ({{ maintenance_records|length }})
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="parts-tab" data-bs-toggle="tab" data-bs-target="#parts-pane" type="button" role="tab" aria-controls="parts-pane" aria-selected="false">
-                    <i class="fas fa-tools me-1"></i> قطع الغيار المطلوبة ({{ spare_parts|length }})
+                    <i class="fas fa-tools me-1"></i> {% trans "Parts Used in History" %} ({{ parts_used_in_history|length }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="related-codes-tab" data-bs-toggle="tab" data-bs-target="#related-codes-pane" type="button" role="tab" aria-controls="related-codes-pane" aria-selected="false">
+                    <i class="fas fa-barcode me-1"></i> {% trans "Related Part Codes" %}
+                    <span class="badge bg-secondary">{{ related_part_codes|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="images-tab" data-bs-toggle="tab" data-bs-target="#images-pane" type="button" role="tab" aria-controls="images-pane" aria-selected="false">
+                    <i class="fas fa-images me-1"></i> {% trans "Images" %} ({{ valve.images.all|length }})
                 </button>
             </li>
         </ul>
@@ -51,21 +63,31 @@
             <!-- 1. التفاصيل الأساسية (Details) -->
             <div class="tab-pane fade show active" id="details-pane" role="tabpanel" aria-labelledby="details-tab" tabindex="0">
                 <div class="row g-3">
-                    <div class="col-md-6"><p><strong>رقم العلامة (Tag):</strong> {{ valve.tag_number }}</p></div>
-                    <div class="col-md-6"><p><strong>الموقع:</strong> {{ valve.location }}</p></div>
-                    <div class="col-md-6"><p><strong>الحالة:</strong> <span class="badge bg-{{ valve.status|lower|yesno:'success,warning,danger' }} p-2">{{ valve.status }}</span></p></div>
-                    <div class="col-md-6"><p><strong>الشركة المصنعة:</strong> {{ valve.manufacturer|default:"غير محدد" }}</p></div>
-                    <div class="col-md-6"><p><strong>الموديل:</strong> {{ valve.model_number|default:"غير محدد" }}</p></div>
-                    <div class="col-md-6"><p><strong>تاريخ التركيب:</strong> {{ valve.installation_date|default:"غير محدد" }}</p></div>
-                    <div class="col-md-12"><p><strong>الملاحظات:</strong> {{ valve.notes|default:"لا توجد ملاحظات." }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Tag Number" %}:</strong> {{ valve.tag_number }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Location" %}:</strong> {{ valve.location }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Status" %}:</strong> <span class="badge bg-{{ valve.status.get_status_color }} p-2">{{ valve.status.name }}</span></p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Manufacturer" %}:</strong> {{ valve.manufacturer|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Model Number" %}:</strong> {{ valve.model_number|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Shut-off Pressures P1 / P2" %}:</strong> {{ valve.shut_off_pressure|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Power Failure Pos." %}:</strong> {{ valve.power_failure_pos|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Body Style" %}:</strong> {{ valve.body_style|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Required Travel / Angle" %}:</strong> {{ valve.required_travel_angle|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Bench Range" %}:</strong> {{ valve.bench_range|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Installation Date" %}:</strong> {{ valve.installation_date|default:_("Not specified") }}</p></div>
+                    <div class="col-md-12"><p><strong>{% trans "Notes" %}:</strong> {{ valve.notes|default:_("No notes available.") }}</p></div>
+                    {% if valve.drawing_link %}
+                    <div class="col-md-12">
+                        <p><strong>{% trans "Drawing" %}:</strong> <a href="{{ valve.drawing_link.url }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-pdf me-1"></i> {% trans "View Drawing" %}</a></p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
             <!-- 2. سجل الصيانة (Maintenance History) -->
             <div class="tab-pane fade" id="maintenance-pane" role="tabpanel" aria-labelledby="maintenance-tab" tabindex="0">
                 <div class="d-flex justify-content-end mb-3">
-                    <a href="{% url 'valves:maintenance-create-frontend' %}?valve_id={{ valve.id }}" class="btn btn-sm btn-success">
-                        <i class="fas fa-wrench me-1"></i> إضافة سجل صيانة جديد
+                    <a href="{% url 'valves:maintenance-create-frontend' %}?valve_id={{ valve.valve_id }}" class="btn btn-sm btn-success">
+                        <i class="fas fa-wrench me-1"></i> {% trans "Add New Maintenance Record" %}
                     </a>
                 </div>
                 {% if maintenance_records %}
@@ -73,22 +95,27 @@
                         <table class="table table-sm table-bordered">
                             <thead>
                                 <tr>
-                                    <th>التاريخ</th>
-                                    <th>نوع الصيانة</th>
-                                    <th>الفني</th>
-                                    <th>الوصف</th>
-                                    <th>الإجراءات</th>
+                                    <th>{% trans "Date" %}</th>
+                                    <th>{% trans "Maintenance" %}</th>
+                                    <th>{% trans "Technician" %}</th>
+                                    <th>{% trans "Status After" %}</th>
+                                    <th>{% trans "Actions" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for record in maintenance_records %}
                                 <tr>
-                                    <td>{{ record.date_performed }}</td>
-                                    <td>{{ record.maintenance_type }}</td>
-                                    <td>{{ record.performed_by|default:"غير محدد" }}</td>
-                                    <td>{{ record.description|truncatechars:50 }}</td>
+                                    <td>{{ record.maintenance_date|date:"Y-m-d" }}</td>
+                                    <td>{{ record.maintenance_activities|default:"-" }}</td>
+                                    <td>{{ record.technician_name|default:_("Not specified") }}</td>
+                                    <td><span class="badge bg-info">{{ record.valve_status_after|default:"-" }}</span></td>
                                     <td>
-                                        <a href="{% url 'valves:maintenance-update-frontend' pk=record.id %}" class="btn btn-sm btn-warning">تعديل</a>
+                                        <a href="{% url 'valves:maintenance-detail-frontend' pk=record.maintenance_id %}" class="btn btn-sm btn-info text-white" title="عرض التفاصيل">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'valves:maintenance-update-frontend' pk=record.maintenance_id %}" class="btn btn-sm btn-warning" title="تعديل">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -97,33 +124,33 @@
                     </div>
                 {% else %}
                     <div class="alert alert-warning text-center">
-                        لا يوجد سجل صيانة لهذا البلف حتى الآن.
+                        {% trans "No maintenance history for this valve yet." %}
                     </div>
                 {% endif %}
             </div>
 
             <!-- 3. قطع الغيار المطلوبة (Spare Parts) -->
             <div class="tab-pane fade" id="parts-pane" role="tabpanel" aria-labelledby="parts-tab" tabindex="0">
-                {% if spare_parts %}
+                {% if parts_used_in_history %}
                     <div class="table-responsive">
                         <table class="table table-sm table-bordered">
                             <thead>
                                 <tr>
-                                    <th>رقم القطعة</th>
-                                    <th>الاسم</th>
-                                    <th>الكمية المطلوبة</th>
-                                    <th>وحدة القياس</th>
+                                    <th>{% trans "Part Code" %}</th>
+                                    <th>{% trans "Part Name" %} / {% trans "Description" %}</th>
+                                    <th>{% trans "Quantity Used" %}</th>
+                                    <th>{% trans "Maintenance Date" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for part in spare_parts %}
+                                {% for part_usage in parts_used_in_history %}
                                 <tr>
-                                    <td>{{ part.part_number }}</td>
                                     <td>
-                                        <a href="{% url 'valves:spare-part-detail-frontend' pk=part.id %}" class="text-decoration-none">{{ part.name }}</a>
+                                        <a href="{% url 'valves:part-code-detail-frontend' pk=part_usage.code.code_id %}" class="text-decoration-none font-monospace">{{ part_usage.code.code_id }}</a>
                                     </td>
-                                    <td>{{ part.quantity }}</td>
-                                    <td>{{ part.unit_of_measure|default:"وحدة" }}</td>
+                                    <td>{{ part_usage.part.part_name }}</td>
+                                    <td>{{ part_usage.quantity_used }}</td>
+                                    <td><a href="{% url 'valves:maintenance-detail-frontend' pk=part_usage.maintenance_event.maintenance_id %}">{{ part_usage.maintenance_event.maintenance_date|date:"Y-m-d" }}</a></td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -131,19 +158,101 @@
                     </div>
                 {% else %}
                     <div class="alert alert-info text-center">
-                        لم يتم ربط قطع غيار بهذا البلف بعد.
+                        {% trans "No spare parts have been linked to this valve yet." %}
                     </div>
                 {% endif %}
             </div>
 
-        </div> <!-- End of Tabs Content -->
+            <!-- 4. أكواد القطع المرتبطة (Related Part Codes) -->
+            <div class="tab-pane fade" id="related-codes-pane" role="tabpanel" aria-labelledby="related-codes-tab" tabindex="0">
+                {% if related_part_codes %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>{% trans "Part Code" %}</th>
+                                    <th>{% trans "Part Name" %}</th>
+                                    <th>{% trans "Description" %}</th>
+                                    <th>{% trans "Manufacturer" %}</th>
+                                    <th>{% trans "Warehouse No." %}</th>
+                                    <th>{% trans "Part No." %}</th>
+                                    <th>{% trans "SAP Code" %}</th>
+                                    <th>{% trans "Oracle Code" %}</th>
+                                    <th>{% trans "Condition" %}</th>
+                                    <th>{% trans "UoM" %}</th>
+                                    <th>{% trans "Quantity" %}</th>
+                                    <th>{% trans "Location" %}</th>
+                                    <th>{% trans "Category" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for code in related_part_codes %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'valves:part-code-detail-frontend' pk=code.pk %}" class="text-decoration-none font-monospace">{{ code.code_id }}</a>
+                                    </td>
+                                    <td>{{ code.part.part_name|default:"--" }}</td>
+                                    <td>{{ code.description|default:"--" }}</td>
+                                    <td>{{ code.MANUFATURE_CO|default:"--" }}</td>
+                                    <td>{{ code.warehouse_number|default:"--" }}</td>
+                                    <td>{{ code.part_number|default:"--" }}</td>
+                                    <td>{{ code.sap_code|default:"--" }}</td>
+                                    <td>{{ code.oracle_code|default:"--" }}</td>
+                                    <td>{{ code.condition|default:"--" }}</td>
+                                    <td>{{ code.unit_of_measure|default:"--" }}</td>
+                                    <td>{{ code.quantity|default:"--" }}</td>
+                                    <td>{{ code.location|default:"--" }}</td>
+                                    <td>{{ code.category|default:"--" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        {% trans "No related part codes found for this valve." %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- 5. الصور (Images) -->
+            <div class="tab-pane fade" id="images-pane" role="tabpanel" aria-labelledby="images-tab" tabindex="0">
+                <div class="mb-3">
+                    {% if valve.images.all %}
+                        <p>{% blocktrans count counter=valve.images.all.count %}There is 1 additional image for this valve.{% plural %}There are {{ counter }} additional images for this valve.{% endblocktrans %}</p>
+                        <a href="{% url 'valves:valve-images-gallery-frontend' pk=valve.valve_id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-camera-retro me-2"></i>{% trans "View Image Gallery" %}
+                        </a>
+                    {% else %}
+                        <p class="text-muted">{% trans "No additional images available for this valve." %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- End of Tabs Content -->
 
     </div>
 </div>
 
 {% else %}
     <div class="alert alert-danger text-center">
-        عفواً، لا يمكن العثور على تفاصيل هذا البلف.
+        {% trans "Sorry, the details for this valve could not be found." %}
     </div>
-{% endif %}
+{% endif %}{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if there is a hash in the URL
+    if (window.location.hash) {
+        // Find the tab trigger element that corresponds to the hash
+        var tabTrigger = document.querySelector('.nav-tabs button[data-bs-target="' + window.location.hash + '"]');
+        if (tabTrigger) {
+            // Create a new Bootstrap Tab instance and show it
+            var tab = new bootstrap.Tab(tabTrigger);
+            tab.show();
+        }
+    }
+});
+</script>
 {% endblock %}

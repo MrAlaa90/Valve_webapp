@@ -1,0 +1,39 @@
+body .card.factory-card-danger {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+body .card.factory-card-success {
+    background-color: #198754 !important;
+    color: white !important;
+}
+
+body .card.factory-card-primary {
+    background-color: #0d6efd !important;
+    color: white !important;
+}
+
+body .card.factory-card-info {
+    background-color: #0dcaf0 !important;
+    color: white !important;
+}
+
+body .table .table-header-danger {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+body .table .table-header-success {
+    background-color: #198754 !important;
+    color: white !important;
+}
+
+body .table .table-header-primary {
+    background-color: #0d6efd !important;
+    color: white !important;
+}
+
+body .table .table-header-info {
+    background-color: #0dcaf0 !important;
+    color: white !important;
+}

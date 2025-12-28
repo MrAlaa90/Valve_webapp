@@ -6,7 +6,7 @@ from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend # Added
 from .models import (
     Valve, PartCode, MaintenanceHistory, MaintenancePart,
-    Factory, ValveStatus, Shutdown, ValveType, Manufacturer
+    Factory, ValveStatus, Shutdown, ValveType, Manufacturer, Technician
 )
 from .serializers import ValveSerializer, PartCodeSerializer, MaintenanceHistorySerializer, MaintenancePartSerializer
 from .forms import ShutdownReportForm, MaintenanceHistoryForm
@@ -39,13 +39,19 @@ def valve_detail_frontend(request, pk):
     # Get maintenance records ordered by date
     maintenance_records = valve.maintenance_records.all().order_by('-maintenance_date')
     
-    # Get associated part codes
-    part_codes = valve.part_codes.all()
+    # Get associated part codes (directly linked to the valve)
+    related_part_codes = valve.part_codes.all()
+
+    # Get parts used in maintenance history
+    parts_used_in_history = []
+    for record in maintenance_records:
+        parts_used_in_history.extend(record.maintenancepart_set.all())
     
     context = {
         'valve': valve,
         'maintenance_records': maintenance_records,
-        'part_codes': part_codes,
+        'related_part_codes': related_part_codes,
+        'parts_used_in_history': parts_used_in_history,
     }
     return render(request, 'valves/valve_detail.html', context)
 
@@ -223,34 +229,49 @@ class MaintenancePartDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = MaintenancePart.objects.all()
     serializer_class = MaintenancePartSerializer 
 
+from django.urls import reverse
+from django.http import HttpResponseRedirect
+...
 @login_required
 def maintenance_form_frontend(request, pk=None):
     """
     View for creating and updating maintenance records.
     """
+    record = None
+    valve_instance = None
+    initial_data = {}
+    technicians = Technician.objects.all().order_by('name')
+
     if pk:
         # Update an existing record
         record = get_object_or_404(MaintenanceHistory, pk=pk)
-        form = MaintenanceHistoryForm(request.POST or None, request.FILES or None, instance=record)
-        title = "Update Maintenance Record"
+        valve_instance = record.valve
     else:
         # Create a new record
-        record = None
-        form = MaintenanceHistoryForm(request.POST or None, request.FILES or None)
-        title = "Create New Maintenance Record"
+        valve_id = request.GET.get('valve_id')
+        if valve_id:
+            valve_instance = get_object_or_404(Valve, pk=valve_id)
+            initial_data['valve_tag_number'] = valve_instance.tag_number
 
     if request.method == 'POST':
+        form = MaintenanceHistoryForm(request.POST, request.FILES, instance=record)
         if form.is_valid():
             instance = form.save()
             messages.success(request, "Maintenance record saved successfully!")
-            return redirect('valves:maintenance-detail-frontend', pk=instance.pk)
+            redirect_url = reverse('valves:valve-detail-frontend', kwargs={'pk': instance.valve.pk})
+            return HttpResponseRedirect(redirect_url + '#maintenance-pane')
         else:
             messages.error(request, "Please correct the errors below.")
+    else:
+        form = MaintenanceHistoryForm(instance=record, initial=initial_data)
 
+    title = "Update Maintenance Record" if pk else "Create New Maintenance Record"
     context = {
         'form': form,
         'title': title,
-        'pk': pk
+        'pk': pk,
+        'valve': valve_instance,
+        'technicians': technicians
     }
     return render(request, 'valves/maintenance_form.html', context)
 
@@ -346,8 +367,8 @@ def maintenance_detail_frontend(request, pk):
     )
     
     context = {
-        'maintenance': maintenance,
-        'parts': maintenance.parts.all(),
+        'record': maintenance,
+        'parts_used': maintenance.maintenancepart_set.all(),
     }
     return render(request, 'valves/maintenance_detail.html', context)
 

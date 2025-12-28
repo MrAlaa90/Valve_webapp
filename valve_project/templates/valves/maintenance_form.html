@@ -1,43 +1,200 @@
 {% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{# لـ rendering رسائل Django Messages #}
 
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
 
 <div class="container mt-5">
-<div class="row justify-content-center">
-<div class="col-md-8">
-<div class="card shadow-lg border-success">
-<div class="card-header bg-success text-white">
-<h4 class="mb-0">{{ title }}</h4>
-</div>
-<div class="card-body">
-<div class="alert alert-info text-center">
-<i class="fas fa-hammer me-2"></i>
-<strong>مرحباً!</strong> هذه صفحة نموذج سجل الصيانة.
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-8">
+            <div class="card shadow-lg border-success">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0 text-center">
+                        <i class="fas fa-hammer me-2"></i> {{ title }}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+
+                    {# لعرض رسائل النظام (مثل رسالة النجاح بعد الحفظ) #}
+                    {% if messages %}
+                        <div class="mb-3">
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} text-center">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {# Display all form errors at the top #}
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Please correct the errors below:</strong>
+                            <ul>
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    {# يجب استخدام enctype="multipart/form-data" لأن النموذج يحتوي على حقول صور #}
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {# حقول النماذج الرسومية: يتم استعراض حقل حقل لإضافة تنسيقات Bootstrap #}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.valve_tag_number.id_for_label }}" class="form-label fw-bold">{{ form.valve_tag_number.label }}</label>
+                                <div id="id_valve_tag_number_container">
+                                    {{ form.valve_tag_number }}
+                                </div>
+                                {% for error in form.valve_tag_number.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.technician_name.id_for_label }}" class="form-label fw-bold">{{ form.technician_name.label }}</label>
+                                {{ form.technician_name }}
+                                <datalist id="technicians-list">
+                                    {% for tech in technicians %}
+                                        <option value="{{ tech.name }}">
+                                    {% endfor %}
+                                </datalist>
+                                {% for error in form.technician_name.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.maintenance_date.id_for_label }}" class="form-label fw-bold">{{ form.maintenance_date.label }}</label>
+                                {{ form.maintenance_date }}
+                            </div>
+                            
+                            {# 1. الحقل الجديد: Oracle Code / Tracking Code #}
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.oracle_code.id_for_label }}" class="form-label fw-bold">{{ form.oracle_code.label }}</label>
+                                {{ form.oracle_code }}
+                                {% for error in form.oracle_code.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Maintenance Activities</label>
+                            <div class="row">
+                                {% for checkbox in form.maintenance_activities %}
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        {{ checkbox }}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
 
 
+                        {# حقول رفع الصور #}
+                        <div class="row border-top pt-3 mt-3">
+                            <p class="text-muted small mb-3 text-center">يرجى رفع صور البلف قبل وبعد عملية الصيانة.</p>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.before_image.id_for_label }}" class="form-label fw-bold">{{ form.before_image.label }}</label>
+                                {{ form.before_image }}
+                                {% if form.before_image.value %}
+                                    <small class="d-block mt-2">الصورة الحالية: <a href="{{ form.before_image.value.url }}" target="_blank">عرض</a></small>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.after_image.id_for_label }}" class="form-label fw-bold">{{ form.after_image.label }}</label>
+                                {{ form.after_image }}
+                                {% if form.after_image.value %}
+                                    <small class="d-block mt-2">الصورة الحالية: <a href="{{ form.after_image.value.url }}" target="_blank">عرض</a></small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {# 2. الحقل الجديد: Maintenance Notes #}
+                        <div class="mb-3">
+                            <label for="{{ form.maintenance_notes.id_for_label }}" class="form-label fw-bold">{{ form.maintenance_notes.label }}</label>
+                            {{ form.maintenance_notes }}
+                            {% for error in form.maintenance_notes.errors %}
+                                <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+
+                        {# 3. الحقل الجديد: Is Active (Checkbox) #}
+                        <div class="form-check form-switch mb-4">
+                            {{ form.is_active }}
+                            <label class="form-check-label fw-bold" for="{{ form.is_active.id_for_label }}">
+                                {{ form.is_active.label }}
+                            </label>
+                            <small class="d-block text-muted">يشير إلى ما إذا كان سجل الصيانة هذا هو السجل الحالي/الفعال للبلف.</small>
+                        </div>
 
 
-
-سنقوم ببناء نموذج إدخال البيانات والتفاعل مع الـ API هنا في الخطوة القادمة.
-</div>
-
-                {% if pk %}
-                    <p class="text-center">أنت الآن في وضع **تعديل** السجل رقم: <code>{{ pk }}</code></p>
-                {% elif initial_valve_id %}
-                    <p class="text-center">أنت الآن في وضع **إنشاء** سجل للبلف رقم: <code>{{ initial_valve_id }}</code></p>
-                {% endif %}
-                
-                <div class="d-grid mt-4">
-                    <a href="{% url 'valves:valve-list-frontend' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-1"></i> العودة إلى القائمة الرئيسية
-                    </a>
+                        {# زر الإرسال والإلغاء #}
+                        <div class="d-grid gap-2 mt-4 border-top pt-4">
+                            <button type="submit" class="btn btn-success btn-lg shadow-sm">
+                                <i class="fas fa-save me-2"></i>
+                                Save Record
+                            </button>
+                            <a href="{% if valve %}{% url 'valves:valve-detail-frontend' pk=valve.pk %}#maintenance-pane{% else %}{% url 'valves:maintenance-history-frontend' %}{% endif %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> {% trans "Cancel and Return to Maintenance History" %}
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-</div>
-{% endblock %}
+{% endblock content %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialize Select2 for tag number field if not readonly
+    if (!$('#id_valve_tag_number').prop('readonly')) {
+        $('#id_valve_tag_number').select2({
+            ajax: {
+                url: '{% url "valves:valve-tag-autocomplete" %}',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return {
+                        term: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: $.map(data, function (item) {
+                            return {
+                                text: item.text + (item.name ? ' - ' + item.name : ''),
+                                id: item.text,
+                                valve_id: item.id
+                            }
+                        })
+                    };
+                },
+                cache: true
+            },
+            minimumInputLength: 2,
+            placeholder: '{% trans "Start typing to search for a valve..." %}',
+            width: '100%'
+        }).on('select2:select', function (e) {
+            var data = e.params.data;
+            $('#id_valve').val(data.valve_id);
+        });
+    }
+});
+</script>
+{% endblock extra_js %}

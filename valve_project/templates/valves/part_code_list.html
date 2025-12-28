@@ -1,88 +1,138 @@
 {% extends "base.html" %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}قائمة أكواد القطع{% endblock %}
+{% block title %}{% trans "Part Codes List" %}{% endblock %}
 
 {% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-5 text-center mb-4">
+                <i class="fas fa-barcode text-primary me-2"></i>
+                {% trans "Part Codes List" %}
+            </h1>
+            <p class="lead text-center text-muted">{% trans "Browse and search all part codes registered in the system." %}</p>
+        </div>
+    </div>
 
-<div class="row">
-<div class="col-12">
-<h1 class="display-5 text-center mb-4">
-<i class="fas fa-barcode text-secondary me-2"></i>
-أكواد القطع المعيارية
-</h1>
-<p class="lead text-center text-muted">إدارة الأكواد التعريفية لقطع الغيار المختلفة (مثل نوع القطعة والوصف القياسي).</p>
-</div>
-</div>
+    <!-- Search Bar -->
+    <div class="row justify-content-center my-4">
+        <div class="col-md-8">
+            <form method="get" action="{% url 'valves:part-code-list-frontend' %}">
+                <div class="input-group shadow-sm">
+                    <input type="text" class="form-control form-control-lg" name="q" placeholder="{% trans 'Search for part code (SAP, Oracle, Description, Part Number...)' %}" value="{{ search_query }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i> {% trans "Search" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-<div class="row mb-4">
-<div class="col-12 text-end">
-{# نفترض وجود مسار لإنشاء كود قطعة جديد #}
-<a href="{% url 'valves:part-code-create-frontend' %}" class="btn btn-success shadow-sm">
-<i class="fas fa-plus me-1"></i> إضافة كود قطعة جديد
-</a>
-</div>
-</div>
+    <div class="row">
+        <div class="col-12">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} text-center">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
 
-<div class="row">
-<div class="col-12">
-{% if part_codes %}
-<div class="table-responsive bg-white rounded shadow-sm p-3">
-<table class="table table-hover table-striped">
-<thead class="table-dark">
-<tr>
-<th scope="col">#</th>
-<th scope="col">الكود التعريفي</th>
-<th scope="col">وصف الكود</th>
-<th scope="col">البلف المرتبط</th>
-<th scope="col">إجراءات</th>
-</tr>
-</thead>
-<tbody>
-{% for code in part_codes %}
-<tr>
-<th scope="row">{{ forloop.counter }}</th>
-<td class="font-monospace text-uppercase">{{ code.code_number }}</td>
-<td>{{ code.description }}</td>
-<td>
-{# نعرض اسم البلف المرتبط بالكود (إذا كان متوفراً) #}
-{% if code.associated_valve %}
-<a href="{% url 'valves:valve-detail-frontend' pk=code.associated_valve.id %}" class="text-primary fw-bold">
-{{ code.associated_valve.name }}
-</a>
-{% else %}
-<span class="text-muted">غير محدد</span>
-{% endif %}
-</td>
-<td>
-{# نفترض وجود مسار لتفاصيل أو تعديل الكود باستخدام الـ ID #}
-<a href="{% url 'valves:part-code-detail-frontend' pk=code.id %}" class="btn btn-sm btn-info text-white me-2" title="تفاصيل/تعديل">
-<i class="fas fa-edit"></i>
-</a>
-<a href="#" class="btn btn-sm btn-danger" title="حذف"
-onclick="return confirm('هل أنت متأكد من حذف كود القطعة: {{ code.code_number }}؟');">
-<i class="fas fa-trash-alt"></i>
-</a>
-</td>
-</tr>
-{% empty %}
-<tr>
-<td colspan="5" class="text-center">لا توجد أكواد قطع مسجلة بعد.</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-</div>
-{% else %}
-<div class="alert alert-warning text-center shadow-sm" role="alert">
-<h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i> لا توجد بيانات</h4>
-<p>يرجى إضافة كود قطعة جديد للبدء في توثيق الأكواد القياسية.</p>
-<hr>
-<a href="{% url 'valves:part-code-create-frontend' %}" class="btn btn-warning">
-<i class="fas fa-plus me-1"></i> إضافة أول كود قطعة
-</a>
-</div>
-{% endif %}
-</div>
+            {% if part_codes %}
+            <div class="table-responsive bg-white rounded shadow-sm p-3">
+                <table class="table table-hover table-striped table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">{% trans "SAP Code" %}</th>
+                            <th scope="col">{% trans "Oracle Code" %}</th>
+                            <th scope="col">{% trans "Description / Part Name" %}</th>
+                            <th scope="col">{% trans "Part Number" %}</th>
+                            <th scope="col">{% trans "Location" %}</th>
+                            <th scope="col">{% trans "Condition" %}</th>
+                            <th scope="col">{% trans "Category" %}</th>
+                            <th scope="col">{% trans "Unit of Measure" %}</th>
+                            <th scope="col">{% trans "Associated Valves" %}</th>
+                            <th scope="col">{% trans "Manufacturer CO" %}</th>
+                            <th scope="col">{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for code in part_codes %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td class="font-monospace fw-bold">{{ code.sap_code|default:"-" }}</td>
+                            <td class="font-monospace">{{ code.oracle_code|default:"-" }}</td>
+                            <td>{% if code.part %}{{ code.description|default:code.part.part_name|default:"-" }}{% else %}{{ code.description|default:"-" }}{% endif %}</td>
+                            <td>{{ code.part_number|default:"-" }}</td>
+                            <td>{{ code.location|default:"-" }}</td>
+                            <td>{{ code.condition|default:"-" }}</td>
+                            <td>{{ code.category|default:"-" }}</td>
+                            <td>{{ code.unit_of_measure|default:"-" }}</td>
+                            <td>
+                                {% for valve in code.associated_valves.all %}
+                                    <a href="{% url 'valves:valve-detail-frontend' pk=valve.valve_id %}" class="badge bg-secondary text-decoration-none">{{ valve.tag_number }}</a>
+                                {% empty %}
+                                    -
+                                {% endfor %}
+                            </td>
+                            <td>{{ code.manufacturer_co|default:"-" }}</td>
+                            <td>
+                                <a href="{% url 'valves:part-code-detail-frontend' pk=code.pk %}" class="btn btn-sm btn-info text-white" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% elif not search_query %}
+            <div class="alert alert-warning text-center shadow-sm" role="alert">
+                <h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i> No Data Found</h4>
+                <p>No part codes found in the database. You may need to run the import script first.</p>
+                <hr>
+                <p class="mb-0">Make sure the `part_codes_data.csv` file exists and the import command has been run.</p>
+            </div>
+            {% endif %}
+
+            <!-- Pagination Controls -->
+            {% if part_codes.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if part_codes.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1&q={{ search_query }}">{% trans "First" %}</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ part_codes.previous_page_number }}&q={{ search_query }}">{% trans "Previous" %}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">{% trans "Previous" %}</a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ part_codes.number }} {% trans "of" %} {{ part_codes.paginator.num_pages }}</span>
+                    </li>
+
+                    {% if part_codes.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ part_codes.next_page_number }}&q={{ search_query }}">{% trans "Next" %}</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ part_codes.paginator.num_pages }}&q={{ search_query }}">{% trans "Last" %}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">{% trans "Next" %}</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock content %}

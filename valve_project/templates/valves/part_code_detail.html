@@ -1,0 +1,45 @@
+
+{% extends 'base.html' %}
+
+{% block title %}
+  Part Code Detail: {{ part_code.sap_code }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-header">
+      <h2>Part Code Detail</h2>
+    </div>
+    <div class="card-body">
+      <h5 class="card-title">{{ part_code.sap_code|default_if_none:"N/A" }}</h5>
+      <p class="card-text"><strong>Oracle Code:</strong> {{ part_code.oracle_code|default_if_none:"N/A" }}</p>
+      <p class="card-text"><strong>Part:</strong> {{ part_code.part|default_if_none:"N/A" }}</p>
+      <p class="card-text"><strong>Description:</strong> {{ part_code.description|default_if_none:"N/A" }}</p>
+      <p class="card-text"><strong>Quantity:</strong> {{ part_code.quantity|default_if_none:"N/A" }}</p>
+      <p class="card-text"><strong>Unit Price:</strong> {{ part_code.unit_price|default_if_none:"N/A" }}</p>
+      <p class="card-text"><strong>Location:</strong> {{ part_code.location|default_if_none:"N/A" }}</p>
+      <p class="card-text"><strong>Category:</strong> {{ part_code.category|default_if_none:"N/A" }}</p>
+      <p class="card-text"><strong>Condition:</strong> {{ part_code.condition|default_if_none:"N/A" }}</p>
+      <p class="card-text"><strong>Part Number:</strong> {{ part_code.part_number|default_if_none:"N/A" }}</p>
+      <p class="card-text"><strong>Manufacturer:</strong> {{ part_code.manufacturer_co|default_if_none:"N/A" }}</p>
+      <p class="card-text"><strong>Unit of Measure:</strong> {{ part_code.unit_of_measure|default_if_none:"N/A" }}</p>
+      
+      <h6>Associated Valves:</h6>
+      {% if part_code.associated_valves.all %}
+        <ul>
+          {% for valve in part_code.associated_valves.all %}
+            <li><a href="{% url 'valves:valve-detail-frontend' valve.pk %}">{{ valve.tag_number }}</a></li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No associated valves.</p>
+      {% endif %}
+    </div>
+    <div class="card-footer">
+      <a href="{% url 'valves:part-code-list-frontend' %}" class="btn btn-secondary">Back to List</a>
+      <a href="{% url 'valves:part-code-update-frontend' part_code.pk %}" class="btn btn-primary">Edit</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

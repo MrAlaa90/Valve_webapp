@@ -1,9 +1,102 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block title %}سجل الصيانة{% endblock %}
+{% block title %}Maintenance History{% endblock %}
 
 {% block content %}
-<h1>سجل الصيانة</h1>
-{# هنا هتضيف الكود لعرض البيانات زي ما عملت في صفحة البلوف #}
-{% endblock %}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-5 text-center mb-4">
+            <i class="fas fa-history text-warning me-2"></i>
+            Maintenance and Tracking Log
+        </h1>
+        <p class="lead text-center text-muted">Review and track all maintenance operations performed on the valves.</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12 text-end">
+        {# Path to add a new maintenance record #}
+        <a href="{% url 'valves:maintenance-create-frontend' %}" class="btn btn-warning text-dark shadow-sm">
+            <i class="fas fa-plus me-1"></i> Add New Maintenance Record
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        {% if maintenance_records %}
+        <div class="table-responsive bg-white rounded shadow-sm p-3">
+            <table class="table table-hover table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Valve Tag No.</th>
+                        <th scope="col">Maintenance Date</th>
+                        <th scope="col">Maintenance Type</th>
+                        <th scope="col">Technician in Charge</th>
+                        <th scope="col">Valve Status After Maintenance</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in maintenance_records %}
+                    <tr>
+                        <th scope="row">{{ forloop.counter }}</th>
+                        <td class="font-monospace fw-bold">
+                            {% if record.valve %}
+                                <a href="{% url 'valves:valve-detail-frontend' pk=record.valve.valve_id %}">
+                                    {{ record.valve.tag_number }}
+                                </a>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                        <td>{{ record.date_of_maintenance|date:"Y-m-d" }}</td>
+                        <td>{{ record.maintenance_type|default:"Not specified" }}</td>
+                        <td>{{ record.technician_name|default:"Not specified" }}</td>
+                        <td>
+                            {# Highlight the status based on the value #}
+                            {% if record.valve_status_after == 'Operational' %}
+                                <span class="badge bg-success">Operational</span>
+                            {% elif record.valve_status_after == 'Needs Maintenance' %}
+                                <span class="badge bg-warning text-dark">Needs Maintenance</span>
+                            {% elif record.valve_status_after == 'Out of Service' %}
+                                <span class="badge bg-danger">Out of Service</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ record.valve_status_after|default:"Unknown" }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {# Details button #}
+                            <a href="{% url 'valves:maintenance-detail-frontend' pk=record.id %}" class="btn btn-sm btn-info text-white me-2" title="Record details and spare parts">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {# Edit button #}
+                            <a href="{% url 'valves:maintenance-update-frontend' pk=record.id %}" class="btn btn-sm btn-warning me-2" title="Edit Record">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">No maintenance records have been registered yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i> No records</h4>
+            <p>Start by adding the first maintenance record to track your work.</p>
+            <hr>
+            <a href="{% url 'valves:maintenance-create-frontend' %}" class="btn btn-info">
+                <i class="fas fa-plus me-1"></i> Add New Record
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}
