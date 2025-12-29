@@ -1,5 +1,80 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5.min.css" />
+<style>
+    /* Force Select2 to be 100% width and override its dynamic resizing */
+    .select2-container {
+        width: 100% !important;
+    }
+
+    /* Ensure Select2 search field also takes appropriate width */
+    .select2-container .select2-search--inline .select2-search__field {
+        width: 100% !important; /* Ensure it takes full available width */
+        min-width: 150px; /* Prevent it from becoming too small */
+    }
+
+    /* Custom styling for selected tags */
+    .selected-valve-tag {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        padding: .35em .65em;
+        font-size: .75em;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: .25rem;
+    }
+    .selected-valve-tag .remove-tag {
+        margin-left: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    .selected-valve-tag .remove-tag:hover {
+        color: #fff;
+    }
+
+    /* Hide Select2's default internal selection tags */
+    .select2-container .select2-selection--multiple .select2-selection__choice {
+        display: none !important;
+    }
+
+    /* Make Select2 dropdown menu scrollable */
+    .select2-container--open .select2-dropdown {
+        max-height: 200px; /* Adjust as needed */
+        overflow-y: auto;
+    }
+
+    /* Select2 Dropdown Dark Mode Adjustments */
+    .select2-container--open .select2-dropdown {
+        background-color: #343a40; /* Dark background */
+        border-color: #495057;     /* Darker border */
+    }
+
+    .select2-results__option {
+        color: #f8f9fa; /* Light text color */
+    }
+
+    .select2-results__option--highlighted {
+        background-color: #0d6efd !important; /* Bootstrap primary blue for highlight */
+        color: #fff !important;
+    }
+
+    .select2-search__field {
+        background-color: #495057 !important; /* Darker search input background */
+        color: #f8f9fa !important; /* Light text for search input */
+        border-color: #495057 !important;
+    }
+</style>
+{% endblock %}
+
 {% block title %}Shutdown Reports{% endblock %}
 
 {% block content %}
@@ -29,10 +104,10 @@
                 </div>
                 <div class="form-group">
                     <label for="id_valves">Affected Valves</label>
-                    <input type="text" id="valve-search" class="form-control" placeholder="Search Valves">
                     {{ form.valves }}
+                    <div id="selected-valves-container" class="mt-2"></div>
                 </div>
-                <button type="submit" class="btn btn-primary">Create Report</button>
+                <button type="submit" class="btn btn-primary mt-3">Create Report</button>
             </form>
         </div>
     </div>
@@ -49,15 +124,15 @@
                         <select name="factory" class="form-control">
                             <option value="">All Factories</option>
                             {% for factory in factories %}
-                                <option value="{{ factory }}" {% if factory == selected_factory %}selected{% endif %}>{{ factory }}</option>
+                                <option value="{{ factory.id }}" {% if factory.id|stringformat:"s" == selected_factory_id %}selected{% endif %}>{{ factory.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <input type="date" name="start_date" class="form-control" value="{{ start_date|default:'' }}">
+                        <input type="date" name="start_date" class="form-control" value="{{ selected_start_date|default:'' }}">
                     </div>
                     <div class="col-md-3">
-                        <input type="date" name="end_date" class="form-control" value="{{ end_date|default:'' }}">
+                        <input type="date" name="end_date" class="form-control" value="{{ selected_end_date|default:'' }}">
                     </div>
                     <div class="col-md-2">
                         <label for="print-date">Print Date</label>
@@ -65,7 +140,6 @@
                     </div>
                     <div class="col-md-1">
                         <button type="submit" class="btn btn-secondary">Filter</button>
-                        <a href="{% url 'valves:shutdown-report-print' %}?factory={{ selected_factory|default:'' }}&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}" target="_blank" class="btn btn-info">Print</a>
                     </div>
                 </div>
             </form>
@@ -86,6 +160,7 @@
                         <th>End Date</th>
                         <th>Total Valves</th>
                         <th>Affected Valves</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -102,6 +177,9 @@
                                 {% endfor %}
                             </ul>
                         </td>
+                        <td>
+                            <a href="{% url 'valves:shutdown-report-print' pk=shutdown.pk %}" target="_blank" class="btn btn-info btn-sm">Print</a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -111,84 +189,86 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const printDateInput = document.getElementById('print-date');
-        const printLink = document.querySelector('a.btn-info');
-
-        // Set today's date
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        printDateInput.value = `${yyyy}-${mm}-${dd}`;
-
-        // Update print link
-        function updatePrintLink() {
-            const factory = document.querySelector('select[name=factory]').value;
-            const startDate = document.querySelector('input[name=start_date]').value;
-            const endDate = document.querySelector('input[name=end_date]').value;
-            const printDate = printDateInput.value;
-            printLink.href = `{% url 'valves:shutdown-report-print' %}?factory=${factory}&start_date=${startDate}&end_date=${endDate}&print_date=${printDate}`;
-        }
-
-        printDateInput.addEventListener('change', updatePrintLink);
-        document.querySelector('select[name=factory]').addEventListener('change', updatePrintLink);
-        document.querySelector('input[name=start_date]').addEventListener('change', updatePrintLink);
-        document.querySelector('input[name=end_date]').addEventListener('change', updatePrintLink);
-
-        updatePrintLink();
-
         const factorySelect = document.getElementById('id_factory');
-        const valvesContainer = document.getElementById('id_valves');
+        const valvesSelect = $('#id_valves');
+        const selectedValvesContainer = document.getElementById('selected-valves-container');
 
-        factorySelect.addEventListener('change', function() {
-            const factory = this.value;
-            if (factory) {
-                fetch(`/valves/api/get-valves-by-factory/?factory=${factory}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        valvesContainer.innerHTML = '';
-                        data.forEach(function(valve, index) {
-                            const checkbox = document.createElement('input');
-                            checkbox.type = 'checkbox';
-                            checkbox.name = 'valves';
-                            checkbox.value = valve.valve_id;
-                            checkbox.id = `id_valves_${index}`;
-                            checkbox.classList.add('form-check-input');
-
-                            const label = document.createElement('label');
-                            label.htmlFor = `id_valves_${index}`;
-                            label.classList.add('form-check-label');
-                            label.appendChild(document.createTextNode(valve.tag_number));
-
-                            const li = document.createElement('li');
-                            li.classList.add('form-check');
-
-                            li.appendChild(checkbox);
-                            li.appendChild(label);
-
-                            valvesContainer.appendChild(li);
-                        });
-                    });
-            } else {
-                valvesContainer.innerHTML = '';
+        // Initialize Select2 with AJAX
+        valvesSelect.select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Select a factory first',
+            width: '100%', // Set width to 100%
+            ajax: {
+                url: "{% url 'valves:get-valves-by-factory' %}",
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        q: params.term, // search term
+                        factory: factorySelect.value
+                    };
+                },
+                processResults: function(data) {
+                    return {
+                        results: data.map(item => ({
+                            id: item.valve_id,
+                            text: item.tag_number
+                        }))
+                    };
+                },
+                cache: true
+            },
+            templateSelection: function () {
+                // Hide selection in the input, we use the container below
+                return '';
             }
         });
 
-        const searchInput = document.getElementById('valve-search');
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const checkboxes = valvesContainer.getElementsByTagName('li');
-            Array.from(checkboxes).forEach(function(checkbox) {
-                const label = checkbox.getElementsByTagName('label')[0];
-                if (label.textContent.toLowerCase().includes(searchTerm)) {
-                    checkbox.style.display = '';
-                } else {
-                    checkbox.style.display = 'none';
-                }
-            });
+        // Initially disable the valve select
+        valvesSelect.prop('disabled', true);
+
+        // Event listener for factory selection
+        factorySelect.addEventListener('change', function() {
+            const factoryId = this.value;
+            // Clear current selection and options
+            valvesSelect.val(null).trigger('change');
+            if (factoryId) {
+                valvesSelect.prop('disabled', false);
+                valvesSelect.data('select2').$container.find('.select2-selection__placeholder').text('Search for valves...');
+                // Manually trigger an AJAX request on first open if needed, or rely on user typing/opening
+            } else {
+                valvesSelect.prop('disabled', true);
+                valvesSelect.data('select2').$container.find('.select2-selection__placeholder').text('Select a factory first');
+            }
         });
+
+        // Function to render selected tags
+        function renderSelectedTags() {
+            selectedValvesContainer.innerHTML = '';
+            const selectedOptions = valvesSelect.select2('data');
+
+            selectedOptions.forEach(function(option) {
+                if (!option.id) return; // Skip placeholder
+                const tag = document.createElement('span');
+                tag.className = 'selected-valve-tag bg-primary';
+                tag.setAttribute('data-valve-id', option.id);
+                tag.innerHTML = `${option.text} <span class="remove-tag">&times;</span>`;
+
+                tag.querySelector('.remove-tag').addEventListener('click', function() {
+                    const currentSelections = valvesSelect.val();
+                    const newSelections = currentSelections.filter(id => id !== option.id);
+                    valvesSelect.val(newSelections).trigger('change');
+                });
+                selectedValvesContainer.appendChild(tag);
+            });
+        }
+
+        // Update tags when selection changes
+        valvesSelect.on('change', renderSelectedTags);
+        
     });
 </script>
 {% endblock %}

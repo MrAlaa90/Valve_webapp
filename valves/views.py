@@ -481,35 +481,91 @@ def valve_images_gallery_frontend(request, pk):
     }
     return render(request, 'valves/valve_gallery.html', context)
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+
+@login_required
+def valve_tag_autocomplete(request):
+    if 'term' in request.GET:
+        qs = Valve.objects.filter(tag_number__icontains=request.GET.get('term'))
+        tags = [valve.tag_number for valve in qs]
+        return JsonResponse(tags, safe=False)
+    return JsonResponse([], safe=False)
+
+@login_required
+@require_GET
+def get_valves_by_factory(request):
+    """
+    API endpoint to get valves by factory, with optional search.
+    """
+    factory_id = request.GET.get('factory')
+    search_term = request.GET.get('q', '')
+
+    if not factory_id:
+        return JsonResponse({'error': 'Factory ID is required'}, status=400)
+    
+    try:
+        valves = Valve.objects.filter(factory_id=factory_id)
+        if search_term:
+            valves = valves.filter(tag_number__icontains=search_term)
+        
+        valves = valves.values('valve_id', 'tag_number')
+        return JsonResponse(list(valves), safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 @login_required
 def shutdown_report(request):
     """
-    Handle creation and display of shutdown reports.
+    Handle creation and display of shutdown reports, with filtering.
     """
     if request.method == 'POST':
         form = ShutdownReportForm(request.POST)
         if form.is_valid():
             shutdown = form.save()
             messages.success(request, 'Shutdown report created successfully.')
-            return redirect('shutdown-report-print', pk=shutdown.pk)
-    else:
+            return redirect('valves:shutdown-report-print', pk=shutdown.pk)
+    else: # GET request
         form = ShutdownReportForm()
-    
+
+    shutdowns = Shutdown.objects.all()
+
+    # Get filter parameters from GET request
+    selected_factory_id = request.GET.get('factory')
+    selected_start_date = request.GET.get('start_date')
+    selected_end_date = request.GET.get('end_date')
+
+    # Apply filters
+    if selected_factory_id:
+        shutdowns = shutdowns.filter(factory_id=selected_factory_id)
+    if selected_start_date:
+        shutdowns = shutdowns.filter(start_date__gte=selected_start_date)
+    if selected_end_date:
+        shutdowns = shutdowns.filter(end_date__lte=selected_end_date)
+
+    shutdowns = shutdowns.order_by('-start_date')
+
+    factories = Factory.objects.all().order_by('name') # For the filter dropdown
+
     context = {
         'form': form,
-        'shutdowns': Shutdown.objects.all().order_by('-start_date')[:10]
+        'shutdowns': shutdowns,
+        'factories': factories, # Pass all factories for the filter dropdown
+        'selected_factory_id': selected_factory_id,
+        'selected_start_date': selected_start_date,
+        'selected_end_date': selected_end_date,
     }
     return render(request, 'valves/shutdown_report.html', context)
 
 @login_required
-def shutdown_report_print(request):
+def shutdown_report_print(request, pk):
     """
-    Generate printable version of the shutdown report.
+    Generate printable version of a specific shutdown report.
     """
-    shutdowns = Shutdown.objects.all().order_by('-start_date')
+    shutdown = get_object_or_404(Shutdown, pk=pk)
     
     context = {
-        'shutdowns': shutdowns,
+        'shutdowns': [shutdown],
         'print_mode': True
     }
     return render(request, 'valves/shutdown_report_print.html', context)

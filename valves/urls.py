@@ -31,6 +31,8 @@ urlpatterns = [
     # API Endpoints (from rest_framework)
     path('api/valves/', views.ValveList.as_view(), name='valve-list-api'),
     path('api/valves/<int:pk>/', views.ValveDetail.as_view(), name='valve-detail-api'),
+    path('api/get-valves-by-factory/', views.get_valves_by_factory, name='get-valves-by-factory'),
+    path('api/valve-tag-autocomplete/', views.valve_tag_autocomplete, name='valve-tag-autocomplete'),
 
     path('api/part-codes/', views.PartCodeList.as_view(), name='part-code-list-api'),
     path('api/part-codes/<int:pk>/', views.PartCodeDetail.as_view(), name='part-code-detail-api'),
@@ -45,6 +47,6 @@ urlpatterns = [
     path('valves/<int:pk>/images/', views.valve_images_gallery_frontend, name='valve-images-gallery-frontend'),
 
     path('shutdown-report/', views.shutdown_report, name='shutdown-report'),
-    path('shutdown-report/print/', views.shutdown_report_print, name='shutdown-report-print'),
+    path('shutdown-report/<int:pk>/print/', views.shutdown_report_print, name='shutdown-report-print'),
     path('part-codes/<int:pk>/delete/', views.part_code_delete_frontend, name='part-code-delete-frontend'),
 ]

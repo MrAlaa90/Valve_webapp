@@ -13,6 +13,7 @@
     <link rel="icon" href="https://s2.googleusercontent.com/s2/favicons?domain=www.gutenberg.org" type="image/x-icon">
     {# jQuery UI CSS #}
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -108,5 +109,6 @@
 
         themeToggleBtn.addEventListener('click', toggleTheme);
     </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

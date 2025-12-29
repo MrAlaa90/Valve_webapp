@@ -167,7 +167,8 @@ class MaintenanceHistoryForm(forms.ModelForm):
 class ShutdownReportForm(forms.ModelForm):
     valves = forms.ModelMultipleChoiceField(
         queryset=Valve.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.SelectMultiple(attrs={'class': 'select2-multiple', 'multiple': 'multiple'}),
+        required=False
     )
 
     class Meta:
@@ -178,3 +179,19 @@ class ShutdownReportForm(forms.ModelForm):
             'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'end_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['valves'].queryset = Valve.objects.none()
+        self.fields['valves'].widget.attrs['disabled'] = 'disabled'
+
+        if 'factory' in self.data:
+            try:
+                factory_id = int(self.data.get('factory'))
+                self.fields['valves'].queryset = Valve.objects.filter(factory_id=factory_id).order_by('tag_number')
+                self.fields['valves'].widget.attrs.pop('disabled')
+            except (ValueError, TypeError):
+                pass
+        elif self.instance.pk and self.instance.factory:
+            self.fields['valves'].queryset = self.instance.factory.valve_set.order_by('tag_number')
+            self.fields['valves'].widget.attrs.pop('disabled')
