@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=valvedb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    command: >
+      sh -c "python wait_for_db.py &&
+             python manage.py migrate &&
+             python manage.py create_initial_superuser &&
+             python manage.py collectstatic --noinput &&
+             gunicorn valve_project.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - POSTGRES_DB=valvedb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - DB_PORT=5432
+      - SECRET_KEY=django-insecure-nm!5o&s-9z*n=5w&@q7c(k-0@f%&b#)@j5e(l@w#g#*o_3
+      - DEBUG=True
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_EMAIL=admin@example.com
+      - DJANGO_SUPERUSER_PASSWORD=admin
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

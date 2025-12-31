@@ -4,3 +4,15 @@ requests
 django-extensions
 psycopg2-binary
 django-filter
+gunicorn
+whitenoise
+dj_database_url
+
+python-dotenv
+
+django-crispy-forms
+ crispy-bootstrap5
+
+djoser
+
+Pillow

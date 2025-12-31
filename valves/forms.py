@@ -195,3 +195,10 @@ class ShutdownReportForm(forms.ModelForm):
         elif self.instance.pk and self.instance.factory:
             self.fields['valves'].queryset = self.instance.factory.valve_set.order_by('tag_number')
             self.fields['valves'].widget.attrs.pop('disabled')
+
+class DocumentUploadForm(forms.Form):
+    factory = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'list': 'factory-list'}))
+    document_type = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'list': 'doctype-list'}))
+    name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    file = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-control'}))
+        

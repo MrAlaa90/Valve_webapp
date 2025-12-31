@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: valvesystem-web:latest
+          imagePullPolicy: IfNotPresent
+          command: ["gunicorn", "valve_project.wsgi:application", "--bind", "0.0.0.0:8000"]
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: valve-configmap
+                  key: DB_HOST
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: valve-configmap
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: valve-configmap
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: valve-secret
+                  key: POSTGRES_PASSWORD
+            - name: DB_PORT
+              value: "5432"
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: valve-secret
+                  key: SECRET_KEY
+            - name: DEBUG
+              value: "True"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+spec:
+  type: NodePort
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 30007
+  selector:
+    app: web

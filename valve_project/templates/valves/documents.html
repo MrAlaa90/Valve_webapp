@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Documents{% endblock %}
+
+{% block extra_css %}
+<style>
+    .accordion-button:not(.collapsed) {
+        color: #fff;
+        background-color: #0d6efd;
+    }
+
+    .list-group-item a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .list-group-item a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <h1 class="mb-4">Existing Documents</h1>
+
+    <div class="mb-3 position-relative">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search for JPG files..." autocomplete="off">
+        <div id="suggestions" class="list-group" style="position: absolute; z-index: 1000; width: 100%;"></div>
+    </div>
+
+    {{ documents|json_script:"documents-data" }}
+
+    <div class="accordion" id="factories-accordion">
+        {% for factory, doc_types in documents.items %}
+        <div class="accordion-item factory-item">
+            <h2 class="accordion-header" id="heading-{{ forloop.counter }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse-{{ forloop.counter }}" aria-expanded="false"
+                    aria-controls="collapse-{{ forloop.counter }}">
+                    {{ factory }}
+                </button>
+            </h2>
+            <div id="collapse-{{ forloop.counter }}" class="accordion-collapse collapse"
+                aria-labelledby="heading-{{ forloop.counter }}" data-bs-parent="#factories-accordion">
+                <div class="accordion-body">
+                    <div class="accordion" id="doctype-accordion-{{ forloop.counter }}">
+                        {% for doc_type, files in doc_types.items %}
+                        <div class="accordion-item doctype-item">
+                            <h2 class="accordion-header"
+                                id="heading-doctype-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#collapse-doctype-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"
+                                    aria-expanded="false"
+                                    aria-controls="collapse-doctype-{{ forloop.parentloop.counter }}-{{ forloop.counter }}">
+                                    {{ doc_type }}
+                                </button>
+                            </h2>
+                            <div id="collapse-doctype-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"
+                                class="accordion-collapse collapse"
+                                aria-labelledby="heading-doctype-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"
+                                data-bs-parent="#doctype-accordion-{{ forloop.parentloop.counter }}">
+                                <div class="accordion-body">
+                                    <ul class="list-group">
+                                        {% for file in files %}
+                                        <li class="list-group-item file-item">
+                                            <a href="{{ file.path }}" target="_blank">{{ file.name }}</a>
+                                        </li>
+                                        {% empty %}
+                                        <li class="list-group-item">No documents found.</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info" role="alert">
+            No document folders found in the media directory.
+        </div>
+        {% endfor %}
+    </div>
+
+    <hr class="my-4">
+
+    <div class="card mb-4" style="display: none;">
+        <div class="card-header">
+            <h5 class="mb-0">Upload New Document</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_factory" class="form-label">Factory</label>
+                    {{ upload_form.factory }}
+                    <datalist id="factory-list">
+                        {% for factory_name in documents.keys %}
+                            <option value="{{ factory_name }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="mb-3">
+                    <label for="id_document_type" class="form-label">Document Type</label>
+                    {{ upload_form.document_type }}
+                    <datalist id="doctype-list">
+                         {% for factory_name, doc_types in documents.items %}
+                            {% for doc_type_name in doc_types.keys %}
+                                <option value="{{ doc_type_name }}">
+                            {% endfor %}
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="mb-3">
+                    <label for="id_name" class="form-label">File Name</label>
+                    {{ upload_form.name }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_file" class="form-label">File</label>
+                    {{ upload_form.file }}
+                </div>
+                <button type="submit" class="btn btn-primary">Upload</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const documentsData = JSON.parse(document.getElementById('documents-data').textContent);
+        const factoryInput = document.querySelector('input[name="factory"]');
+        const docTypeDatalist = document.getElementById('doctype-list');
+        const docTypeInput = document.querySelector('input[name="document_type"]');
+
+        if (factoryInput && docTypeDatalist && docTypeInput) {
+            factoryInput.addEventListener('input', function () {
+                const selectedFactory = this.value;
+
+                // Clear existing options
+                docTypeDatalist.innerHTML = '';
+                docTypeInput.value = ''; // Clear the input field as well
+
+                if (selectedFactory && documentsData[selectedFactory]) {
+                    const docTypes = Object.keys(documentsData[selectedFactory]);
+
+                    // Populate new options
+                    docTypes.forEach(function (docType) {
+                        const option = document.createElement('option');
+                        option.value = docType;
+                        docTypeDatalist.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        const suggestions = document.getElementById('suggestions');
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            suggestions.innerHTML = '';
+
+            if (query.length < 3) {
+                suggestions.style.display = 'none';
+                return;
+            }
+
+            let foundFiles = false;
+            for (const factory in documentsData) {
+                for (const docType in documentsData[factory]) {
+                    for (const file of documentsData[factory][docType]) {
+                        if (file.name.toLowerCase().includes(query) && file.name.toLowerCase().endsWith('.jpg')) {
+                            const link = document.createElement('a');
+                            link.href = file.path;
+                            link.textContent = `${factory} / ${docType} / ${file.name}`;
+                            link.className = 'list-group-item list-group-item-action';
+                            link.target = '_blank';
+                            suggestions.appendChild(link);
+                            foundFiles = true;
+                        }
+                    }
+                }
+            }
+
+            if (foundFiles) {
+                suggestions.style.display = 'block';
+            } else {
+                const noResults = document.createElement('div');
+                noResults.textContent = 'No matching JPG files found.';
+                noResults.className = 'list-group-item';
+                suggestions.appendChild(noResults);
+                suggestions.style.display = 'block';
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!searchInput.contains(event.target)) {
+                suggestions.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

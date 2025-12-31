@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
-import dj_database_url
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -28,8 +27,8 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# قيمة DEBUG تُقرأ من متغيرات البيئة، وتكون False افتراضياً إذا لم يوجد
-DEBUG = True
+# The DEBUG value is read from environment variables, and defaults to False if not present.
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -61,6 +60,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware', # يجب إضافته هنا
     'django.middleware.common.CommonMiddleware',
@@ -97,11 +97,14 @@ WSGI_APPLICATION = 'valve_project.wsgi.application'
 
 # --- إعداد قاعدة البيانات باستخدام متغير البيئة DATABASE_URL ---
 DATABASES = {
-    'default': dj_database_url.config(
-        # يقرأ الرابط من متغير DATABASE_URL في ملف .env
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600
-    ) 
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ['POSTGRES_DB'],
+        'USER': os.environ['POSTGRES_USER'],
+        'HOST': os.environ['DB_HOST'],
+        'PORT': os.environ.get('DB_PORT', 5432),
+        'PASSWORD': os.environ['POSTGRES_PASSWORD'],
+    }
 }
 
 
@@ -153,14 +156,15 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+STATIC_ROOT = BASE_DIR / 'staticfiles' # New: Directory for collected static files
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_URL = '/assets/'
-MEDIA_ROOT = BASE_DIR / 'assets'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_URL = 'valves:login' # اسم الـ URL بتاع صفحة تسجيل الدخول
 LOGIN_REDIRECT_URL = 'valves:home' # اسم الـ URL للصفحة اللي هيتوجه ليها بعد تسجيل الدخول بنجاح

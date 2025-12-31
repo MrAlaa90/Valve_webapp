@@ -49,4 +49,5 @@ urlpatterns = [
     path('shutdown-report/', views.shutdown_report, name='shutdown-report'),
     path('shutdown-report/<int:pk>/print/', views.shutdown_report_print, name='shutdown-report-print'),
     path('part-codes/<int:pk>/delete/', views.part_code_delete_frontend, name='part-code-delete-frontend'),
+    path('documents/', views.documents_page, name='documents-page'),
 ]

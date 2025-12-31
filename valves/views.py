@@ -557,15 +557,466 @@ def shutdown_report(request):
     }
     return render(request, 'valves/shutdown_report.html', context)
 
+
+
 @login_required
+
 def shutdown_report_print(request, pk):
+
     """
+
     Generate printable version of a specific shutdown report.
+
     """
+
     shutdown = get_object_or_404(Shutdown, pk=pk)
+
     
+
     context = {
+
         'shutdowns': [shutdown],
+
         'print_mode': True
+
     }
+
     return render(request, 'valves/shutdown_report_print.html', context)
+
+
+
+
+
+import os
+
+
+
+
+
+from django.conf import settings
+
+
+
+
+
+from django.core.files.storage import default_storage
+
+
+
+
+
+from .forms import DocumentUploadForm
+
+
+
+
+
+
+
+
+
+
+
+@login_required
+
+
+
+
+
+def documents_page(request):
+
+
+
+
+
+    """
+
+
+
+
+
+    Display a list of documents and folders from the media directory
+
+
+
+
+
+    and handle file uploads.
+
+
+
+
+
+    """
+
+
+
+
+
+    if request.method == 'POST':
+
+
+
+
+
+        form = DocumentUploadForm(request.POST, request.FILES)
+
+
+
+
+
+        if form.is_valid():
+
+
+
+
+
+            factory = form.cleaned_data['factory']
+
+
+
+
+
+            document_type = form.cleaned_data['document_type']
+
+
+
+
+
+            name = form.cleaned_data['name']
+
+
+
+
+
+            uploaded_file = form.cleaned_data['file']
+
+
+
+
+
+            
+
+
+
+
+
+            # Get the file extension
+
+
+
+
+
+            file_extension = os.path.splitext(uploaded_file.name)[1]
+
+
+
+
+
+            
+
+
+
+
+
+            # Construct the path
+
+
+
+
+
+            upload_dir = os.path.join(settings.MEDIA_ROOT, factory, document_type)
+
+
+
+
+
+            os.makedirs(upload_dir, exist_ok=True)
+
+
+
+
+
+            
+
+
+
+
+
+            file_path = os.path.join(upload_dir, f"{name}{file_extension}")
+
+
+
+
+
+            
+
+
+
+
+
+            # Save the file
+
+
+
+
+
+            default_storage.save(file_path, uploaded_file)
+
+
+
+
+
+            
+
+
+
+
+
+            messages.success(request, f"File '{name}{file_extension}' uploaded successfully to {factory}/{document_type}.")
+
+
+
+
+
+            return redirect('valves:documents-page')
+
+
+
+
+
+        else:
+
+
+
+
+
+            messages.error(request, "There was an error with your upload. Please check the form.")
+
+
+
+
+
+    else:
+
+
+
+
+
+        form = DocumentUploadForm()
+
+
+
+
+
+
+
+
+
+
+
+    media_path = settings.MEDIA_ROOT
+
+
+
+
+
+    documents_structure = {}
+
+
+
+
+
+    
+
+
+
+
+
+    if os.path.exists(media_path):
+
+
+
+
+
+        for factory_dir in os.listdir(media_path):
+
+
+
+
+
+            factory_path = os.path.join(media_path, factory_dir)
+
+
+
+
+
+            if os.path.isdir(factory_path):
+
+
+
+
+
+                documents_structure[factory_dir] = {}
+
+
+
+
+
+                for doc_type_dir in os.listdir(factory_path):
+
+
+
+
+
+                    doc_type_path = os.path.join(factory_path, doc_type_dir)
+
+
+
+
+
+                    if os.path.isdir(doc_type_path):
+
+
+
+
+
+                        documents_structure[factory_dir][doc_type_dir] = []
+
+
+
+
+
+                        # Recursive search using os.walk
+
+
+
+
+
+                        for root, _, files in os.walk(doc_type_path):
+
+
+
+
+
+                            for filename in files:
+
+
+
+
+
+                                file_path = os.path.join(root, filename)
+
+
+
+
+
+                                
+
+
+
+
+
+                                # Get relative path from doc_type_path for display name
+
+
+
+
+
+                                relative_name = os.path.relpath(file_path, doc_type_path).replace("\\", "/")
+
+
+
+
+
+
+
+
+
+
+
+                                # Get relative path from media_path for URL
+
+
+
+
+
+                                relative_url_path = os.path.relpath(file_path, media_path).replace("\\", "/")
+
+
+
+
+
+                                media_url = os.path.join(settings.MEDIA_URL, relative_url_path).replace("\\", "/")
+
+
+
+
+
+
+
+
+
+
+
+                                documents_structure[factory_dir][doc_type_dir].append({
+
+
+
+
+
+                                    'name': relative_name,
+
+
+
+
+
+                                    'path': media_url
+
+
+
+
+
+                                })
+
+
+
+
+
+
+
+
+
+
+
+    context = {
+
+
+
+
+
+        'documents': documents_structure,
+
+
+
+
+
+        'upload_form': form,
+
+
+
+
+
+    }
+
+
+
+
+
+    return render(request, 'valves/documents.html', context)
+
+
+
+
+
+

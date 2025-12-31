@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: valve-configmap
+data:
+  DATABASE_URL: "postgres://postgres@db-service:5432/valvedb"
+  POSTGRES_DB: valvedb
+  POSTGRES_USER: postgres
+  DB_HOST: db-service
