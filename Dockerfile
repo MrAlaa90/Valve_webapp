@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.11-slim
+FROM python:3.14.2-alpine
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -10,7 +10,11 @@ WORKDIR /app
 
 # Install dependencies
 COPY requirements.txt /app/
-RUN pip install --no-cache-dir --timeout 600 -r requirements.txt
+RUN set -ex && \
+    apk add --no-cache --virtual .build-deps build-base postgresql-dev && \
+    python -m pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir --timeout 600 -r requirements.txt && \
+    apk del .build-deps
 
 # Copy project
 COPY . /app/

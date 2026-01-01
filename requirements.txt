@@ -2,7 +2,7 @@ django
 djangorestframework
 requests
 django-extensions
-psycopg2-binary
+psycopg2
 django-filter
 gunicorn
 whitenoise
