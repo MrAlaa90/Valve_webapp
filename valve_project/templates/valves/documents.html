@@ -172,6 +172,14 @@
         const searchInput = document.getElementById('searchInput');
         const suggestions = document.getElementById('suggestions');
 
+        // Handle 'tag' query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const tagQuery = urlParams.get('tag');
+        if (tagQuery) {
+            searchInput.value = tagQuery;
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
         searchInput.addEventListener('input', function() {
             const query = this.value.toLowerCase();
             suggestions.innerHTML = '';

@@ -30,7 +30,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # The DEBUG value is read from environment variables, and defaults to False if not present.
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['valvesworkshop.site', 'www.valvesworkshop.site', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['valvesworkshop.site', 'www.valvesworkshop.site', 'localhost', '127.0.0.1', '0.0.0.0']
 
 
 # Application definition
@@ -171,4 +171,4 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # عند استخدام ngrok، قد تحتاج إلى إضافة النطاق الذي يولده إلى هذه القائمة
-CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = ['https://valvesworkshop.site', 'https://www.valvesworkshop.site']
