@@ -12,6 +12,7 @@ WORKDIR /app
 COPY requirements.txt /app/
 RUN set -ex && \
     apk add --no-cache --virtual .build-deps build-base postgresql-dev && \
+    apk add --no-cache libpq && \
     python -m pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir --timeout 600 -r requirements.txt && \
     apk del .build-deps

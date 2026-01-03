@@ -30,13 +30,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # The DEBUG value is read from environment variables, and defaults to False if not present.
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    # سيتم إضافة رابط ngrok هنا لاحقاً
-    '.ngrok-free.app', # للسماح بأي نطاق فرعي من ngrok
-     '10.0.2.2',
-]
+ALLOWED_HOSTS = ['valvesworkshop.site', 'www.valvesworkshop.site', '127.0.0.1', 'localhost']
 
 
 # Application definition
