@@ -90,16 +90,26 @@ WSGI_APPLICATION = 'valve_project.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # --- إعداد قاعدة البيانات باستخدام متغير البيئة DATABASE_URL ---
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ['POSTGRES_DB'],
-        'USER': os.environ['POSTGRES_USER'],
-        'HOST': os.environ['DB_HOST'],
-        'PORT': os.environ.get('DB_PORT', 5432),
-        'PASSWORD': os.environ['POSTGRES_PASSWORD'],
+import sys
+
+if 'test' in sys.argv or os.environ.get('USE_SQLITE'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB'),
+            'USER': os.environ.get('POSTGRES_USER'),
+            'HOST': os.environ.get('DB_HOST'),
+            'PORT': os.environ.get('DB_PORT', 5432),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        }
+    }
 
 
 # Password validation

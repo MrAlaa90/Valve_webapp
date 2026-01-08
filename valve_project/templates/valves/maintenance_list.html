@@ -53,8 +53,8 @@
                                     {{ record.valve.tag_number }}
                                 </a>
                             </td>
-                            <td>{{ record.maintenance_type }}</td>
-                            <td>{{ record.description|truncatechars:50 }}</td>
+                            <td>{{ record.maintenance_activities }}</td>
+                            <td>{{ record.maintenance_notes|truncatechars:50 }}</td>
                             <td>
                                 <a href="{% url 'valves:maintenance-detail-frontend' pk=record.pk %}" class="btn btn-sm btn-info" title="View Details">
                                     <i class="fas fa-eye"></i>

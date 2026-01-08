@@ -34,9 +34,9 @@
                         <th scope="col">#</th>
                         <th scope="col">Valve Tag No.</th>
                         <th scope="col">Maintenance Date</th>
-                        <th scope="col">Maintenance Type</th>
+                        <th scope="col">Maintenance Activities</th>
                         <th scope="col">Technician in Charge</th>
-                        <th scope="col">Valve Status After Maintenance</th>
+                        <th scope="col">Valve Status</th>
                         <th scope="col">Actions</th>
                     </tr>
                 </thead>
@@ -53,28 +53,28 @@
                                 N/A
                             {% endif %}
                         </td>
-                        <td>{{ record.date_of_maintenance|date:"Y-m-d" }}</td>
-                        <td>{{ record.maintenance_type|default:"Not specified" }}</td>
-                        <td>{{ record.technician_name|default:"Not specified" }}</td>
+                        <td>{{ record.maintenance_date|date:"Y-m-d" }}</td>
+                        <td>{{ record.maintenance_activities|default:"Not specified" }}</td>
+                        <td>{{ record.technician.name|default:"Not specified" }}</td>
                         <td>
                             {# Highlight the status based on the value #}
-                            {% if record.valve_status_after == 'Operational' %}
+                            {% if record.valve.status.name == 'Operational' %}
                                 <span class="badge bg-success">Operational</span>
-                            {% elif record.valve_status_after == 'Needs Maintenance' %}
+                            {% elif record.valve.status.name == 'Needs Maintenance' %}
                                 <span class="badge bg-warning text-dark">Needs Maintenance</span>
-                            {% elif record.valve_status_after == 'Out of Service' %}
+                            {% elif record.valve.status.name == 'Out of Service' %}
                                 <span class="badge bg-danger">Out of Service</span>
                             {% else %}
-                                <span class="badge bg-secondary">{{ record.valve_status_after|default:"Unknown" }}</span>
+                                <span class="badge bg-secondary">{{ record.valve.status.name|default:"Unknown" }}</span>
                             {% endif %}
                         </td>
                         <td>
                             {# Details button #}
-                            <a href="{% url 'valves:maintenance-detail-frontend' pk=record.id %}" class="btn btn-sm btn-info text-white me-2" title="Record details and spare parts">
+                            <a href="{% url 'valves:maintenance-detail-frontend' pk=record.maintenance_id %}" class="btn btn-sm btn-info text-white me-2" title="Record details and spare parts">
                                 <i class="fas fa-eye"></i>
                             </a>
                             {# Edit button #}
-                            <a href="{% url 'valves:maintenance-update-frontend' pk=record.id %}" class="btn btn-sm btn-warning me-2" title="Edit Record">
+                            <a href="{% url 'valves:maintenance-update-frontend' pk=record.maintenance_id %}" class="btn btn-sm btn-warning me-2" title="Edit Record">
                                 <i class="fas fa-edit"></i>
                             </a>
                         </td>

@@ -342,8 +342,9 @@ def maintenance_history_frontend(request):
     if search_query:
         maintenance_list = maintenance_list.filter(
             Q(valve__tag_number__icontains=search_query) |
-            Q(maintenance_type__icontains=search_query) |
-            Q(description__icontains=search_query)
+            Q(maintenance_notes__icontains=search_query) |
+            Q(maintenance_activities__icontains=search_query) |
+            Q(technician__name__icontains=search_query)
         )
     
     paginator = Paginator(maintenance_list, 15)
