@@ -522,16 +522,9 @@ def shutdown_report(request):
     """
     Handle creation and display of shutdown reports, with filtering.
     """
-    if request.method == 'POST':
-        form = ShutdownReportForm(request.POST)
-        if form.is_valid():
-            shutdown = form.save()
-            messages.success(request, 'Shutdown report created successfully.')
-            return redirect('valves:shutdown-report-print', pk=shutdown.pk)
-    else: # GET request
-        form = ShutdownReportForm()
-
-    shutdowns = Shutdown.objects.all()
+    maintenance_records = MaintenanceHistory.objects.select_related(
+        'valve', 'valve__factory', 'technician'
+    ).all()
 
     # Get filter parameters from GET request
     selected_factory_id = request.GET.get('factory')
@@ -540,19 +533,18 @@ def shutdown_report(request):
 
     # Apply filters
     if selected_factory_id:
-        shutdowns = shutdowns.filter(factory_id=selected_factory_id)
+        maintenance_records = maintenance_records.filter(valve__factory_id=selected_factory_id)
     if selected_start_date:
-        shutdowns = shutdowns.filter(start_date__gte=selected_start_date)
+        maintenance_records = maintenance_records.filter(maintenance_date__gte=selected_start_date)
     if selected_end_date:
-        shutdowns = shutdowns.filter(end_date__lte=selected_end_date)
+        maintenance_records = maintenance_records.filter(maintenance_date__lte=selected_end_date)
 
-    shutdowns = shutdowns.order_by('-start_date')
+    maintenance_records = maintenance_records.order_by('-maintenance_date')
 
     factories = Factory.objects.all().order_by('name') # For the filter dropdown
 
     context = {
-        'form': form,
-        'shutdowns': shutdowns,
+        'maintenance_records': maintenance_records,
         'factories': factories, # Pass all factories for the filter dropdown
         'selected_factory_id': selected_factory_id,
         'selected_start_date': selected_start_date,
