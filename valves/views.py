@@ -384,7 +384,9 @@ def part_code_list_frontend(request):
     if search_query:
         part_codes_list = part_codes_list.filter(
             Q(sap_code__icontains=search_query) |
-            Q(description__icontains=search_query)
+            Q(oracle_code__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(part_number__icontains=search_query)
         )
     
     paginator = Paginator(part_codes_list, 15)
