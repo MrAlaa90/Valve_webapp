@@ -539,7 +539,7 @@ def shutdown_report(request):
     if selected_end_date:
         maintenance_records = maintenance_records.filter(maintenance_date__lte=selected_end_date)
 
-    maintenance_records = maintenance_records.order_by('-maintenance_date')
+    maintenance_records = maintenance_records.order_records_by('-maintenance_date')
 
     factories = Factory.objects.all().order_by('name') # For the filter dropdown
 
