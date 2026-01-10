@@ -7,12 +7,9 @@ django-filter
 gunicorn
 whitenoise
 dj_database_url
-
 python-dotenv
-
 django-crispy-forms
- crispy-bootstrap5
-
+crispy-bootstrap5
 djoser
-
 Pillow
+urllib3>=2.6.3
