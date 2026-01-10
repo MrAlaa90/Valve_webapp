@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   db:
@@ -13,7 +13,7 @@ services:
       - "5432:5432"
 
   web:
-    build: .
+    image: mralaa90/valvesystem-web
     command: >
       sh -c "python wait_for_db.py &&
              python manage.py migrate &&

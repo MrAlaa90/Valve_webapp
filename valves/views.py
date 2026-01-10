@@ -445,7 +445,7 @@ def part_code_detail_frontend(request, pk):
     
     context = {
         'part_code': part_code,
-        'valves': part_code.valves.all(),
+        'valves': part_code.associated_valves.all(),
     }
     return render(request, 'valves/part_code_detail.html', context)
 
@@ -520,11 +520,11 @@ def get_valves_by_factory(request):
 @login_required
 def shutdown_report(request):
     """
-    Handle creation and display of shutdown reports, with filtering.
+    Handle creation and display of shutdown reports, with filtering and pagination.
     """
-    maintenance_records = MaintenanceHistory.objects.select_related(
+    maintenance_records_list = MaintenanceHistory.objects.select_related(
         'valve', 'valve__factory', 'technician'
-    ).all()
+    ).prefetch_related('maintenancepart_set__part_code').all()
 
     # Get filter parameters from GET request
     selected_factory_id = request.GET.get('factory')
@@ -533,22 +533,37 @@ def shutdown_report(request):
 
     # Apply filters
     if selected_factory_id:
-        maintenance_records = maintenance_records.filter(valve__factory_id=selected_factory_id)
+        maintenance_records_list = maintenance_records_list.filter(valve__factory_id=selected_factory_id)
     if selected_start_date:
-        maintenance_records = maintenance_records.filter(maintenance_date__gte=selected_start_date)
+        maintenance_records_list = maintenance_records_list.filter(maintenance_date__gte=selected_start_date)
     if selected_end_date:
-        maintenance_records = maintenance_records.filter(maintenance_date__lte=selected_end_date)
+        maintenance_records_list = maintenance_records_list.filter(maintenance_date__lte=selected_end_date)
 
-    maintenance_records = maintenance_records.order_by('-maintenance_date')
+    maintenance_records_list = maintenance_records_list.order_by('-maintenance_date')
+
+    # Pagination
+    paginator = Paginator(maintenance_records_list, 15)  # Show 15 records per page
+    page_number = request.GET.get('page')
+    maintenance_records = paginator.get_page(page_number)
 
     factories = Factory.objects.all().order_by('name') # For the filter dropdown
 
+    # Get selected factory name for display
+    selected_factory_name = "All Factories"
+    if selected_factory_id:
+        try:
+            factory_obj = Factory.objects.get(id=selected_factory_id)
+            selected_factory_name = factory_obj.name
+        except Factory.DoesNotExist:
+            pass # Keep default "All Factories"
+
     context = {
-        'maintenance_records': maintenance_records,
+        'maintenance_records': maintenance_records, # Now paginated
         'factories': factories, # Pass all factories for the filter dropdown
         'selected_factory_id': selected_factory_id,
         'selected_start_date': selected_start_date,
         'selected_end_date': selected_end_date,
+        'selected_factory_name': selected_factory_name, # Pass selected factory name
     }
     return render(request, 'valves/shutdown_report.html', context)
 
@@ -618,13 +633,31 @@ from .forms import DocumentUploadForm
 
 
 
+
+
+
+
+
+
 def documents_page(request):
 
 
 
 
 
+
+
+
+
+
+
     """
+
+
+
+
+
+
 
 
 
@@ -636,7 +669,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
     and handle file uploads.
+
+
+
+
+
+
 
 
 
@@ -648,7 +693,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
     if request.method == 'POST':
+
+
+
+
+
+
 
 
 
@@ -660,7 +717,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
         if form.is_valid():
+
+
+
+
+
+
 
 
 
@@ -672,7 +741,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
             document_type = form.cleaned_data['document_type']
+
+
+
+
+
+
 
 
 
@@ -684,13 +765,31 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
             uploaded_file = form.cleaned_data['file']
 
 
 
 
 
+
+
+
+
+
+
             
+
+
+
+
+
+
 
 
 
@@ -702,13 +801,31 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
             file_extension = os.path.splitext(uploaded_file.name)[1]
 
 
 
 
 
+
+
+
+
+
+
             
+
+
+
+
+
+
 
 
 
@@ -720,7 +837,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
             upload_dir = os.path.join(settings.MEDIA_ROOT, factory, document_type)
+
+
+
+
+
+
 
 
 
@@ -732,7 +861,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
             
+
+
+
+
+
+
 
 
 
@@ -744,7 +885,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
             
+
+
+
+
+
+
 
 
 
@@ -756,7 +909,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
             default_storage.save(file_path, uploaded_file)
+
+
+
+
+
+
 
 
 
@@ -768,7 +933,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
             messages.success(request, f"File '{name}{file_extension}' uploaded successfully to {factory}/{document_type}.")
+
+
+
+
+
+
 
 
 
@@ -780,7 +957,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
         else:
+
+
+
+
+
+
 
 
 
@@ -792,7 +981,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
     else:
+
+
+
+
+
+
 
 
 
@@ -810,7 +1011,25 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     media_path = settings.MEDIA_ROOT
+
+
+
+
+
+
 
 
 
@@ -822,7 +1041,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
     
+
+
+
+
+
+
 
 
 
@@ -834,7 +1065,43 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
         for factory_dir in os.listdir(media_path):
+
+
+
+
+
+
+
+
+
+
+
+            if factory_dir.lower() == 'valves':
+
+
+
+
+
+
+
+
+
+
+
+                continue
+
+
+
+
+
+
 
 
 
@@ -846,7 +1113,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
             if os.path.isdir(factory_path):
+
+
+
+
+
+
 
 
 
@@ -858,7 +1137,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
                 for doc_type_dir in os.listdir(factory_path):
+
+
+
+
+
+
 
 
 
@@ -870,7 +1161,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
                     if os.path.isdir(doc_type_path):
+
+
+
+
+
+
 
 
 
@@ -882,7 +1185,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
                         # Recursive search using os.walk
+
+
+
+
+
+
 
 
 
@@ -894,7 +1209,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
                             for filename in files:
+
+
+
+
+
+
 
 
 
@@ -906,13 +1233,31 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
                                 
 
 
 
 
 
+
+
+
+
+
+
                                 # Get relative path from doc_type_path for display name
+
+
+
+
+
+
 
 
 
@@ -930,13 +1275,37 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                                 # Get relative path from media_path for URL
 
 
 
 
 
+
+
+
+
+
+
                                 relative_url_path = os.path.relpath(file_path, media_path).replace("\\", "/")
+
+
+
+
+
+
 
 
 
@@ -954,7 +1323,25 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
                                 documents_structure[factory_dir][doc_type_dir].append({
+
+
+
+
+
+
 
 
 
@@ -966,7 +1353,19 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
                                     'path': media_url
+
+
+
+
+
+
 
 
 
@@ -984,7 +1383,25 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     context = {
+
+
+
+
+
+
 
 
 
@@ -996,13 +1413,31 @@ def documents_page(request):
 
 
 
+
+
+
+
+
+
         'upload_form': form,
 
 
 
 
 
+
+
+
+
+
+
     }
+
+
+
+
+
+
 
 
 

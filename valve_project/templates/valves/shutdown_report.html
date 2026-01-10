@@ -2,9 +2,58 @@
 
 {% block title %}Reports{% endblock %}
 
+{% block extra_css %}
+<style>
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        .printable-area {
+            display: block;
+        }
+        body * {
+            visibility: hidden;
+        }
+        .printable-area, .printable-area * {
+            visibility: visible;
+        }
+        .printable-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table th, .table td {
+            border: 1px solid #dee2e6;
+            padding: .75rem;
+            vertical-align: top;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Reports</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+        <h2>Reports</h2>
+        <div class="btn-group">
+            <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                Print Options
+            </button>
+            <ul class="dropdown-menu">
+                <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-tag-number" checked> Tag Number</label></li>
+                <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-spare-parts" checked> Spare Part Uses</label></li>
+                <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-work" checked> Work</label></li>
+                <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-technician" checked> Technician</label></li>
+                <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-notes" checked> Notes</label></li>
+            </ul>
+            <button onclick="printReport();" class="btn btn-primary">Print</button>
+        </div>
+    </div>
 
     <!-- Filter Form -->
     <div class="card mb-4 no-print">
@@ -37,40 +86,106 @@
     </div>
 
     <!-- Maintenance Records Table -->
-    <div class="card">
+    <div class="card printable-area">
         <div class="card-header">
             Maintenance Records
+            <div class="report-filters-summary">
+                {% if selected_factory_name and selected_factory_name != "All Factories" %}
+                    <strong>Factory:</strong> {{ selected_factory_name }}
+                {% endif %}
+                {% if selected_start_date %}
+                    <strong>Start Date:</strong> {{ selected_start_date }}
+                {% endif %}
+                {% if selected_end_date %}
+                    <strong>End Date:</strong> {{ selected_end_date }}
+                {% endif %}
+            </div>
         </div>
         <div class="card-body">
-            <table class="table table-striped">
+            <table class="table table-striped" id="report-table">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Valve</th>
-                        <th>Factory</th>
-                        <th>Technician</th>
-                        <th>Activities</th>
-                        <th>Notes</th>
+                        <th class="col-tag-number">Tag Number</th>
+                        <th class="col-spare-parts">Spare Part Uses</th>
+                        <th class="col-work">Work</th>
+                        <th class="col-technician">Technician</th>
+                        <th class="col-notes">Notes</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for record in maintenance_records %}
                     <tr>
-                        <td>{{ record.maintenance_date }}</td>
-                        <td><a href="{% url 'valves:valve-detail-frontend' pk=record.valve.pk %}">{{ record.valve.tag_number }}</a></td>
-                        <td>{{ record.valve.factory.name }}</td>
-                        <td>{{ record.technician.name }}</td>
-                        <td>{{ record.maintenance_activities }}</td>
-                        <td>{{ record.maintenance_notes|truncatechars:50 }}</td>
+                        <td class="col-tag-number"><a href="{% url 'valves:valve-detail-frontend' pk=record.valve.pk %}">{{ record.valve.tag_number }}</a></td>
+                        <td class="col-spare-parts">
+                            {% for part in record.maintenancepart_set.all %}
+                                {{ part.part_code.sap_code }} - {{ part.part_code.description }} ({{ part.quantity }})<br>
+                            {% empty %}
+                                No parts used.
+                            {% endfor %}
+                        </td>
+                        <td class="col-work">{{ record.maintenance_activities }}</td>
+                        <td class="col-technician">{{ record.technician.name }}</td>
+                        <td class="col-notes">{{ record.maintenance_notes|truncatechars:50 }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center">No maintenance records found.</td>
+                        <td colspan="5" class="text-center">No maintenance records found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+    <!-- Pagination -->
+    {% if maintenance_records.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4 no-print">
+        <ul class="pagination justify-content-center">
+            {% if maintenance_records.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if selected_factory_id %}&factory={{ selected_factory_id }}{% endif %}{% if selected_start_date %}&start_date={{ selected_start_date }}{% endif %}{% if selected_end_date %}&end_date={{ selected_end_date }}{% endif %}">&laquo; First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ maintenance_records.previous_page_number }}{% if selected_factory_id %}&factory={{ selected_factory_id }}{% endif %}{% if selected_start_date %}&start_date={{ selected_start_date }}{% endif %}{% if selected_end_date %}&end_date={{ selected_end_date }}{% endif %}">Previous</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link">
+                    Page {{ maintenance_records.number }} of {{ maintenance_records.paginator.num_pages }}.
+                </span>
+            </li>
+
+            {% if maintenance_records.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ maintenance_records.next_page_number }}{% if selected_factory_id %}&factory={{ selected_factory_id }}{% endif %}{% if selected_start_date %}&start_date={{ selected_start_date }}{% endif %}{% if selected_end_date %}&end_date={{ selected_end_date }}{% endif %}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ maintenance_records.paginator.num_pages }}{% if selected_factory_id %}&factory={{ selected_factory_id }}{% endif %}{% if selected_start_date %}&start_date={{ selected_start_date }}{% endif %}{% if selected_end_date %}&end_date={{ selected_end_date }}{% endif %}">Last &raquo;</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    function printReport() {
+        let printStyle = document.createElement('style');
+        printStyle.id = 'print-style';
+        let css = '';
+        document.querySelectorAll('.print-col-toggle').forEach(function(checkbox) {
+            let colClass = checkbox.getAttribute('data-col-class');
+            if (!checkbox.checked) {
+                css += `.${colClass} { display: none !important; }`;
+            }
+        });
+        printStyle.innerHTML = css;
+        document.head.appendChild(printStyle);
+        window.print();
+        document.head.removeChild(printStyle);
+    }
+</script>
+{% endblock %}
+

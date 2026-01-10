@@ -78,8 +78,36 @@
                     {% if valve.drawing_link %}
                     <div class="col-md-12">
                         <p><strong>{% trans "Drawing" %}:</strong> <a href="{{ valve.drawing_link.url }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-pdf me-1"></i> {% trans "View Drawing" %}</a></p>
-                    </div>
                     {% endif %}
+                    <div class="col-md-12">
+                        <p><strong>{% trans "Part Codes" %}:</strong></p>
+                        {% if related_part_codes %}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>{% trans "SAP Code" %}</th>
+                                            <th>{% trans "Oracle Code" %}</th>
+                                            <th>{% trans "Part Number" %}</th>
+                                            <th>{% trans "Description" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for code in related_part_codes %}
+                                        <tr>
+                                            <td><a href="{% url 'valves:part-code-detail-frontend' pk=code.pk %}">{{ code.sap_code }}</a></td>
+                                            <td>{{ code.oracle_code }}</td>
+                                            <td>{{ code.part_number }}</td>
+                                            <td>{{ code.description }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">{% trans "No part codes associated." %}</p>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 

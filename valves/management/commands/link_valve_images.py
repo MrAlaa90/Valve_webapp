@@ -11,12 +11,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("Linking valve images...")
 
-        base_assets_dir = os.path.join(settings.BASE_DIR, 'assets')
+        base_media_dir = os.path.join(settings.BASE_DIR, 'media')
         image_extensions = ('.jpg', '.jpeg', '.png', '.gif')
         linked_count = 0
         skipped_count = 0
 
-        for root, _, files in os.walk(base_assets_dir):
+        for root, _, files in os.walk(base_media_dir):
             for file_name in files:
                 if file_name.lower().endswith(image_extensions):
                     full_path = os.path.join(root, file_name)
