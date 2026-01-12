@@ -27,17 +27,17 @@ def run_part_code_importer():
 
                     # Create or update PartCode
                     part_code, created = PartCode.objects.update_or_create(
-                        sap_code=row['sap_code'],
+                        sap_code=row['sap_code'].strip(),
                         defaults={
-                            'oracle_code': row['oracle_code'],
+                            'oracle_code': row['oracle_code'].strip(),
                             'part': spare_part,
-                            'description': row['description'],
-                            'location': row['warehouse_number'],
-                            'category': row['category'],
-                            'condition': row['condition'],
-                            'part_number': row['part_number'],
-                            'manufacturer_co': row['MANUFATURE_CO'],
-                            'unit_of_measure': row['unit_of_measure'],
+                            'description': row['description'].strip(),
+                            'location': row['warehouse_number'].strip(),
+                            'category': row['category'].strip(),
+                            'condition': row['condition'].strip(),
+                            'part_number': row['part_number'].strip(),
+                            'manufacturer_co': row['MANUFATURE_CO'].strip(),
+                            'unit_of_measure': row['unit_of_measure'].strip(),
                         }
                     )
 
@@ -45,7 +45,7 @@ def run_part_code_importer():
                     if row['tag_number']:
                         def format_tag_number(tag):
                             # Remove spaces and convert to uppercase
-                            tag = tag.replace(' ', '').upper()
+                            tag = tag.strip().replace(' ', '').upper()
                             # Add hyphen after the first two letters if followed by numbers
                             if len(tag) > 2 and tag[0:2].isalpha() and tag[2:].isdigit():
                                 tag = f"{tag[0:2]}-{tag[2:]}"
@@ -53,7 +53,7 @@ def run_part_code_importer():
 
                         # Normalize tag_number: replace commas with slashes, then format each tag
                         cleaned_tag_numbers_str = row['tag_number'].replace(',', '/')
-                        tag_numbers = [format_tag_number(tag.strip()) for tag in cleaned_tag_numbers_str.split('/')]
+                        tag_numbers = [format_tag_number(tag) for tag in cleaned_tag_numbers_str.split('/')]
                         for tag_number in tag_numbers:
                             try:
                                 valve = Valve.objects.get(tag_number__iexact=tag_number) # Use iexact for case-insensitive matching

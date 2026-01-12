@@ -1,3 +1,6 @@
+import csv
+import os
+from django.conf import settings # Add this import
 from django.contrib import messages # To show messages to the user
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
@@ -39,8 +42,18 @@ def valve_detail_frontend(request, pk):
     # Get maintenance records ordered by date
     maintenance_records = valve.maintenance_records.all().order_by('-maintenance_date')
     
-    # Get associated part codes (directly linked to the valve)
-    related_part_codes = valve.part_codes.all()
+    # Get part codes directly associated with the valve
+    basic_part_codes = valve.part_codes.all()
+    
+    # Get related part codes by part number
+    part_numbers_to_match = [pc.part_number for pc in basic_part_codes if pc.part_number]
+    part_number_related_codes = PartCode.objects.none()
+    if part_numbers_to_match:
+        part_number_related_codes = PartCode.objects.filter(
+            part_number__in=part_numbers_to_match
+        ).exclude(
+            pk__in=[pc.pk for pc in basic_part_codes]
+        )
 
     # Get parts used in maintenance history
     parts_used_in_history = []
@@ -50,7 +63,8 @@ def valve_detail_frontend(request, pk):
     context = {
         'valve': valve,
         'maintenance_records': maintenance_records,
-        'related_part_codes': related_part_codes,
+        'basic_part_codes': basic_part_codes,
+        'part_number_related_codes': part_number_related_codes,
         'parts_used_in_history': parts_used_in_history,
     }
     return render(request, 'valves/valve_detail.html', context)

@@ -37,3 +37,17 @@ body .table .table-header-info {
     background-color: #0dcaf0 !important;
     color: white !important;
 }
+
+/* Styles for clickable table rows */
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background-color: #f5f5f5; /* A light grey hover effect */
+}
+
+/* Dark mode adjustment for hover effect */
+[data-bs-theme="dark"] .clickable-row:hover {
+    background-color: #2c3034; /* A darker grey for dark mode */
+}

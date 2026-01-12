@@ -37,7 +37,7 @@
       {% endif %}
     </div>
     <div class="card-footer">
-      <a href="{% url 'valves:part-code-list-frontend' %}" class="btn btn-secondary">Back to List</a>
+      <a href="{% if request.GET.valve_id %}{% url 'valves:valve-detail-frontend' request.GET.valve_id %}{% else %}{% url 'valves:part-code-list-frontend' %}{% endif %}" class="btn btn-secondary">Back to List</a>
       <a href="{% url 'valves:part-code-update-frontend' part_code.pk %}" class="btn btn-primary">Edit</a>
     </div>
   </div>

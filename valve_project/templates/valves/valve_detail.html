@@ -46,8 +46,8 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="related-codes-tab" data-bs-toggle="tab" data-bs-target="#related-codes-pane" type="button" role="tab" aria-controls="related-codes-pane" aria-selected="false">
-                    <i class="fas fa-barcode me-1"></i> {% trans "Related Part Codes" %}
-                    <span class="badge bg-secondary">{{ related_part_codes|length }}</span>
+                    <i class="fas fa-barcode me-1"></i> {% trans "Related by Part Number" %}
+                    <span class="badge bg-secondary">{{ part_number_related_codes|length }}</span>
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -81,24 +81,24 @@
                     {% endif %}
                     <div class="col-md-12">
                         <p><strong>{% trans "Part Codes" %}:</strong></p>
-                        {% if related_part_codes %}
+                        {% if basic_part_codes %}
                             <div class="table-responsive">
-                                <table class="table table-sm table-bordered">
+                                <table class="table table-sm table-hover table-bordered">
                                     <thead>
                                         <tr>
                                             <th>{% trans "SAP Code" %}</th>
                                             <th>{% trans "Oracle Code" %}</th>
-                                            <th>{% trans "Part Number" %}</th>
                                             <th>{% trans "Description" %}</th>
+                                            <th>{% trans "Part Number" %}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for code in related_part_codes %}
-                                        <tr>
-                                            <td><a href="{% url 'valves:part-code-detail-frontend' pk=code.pk %}">{{ code.sap_code }}</a></td>
-                                            <td>{{ code.oracle_code }}</td>
-                                            <td>{{ code.part_number }}</td>
-                                            <td>{{ code.description }}</td>
+                                        {% for code in basic_part_codes %}
+                                        <tr class="clickable-row" data-url="{% url 'valves:part-code-detail-frontend' pk=code.pk %}?valve_id={{ valve.pk }}">
+                                            <td>{{ code.sap_code|default:"--" }}</td>
+                                            <td>{{ code.oracle_code|default:"--" }}</td>
+                                            <td>{{ code.description|default:"--" }}</td>
+                                            <td>{{ code.part_number|default:"--" }}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -191,45 +191,37 @@
                 {% endif %}
             </div>
 
-            <!-- 4. أكواد القطع المرتبطة (Related Part Codes) -->
+            <!-- 4. أكواد القطع المرتبطة (Related by Part Number) -->
             <div class="tab-pane fade" id="related-codes-pane" role="tabpanel" aria-labelledby="related-codes-tab" tabindex="0">
-                {% if related_part_codes %}
+                {% if part_number_related_codes %}
                     <div class="table-responsive">
-                        <table class="table table-sm table-bordered">
+                        <table class="table table-sm table-hover table-bordered">
                             <thead>
                                 <tr>
-                                    <th>{% trans "Part Code" %}</th>
-                                    <th>{% trans "Part Name" %}</th>
-                                    <th>{% trans "Description" %}</th>
-                                    <th>{% trans "Manufacturer" %}</th>
                                     <th>{% trans "Warehouse No." %}</th>
-                                    <th>{% trans "Part No." %}</th>
                                     <th>{% trans "SAP Code" %}</th>
                                     <th>{% trans "Oracle Code" %}</th>
                                     <th>{% trans "Condition" %}</th>
-                                    <th>{% trans "UoM" %}</th>
-                                    <th>{% trans "Quantity" %}</th>
-                                    <th>{% trans "Location" %}</th>
+                                    <th>{% trans "Description" %}</th>
+                                    <th>{% trans "Part Number" %}</th>
+                                    <th>{% trans "Tag Number" %}</th>
+                                    <th>{% trans "Manufacturer Co." %}</th>
+                                    <th>{% trans "Unit of Measure" %}</th>
                                     <th>{% trans "Category" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for code in related_part_codes %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'valves:part-code-detail-frontend' pk=code.pk %}" class="text-decoration-none font-monospace">{{ code.code_id }}</a>
-                                    </td>
-                                    <td>{{ code.part.part_name|default:"--" }}</td>
-                                    <td>{{ code.description|default:"--" }}</td>
-                                    <td>{{ code.MANUFATURE_CO|default:"--" }}</td>
+                                {% for code in part_number_related_codes %}
+                                <tr class="clickable-row" data-url="{% url 'valves:part-code-detail-frontend' pk=code.pk %}?valve_id={{ valve.pk }}">
                                     <td>{{ code.warehouse_number|default:"--" }}</td>
-                                    <td>{{ code.part_number|default:"--" }}</td>
                                     <td>{{ code.sap_code|default:"--" }}</td>
                                     <td>{{ code.oracle_code|default:"--" }}</td>
                                     <td>{{ code.condition|default:"--" }}</td>
+                                    <td>{{ code.description|default:"--" }}</td>
+                                    <td>{{ code.part_number|default:"--" }}</td>
+                                    <td>{{ code.tag_number|default:"--" }}</td>
+                                    <td>{{ code.MANUFATURE_CO|default:"--" }}</td>
                                     <td>{{ code.unit_of_measure|default:"--" }}</td>
-                                    <td>{{ code.quantity|default:"--" }}</td>
-                                    <td>{{ code.location|default:"--" }}</td>
                                     <td>{{ code.category|default:"--" }}</td>
                                 </tr>
                                 {% endfor %}
@@ -238,7 +230,7 @@
                     </div>
                 {% else %}
                     <div class="alert alert-info text-center">
-                        {% trans "No related part codes found for this valve." %}
+                        {% trans "No related part codes found by part number." %}
                     </div>
                 {% endif %}
             </div>
@@ -281,6 +273,13 @@ document.addEventListener('DOMContentLoaded', function() {
             tab.show();
         }
     }
+
+    // Handle clickable rows
+    document.querySelectorAll('.clickable-row').forEach(function(row) {
+        row.addEventListener('click', function() {
+            window.location.href = this.dataset.url;
+        });
+    });
 });
 </script>
 {% endblock %}
