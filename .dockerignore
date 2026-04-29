@@ -36,3 +36,12 @@ db.sqlite3
 .ruff_cache/
 uv.lock
 part_code_report.txt
+media/
+staticfiles/
+*.rar
+*.zip
+*.dump
+*.csv
+!valves/part_codes_data.csv
+!valves/valves_data.csv
+!valves/valves_db/*.csv
