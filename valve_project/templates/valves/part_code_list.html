@@ -38,6 +38,13 @@
                 {% endfor %}
             {% endif %}
 
+            {% if part_number_filter %}
+                <div class="alert alert-info d-flex justify-content-between align-items-center shadow-sm">
+                    <span><i class="fas fa-filter me-2"></i>{% trans "Filtering by Part Number" %}: <strong>{{ part_number_filter }}</strong></span>
+                    <a href="{% url 'valves:part-code-list-frontend' %}" class="btn btn-sm btn-outline-primary">{% trans "Clear Filter" %}</a>
+                </div>
+            {% endif %}
+
             {% if part_codes %}
             <div class="table-responsive bg-white rounded shadow-sm p-3">
                 <table class="table table-hover table-striped table-bordered">
@@ -64,7 +71,13 @@
                             <td class="font-monospace fw-bold">{{ code.sap_code|default:"-" }}</td>
                             <td class="font-monospace">{{ code.oracle_code|default:"-" }}</td>
                             <td>{% if code.part %}{{ code.description|default:code.part.part_name|default:"-" }}{% else %}{{ code.description|default:"-" }}{% endif %}</td>
-                            <td>{{ code.part_number|default:"-" }}</td>
+                            <td>
+                                {% if code.part_number %}
+                                    <a href="?part_number={{ code.part_number }}" class="text-decoration-none fw-bold" title="Filter list by this Part Number">{{ code.part_number }}</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
                             <td>{{ code.location|default:"-" }}</td>
                             <td>{{ code.condition|default:"-" }}</td>
                             <td>{{ code.category|default:"-" }}</td>

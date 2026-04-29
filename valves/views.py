@@ -46,7 +46,12 @@ def valve_detail_frontend(request, pk):
     basic_part_codes = valve.part_codes.all()
     
     # Get related part codes by part number
-    part_numbers_to_match = [pc.part_number for pc in basic_part_codes if pc.part_number]
+    selected_part_number = request.GET.get('part_number')
+    if selected_part_number:
+        part_numbers_to_match = [selected_part_number]
+    else:
+        part_numbers_to_match = [pc.part_number for pc in basic_part_codes if pc.part_number]
+
     part_number_related_codes = PartCode.objects.none()
     if part_numbers_to_match:
         part_number_related_codes = PartCode.objects.filter(
@@ -66,6 +71,7 @@ def valve_detail_frontend(request, pk):
         'basic_part_codes': basic_part_codes,
         'part_number_related_codes': part_number_related_codes,
         'parts_used_in_history': parts_used_in_history,
+        'selected_part_number': selected_part_number,
     }
     return render(request, 'valves/valve_detail.html', context)
 
@@ -395,7 +401,11 @@ def part_code_list_frontend(request):
     part_codes_list = PartCode.objects.all().order_by('sap_code')
     
     search_query = request.GET.get('q', '')
-    if search_query:
+    part_number_filter = request.GET.get('part_number', '')
+
+    if part_number_filter:
+        part_codes_list = part_codes_list.filter(part_number=part_number_filter)
+    elif search_query:
         part_codes_list = part_codes_list.filter(
             Q(sap_code__icontains=search_query) |
             Q(oracle_code__icontains=search_query) |
@@ -410,6 +420,7 @@ def part_code_list_frontend(request):
     context = {
         'part_codes': part_codes,
         'search_query': search_query,
+        'part_number_filter': part_number_filter,
     }
     return render(request, 'valves/part_code_list.html', context)
 

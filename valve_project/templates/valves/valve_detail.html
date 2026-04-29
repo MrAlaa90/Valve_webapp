@@ -50,11 +50,6 @@
                     <span class="badge bg-secondary">{{ part_number_related_codes|length }}</span>
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="images-tab" data-bs-toggle="tab" data-bs-target="#images-pane" type="button" role="tab" aria-controls="images-pane" aria-selected="false">
-                    <i class="fas fa-images me-1"></i> {% trans "Images" %} ({{ valve.images.all|length }})
-                </button>
-            </li>
         </ul>
 
         <!-- Tabs Content -->
@@ -98,7 +93,15 @@
                                             <td>{{ code.sap_code|default:"--" }}</td>
                                             <td>{{ code.oracle_code|default:"--" }}</td>
                                             <td>{{ code.description|default:"--" }}</td>
-                                            <td>{{ code.part_number|default:"--" }}</td>
+                                            <td class="part-number-cell">
+                                                {% if code.part_number %}
+                                                    <a href="?part_number={{ code.part_number }}#related-codes-pane" class="text-primary fw-bold position-relative" style="z-index: 2;" title="Filter related parts">
+                                                        {{ code.part_number }}
+                                                    </a>
+                                                {% else %}
+                                                    --
+                                                {% endif %}
+                                            </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -193,6 +196,12 @@
 
             <!-- 4. أكواد القطع المرتبطة (Related by Part Number) -->
             <div class="tab-pane fade" id="related-codes-pane" role="tabpanel" aria-labelledby="related-codes-tab" tabindex="0">
+                {% if selected_part_number %}
+                    <div class="alert alert-info d-flex justify-content-between align-items-center">
+                        <span>{% trans "Showing related parts for Part Number" %}: <strong>{{ selected_part_number }}</strong></span>
+                        <a href="?#related-codes-pane" class="btn btn-sm btn-outline-primary">{% trans "Show All Related Parts" %}</a>
+                    </div>
+                {% endif %}
                 {% if part_number_related_codes %}
                     <div class="table-responsive">
                         <table class="table table-sm table-hover table-bordered">
@@ -210,27 +219,34 @@
                                     <th>{% trans "Category" %}</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {% for code in part_number_related_codes %}
-                                <tr class="clickable-row" data-url="{% url 'valves:part-code-detail-frontend' pk=code.pk %}?valve_id={{ valve.pk }}">
-                                    <td>{{ code.warehouse_number|default:"--" }}</td>
-                                    <td>{{ code.sap_code|default:"--" }}</td>
-                                    <td>{{ code.oracle_code|default:"--" }}</td>
-                                    <td>{{ code.condition|default:"--" }}</td>
-                                    <td>{{ code.description|default:"--" }}</td>
-                                    <td>{{ code.part_number|default:"--" }}</td>
-                                    <td>{{ code.tag_number|default:"--" }}</td>
-                                    <td>{{ code.MANUFATURE_CO|default:"--" }}</td>
-                                    <td>{{ code.unit_of_measure|default:"--" }}</td>
-                                    <td>{{ code.category|default:"--" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                                            <tbody>
+                                                            {% for code in part_number_related_codes %}
+                                                            <tr class="clickable-row" data-url="{% url 'valves:part-code-detail-frontend' pk=code.pk %}?valve_id={{ valve.pk }}">
+                                                                <td>{{ code.warehouse_number|default:"--" }}</td>
+                                                                <td>{{ code.sap_code|default:"--" }}</td>
+                                                                <td>{{ code.oracle_code|default:"--" }}</td>
+                                                                <td>{{ code.condition|default:"--" }}</td>
+                                                                <td>{{ code.description|default:"--" }}</td>
+                                                                <td class="part-number-cell">
+                                                                    {% if code.part_number %}
+                                                                        <a href="?part_number={{ code.part_number }}#related-codes-pane" class="text-primary fw-bold position-relative" style="z-index: 2;" title="Filter this list by Part Number">
+                                                                            {{ code.part_number }}
+                                                                        </a>
+                                                                    {% else %}
+                                                                        --
+                                                                    {% endif %}
+                                                                </td>
+                                                                <td>{{ code.tag_number|default:"--" }}</td>
+                                                                <td>{{ code.MANUFATURE_CO|default:"--" }}</td>
+                                                                <td>{{ code.unit_of_measure|default:"--" }}</td>
+                                                                <td>{{ code.category|default:"--" }}</td>
+                                                            </tr>
+                                                            {% endfor %}
+                                                        </tbody>                        </table>
                     </div>
                 {% else %}
                     <div class="alert alert-info text-center">
-                        {% trans "No related part codes found by part number." %}
+                        {% trans "No related part codes found." %}
                     </div>
                 {% endif %}
             </div>
@@ -276,7 +292,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle clickable rows
     document.querySelectorAll('.clickable-row').forEach(function(row) {
-        row.addEventListener('click', function() {
+        row.addEventListener('click', function(e) {
+            // Prevent redirection if the click originated from a link or button
+            if (e.target.closest('a') || e.target.closest('button')) {
+                return;
+            }
             window.location.href = this.dataset.url;
         });
     });

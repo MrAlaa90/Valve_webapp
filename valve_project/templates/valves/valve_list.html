@@ -38,7 +38,7 @@
         </thead>
         <tbody>
             {% for valve in valves %}
-            <tr>
+            <tr class="clickable-row" data-href="{% url 'valves:valve-detail-frontend' pk=valve.pk %}?{{ request.GET.urlencode }}" style="cursor: pointer;">
                 <td>{{ valve.tag_number }}</td>
                 <td>
                     {% if valve.factory %}
@@ -90,5 +90,20 @@
         </ul>
     </nav>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const rows = document.querySelectorAll("tr[data-href]");
+        rows.forEach(row => {
+            row.addEventListener("click", function(e) {
+                // Prevent redirection if the user clicked on a button or link inside the row
+                if (e.target.closest("a") || e.target.closest("button")) {
+                    return;
+                }
+                window.location.href = this.dataset.href;
+            });
+        });
+    });
+</script>
 
 {% endblock %}
