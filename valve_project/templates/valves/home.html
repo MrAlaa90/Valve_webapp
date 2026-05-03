@@ -4,18 +4,20 @@
 {% block title %}Dashboard - Abu Qir Fertilizers{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-4 py-5" style="background-color: var(--aq-light-bg);">
-    <!-- Header المستوحى من موقع أبو قير -->
-    <div class="row mb-5 border-bottom pb-3">
-        <div class="col-md-8">
-            <h1 class="display-6 fw-bold text-dark">Valves Management System</h1>
-            <p class="text-muted">Abu Qir Fertilizers & Chemical Industries - Digital Maintenance Platform</p>
-        </div>
-        <div class="col-md-4 text-end d-none d-md-block">
-            <!-- يمكنك وضع شعار الشركة هنا -->
-            <small class="fw-bold text-primary">A Legacy of Excellence</small>
+<div class="container-fluid px-0">
+    <!-- Hero Header with Background Image -->
+    <div class="position-relative overflow-hidden p-3 p-md-5 mb-4 text-center text-white" 
+         style="background: linear-gradient(rgba(0, 74, 153, 0.7), rgba(0, 51, 102, 0.8)), url('{% static 'images/image.jpg' %}') center/cover no-repeat; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+        <div class="col-md-8 p-lg-5 mx-auto my-5">
+            <h1 class="display-4 fw-bold">Valves Management System</h1>
+            <p class="lead fw-normal text-light">Abu Qir Fertilizers & Chemical Industries - Digital Maintenance Platform</p>
+            <div class="mt-4">
+                <small class="fw-bold text-uppercase tracking-wider" style="letter-spacing: 2px;">A Legacy of Excellence</small>
+            </div>
         </div>
     </div>
+
+    <div class="px-4 py-2">
 
     <div class="row">
         {% for factory in main_factories %}
@@ -80,5 +82,6 @@
         </div>
     </div>
     {% endif %}
-</div>
+    </div> <!-- End of px-4 py-2 -->
+</div> <!-- End of container-fluid px-0 -->
 {% endblock %}
