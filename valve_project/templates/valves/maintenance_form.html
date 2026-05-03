@@ -159,42 +159,27 @@
 {% endblock content %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 $(document).ready(function() {
-    // Initialize Select2 for tag number field if not readonly
-    if (!$('#id_valve_tag_number').prop('readonly')) {
-        $('#id_valve_tag_number').select2({
-            ajax: {
-                url: '{% url "valves:valve-tag-autocomplete" %}',
-                dataType: 'json',
-                delay: 250,
-                data: function (params) {
-                    return {
-                        term: params.term
-                    };
+    // jQuery UI Autocomplete for Valve Tag Number
+    $("#id_valve_tag_number").autocomplete({
+        source: function(request, response) {
+            $.ajax({
+                url: "{% url 'valves:valve-tag-autocomplete' %}",
+                dataType: "json",
+                data: {
+                    term: request.term
                 },
-                processResults: function (data) {
-                    return {
-                        results: $.map(data, function (item) {
-                            return {
-                                text: item.text + (item.name ? ' - ' + item.name : ''),
-                                id: item.text,
-                                valve_id: item.id
-                            }
-                        })
-                    };
-                },
-                cache: true
-            },
-            minimumInputLength: 2,
-            placeholder: '{% trans "Start typing to search for a valve..." %}',
-            width: '100%'
-        }).on('select2:select', function (e) {
-            var data = e.params.data;
-            $('#id_valve').val(data.valve_id);
-        });
-    }
+                success: function(data) {
+                    response(data);
+                }
+            });
+        },
+        minLength: 2,
+        select: function(event, ui) {
+            $("#id_valve_tag_number").val(ui.item.value);
+        }
+    });
 });
 </script>
 {% endblock extra_js %}
