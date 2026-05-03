@@ -1,41 +1,68 @@
-body .card.factory-card-danger {
-    background-color: #dc3545 !important;
-    color: white !important;
+/* الألوان المؤسسية المقترحة */
+:root {
+    --abuqir-blue: #004a99;
+    --abuqir-light-blue: #eef4fb;
+    --abuqir-gold: #ffc107;
+    --abuqir-dark: #1d1d1b;
 }
 
-body .card.factory-card-success {
-    background-color: #198754 !important;
-    color: white !important;
+/* تحسين بطاقات المصانع */
+body .card[class*="factory-card-"] {
+    border: none !important;
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    background-color: #fff !important; /* خلفية بيضاء للراحة البصرية */
+    color: var(--abuqir-dark) !important;
+    border-left: 5px solid #ccc !important; /* تمييز لوني جانبي فقط */
 }
 
-body .card.factory-card-primary {
-    background-color: #0d6efd !important;
-    color: white !important;
+body .card.factory-card-danger { border-left-color: #dc3545 !important; }
+body .card.factory-card-success { border-left-color: #198754 !important; }
+body .card.factory-card-primary { border-left-color: var(--abuqir-blue) !important; }
+body .card.factory-card-info { border-left-color: #0dcaf0 !important; }
+
+body .card[class*="factory-card-"]:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.12);
 }
 
-body .card.factory-card-info {
-    background-color: #0dcaf0 !important;
-    color: white !important;
+/* تحسين العناوين */
+.card-header {
+    background-color: transparent !important;
+    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+    padding: 1.25rem;
 }
 
-body .table .table-header-danger {
-    background-color: #dc3545 !important;
-    color: white !important;
+.card-header h3 {
+    color: var(--abuqir-blue);
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 0;
 }
 
-body .table .table-header-success {
-    background-color: #198754 !important;
-    color: white !important;
+/* تحسين البطاقات الداخلية (الإحصائيات) */
+.stat-card {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    background-color: rgba(0,0,0,0.02);
 }
 
-body .table .table-header-primary {
-    background-color: #0d6efd !important;
-    color: white !important;
+.stat-card:hover {
+    background-color: var(--abuqir-light-blue) !important;
 }
 
-body .table .table-header-info {
-    background-color: #0dcaf0 !important;
+.stat-card i {
+    opacity: 0.8;
+}
+
+/* جداول البيانات */
+.table thead th {
+    background-color: var(--abuqir-blue) !important;
     color: white !important;
+    font-weight: 500;
+    border: none;
 }
 
 /* Styles for clickable table rows */
