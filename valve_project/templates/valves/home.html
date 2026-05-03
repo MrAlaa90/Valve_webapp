@@ -32,8 +32,8 @@
         {% for factory in main_factories %}
         <div class="col-lg-4 mb-4">
             <div class="card h-100 factory-card-{{ factory.get_color }}">
-                <div class="card-header bg-white">
-                    <h3 class="mb-0"><i class="fas fa-industry me-2"></i>{{ factory.name }}</h3>
+                <div class="card-header">
+                    <h3 class="mb-0 text-{{ factory.get_color }}"><i class="fas fa-industry me-2"></i>{{ factory.name }}</h3>
                 </div>
                 <div class="card-body p-4">
                     <div class="list-group list-group-flush">

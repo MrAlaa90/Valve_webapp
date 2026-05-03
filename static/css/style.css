@@ -44,7 +44,6 @@ body .card.factory-card-info { border-top-color: #0dcaf0 !important; }
 }
 
 .card-header h3 {
-    color: var(--aq-blue-dark);
     font-weight: 600;
     font-size: 1.15rem;
     text-transform: uppercase;
