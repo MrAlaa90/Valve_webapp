@@ -28,3 +28,15 @@ class ValveRelatedNameTest(TestCase):
         self.assertTrue(hasattr(self.valve, 'part_codes'))
         self.assertEqual(self.valve.part_codes.count(), 1)
         self.assertEqual(self.valve.part_codes.first(), self.part_code)
+
+    def test_technical_specs_fields(self):
+        """Test that new technical spec fields exist and can store values"""
+        self.valve.plug_stem_mat = "316SS"
+        self.valve.packing_mat = "Graphite"
+        self.valve.shut_off_pressure = "10 BAR"
+        self.valve.save()
+        
+        db_valve = Valve.objects.get(tag_number="TEST-001")
+        self.assertEqual(db_valve.plug_stem_mat, "316SS")
+        self.assertEqual(db_valve.packing_mat, "Graphite")
+        self.assertEqual(db_valve.shut_off_pressure, "10 BAR")

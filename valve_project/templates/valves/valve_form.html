@@ -37,23 +37,35 @@
             </div>
 
             <div class="col-md-6">
+                <label for="id_factory" class="form-label">{% trans "Factory" %}</label>
+                <select class="form-select" id="id_factory" name="factory">
+                    <option value="" selected>{% trans "Choose factory..." %}</option>
+                    {% for factory in factories %}
+                        <option value="{{ factory.pk }}">{{ factory.name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback" id="id_factory_error"></div>
+            </div>
+
+            <div class="col-md-6">
                 <label for="id_valve_type" class="form-label">{% trans "Valve Type" %}</label>
                 <select class="form-select" id="id_valve_type" name="valve_type">
                     <option value="" selected>{% trans "Choose type..." %}</option>
-                    <option value="Globe">{% trans "Globe Valve" %}</option>
-                    <option value="Gate">{% trans "Gate Valve" %}</option>
-                    <option value="Ball">{% trans "Ball Valve" %}</option>
-                    <option value="Check">{% trans "Check Valve" %}</option>
-                    <option value="Butterfly">{% trans "Butterfly Valve" %}</option>
-                    <option value="Relief">{% trans "Relief Valve" %}</option>
-                    <option value="Control">{% trans "Control Valve" %}</option>
+                    {% for type in valve_types %}
+                        <option value="{{ type.pk }}">{{ type.name }}</option>
+                    {% endfor %}
                 </select>
                 <div class="invalid-feedback" id="id_valve_type_error"></div>
             </div>
 
             <div class="col-md-6">
                 <label for="id_manufacturer" class="form-label">{% trans "Manufacturer" %}</label>
-                <input type="text" class="form-control" id="id_manufacturer" name="manufacturer">
+                <select class="form-select" id="id_manufacturer" name="manufacturer">
+                    <option value="" selected>{% trans "Choose manufacturer..." %}</option>
+                    {% for manuf in manufacturers %}
+                        <option value="{{ manuf.pk }}">{{ manuf.name }}</option>
+                    {% endfor %}
+                </select>
             </div>
             <div class="col-md-6">
                 <label for="id_model_number" class="form-label">{% trans "Model Number" %}</label>
@@ -66,12 +78,17 @@
             </div>
 
             <div class="col-md-6">
+                <label for="id_last_maintenance_date" class="form-label">{% trans "Last Maintenance Date" %}</label>
+                <input type="date" class="form-control" id="id_last_maintenance_date" name="last_maintenance_date">
+            </div>
+
+            <div class="col-md-6">
                 <label for="id_status" class="form-label">{% trans "Current Status" %}</label>
                 <select class="form-select" id="id_status" name="status">
-                    <option value="Good">{% trans "Good" %}</option>
-                    <option value="Fair">{% trans "Fair" %}</option>
-                    <option value="Needs Maintenance">{% trans "Needs Maintenance" %}</option>
-                    <option value="Critical">{% trans "Critical" %}</option>
+                    <option value="" selected>{% trans "Choose status..." %}</option>
+                    {% for stat in statuses %}
+                        <option value="{{ stat.pk }}">{{ stat.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
             
@@ -83,6 +100,60 @@
             <div class="col-12">
                 <label for="id_drawing_link" class="form-label">{% trans "Drawing Link (if available)" %}</label>
                 <input type="url" class="form-control" id="id_drawing_link" name="drawing_link">
+            </div>
+
+            <div class="col-12 mt-4 pt-3 border-top">
+                <h5 class="mb-3">{% trans "Technical Specifications" %}</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="id_bench_range" class="form-label">{% trans "Bench Range" %}</label>
+                        <input type="text" class="form-control" id="id_bench_range" name="bench_range">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_shut_off_pressure" class="form-label">{% trans "Shut-off Pressures P1 / P2" %}</label>
+                        <input type="text" class="form-control" id="id_shut_off_pressure" name="shut_off_pressure">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_power_failure_pos" class="form-label">{% trans "Power Failure Pos." %}</label>
+                        <input type="text" class="form-control" id="id_power_failure_pos" name="power_failure_pos">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_body_style" class="form-label">{% trans "Body Style" %}</label>
+                        <input type="text" class="form-control" id="id_body_style" name="body_style">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_required_travel_angle" class="form-label">{% trans "Required Travel / Angle" %}</label>
+                        <input type="text" class="form-control" id="id_required_travel_angle" name="required_travel_angle">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_plug_stem_mat" class="form-label">{% trans "Plug/Stem MAT" %}</label>
+                        <input type="text" class="form-control" id="id_plug_stem_mat" name="plug_stem_mat">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_butterfly_shaft_mat" class="form-label">{% trans "Butterfly/Shaft MAT" %}</label>
+                        <input type="text" class="form-control" id="id_butterfly_shaft_mat" name="butterfly_shaft_mat">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_seat_guide_mat" class="form-label">{% trans "Seat/Guide MAT" %}</label>
+                        <input type="text" class="form-control" id="id_seat_guide_mat" name="seat_guide_mat">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_seat_diameter" class="form-label">{% trans "Seat Diameter" %}</label>
+                        <input type="text" class="form-control" id="id_seat_diameter" name="seat_diameter">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_trim_coating" class="form-label">{% trans "Trim Coating" %}</label>
+                        <input type="text" class="form-control" id="id_trim_coating" name="trim_coating">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_leakage_class" class="form-label">{% trans "Leakage Class" %}</label>
+                        <input type="text" class="form-control" id="id_leakage_class" name="leakage_class">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_packing_mat" class="form-label">{% trans "Packing MAT" %}</label>
+                        <input type="text" class="form-control" id="id_packing_mat" name="packing_mat">
+                    </div>
+                </div>
             </div>
 
             <!-- Image Upload Section (only for updates) -->
@@ -248,18 +319,36 @@ headers: {
  document.getElementById('id_tag_number').value = valveData.tag_number || '';
  document.getElementById('id_name').value = valveData.name || '';
  document.getElementById('id_location').value = valveData.location || '';
+ document.getElementById('id_factory').value = valveData.factory || '';
  document.getElementById('id_valve_type').value = valveData.valve_type || '';
  document.getElementById('id_manufacturer').value = valveData.manufacturer || '';
  document.getElementById('id_model_number').value = valveData.model_number || '';
  document.getElementById('id_notes').value = valveData.notes || '';
  document.getElementById('id_drawing_link').value = valveData.drawing_link || '';
- document.getElementById('id_status').value = valveData.status || 'Good'; 
+ document.getElementById('id_status').value = valveData.status || ''; 
+ 
+ // Populate technical specification fields
+ document.getElementById('id_bench_range').value = valveData.bench_range || '';
+ document.getElementById('id_shut_off_pressure').value = valveData.shut_off_pressure || '';
+ document.getElementById('id_power_failure_pos').value = valveData.power_failure_pos || '';
+ document.getElementById('id_body_style').value = valveData.body_style || '';
+ document.getElementById('id_required_travel_angle').value = valveData.required_travel_angle || '';
+ document.getElementById('id_plug_stem_mat').value = valveData.plug_stem_mat || '';
+ document.getElementById('id_butterfly_shaft_mat').value = valveData.butterfly_shaft_mat || '';
+ document.getElementById('id_seat_guide_mat').value = valveData.seat_guide_mat || '';
+ document.getElementById('id_seat_diameter').value = valveData.seat_diameter || '';
+ document.getElementById('id_trim_coating').value = valveData.trim_coating || '';
+ document.getElementById('id_leakage_class').value = valveData.leakage_class || '';
+ document.getElementById('id_packing_mat').value = valveData.packing_mat || '';
 
  loadAndDisplayImages(valveData.images);
 
  // Handle date format (API returns YYYY-MM-DD, perfect for input type="date")
  if (valveData.installation_date) {
      document.getElementById('id_installation_date').value = valveData.installation_date;
+ }
+ if (valveData.last_maintenance_date) {
+     document.getElementById('id_last_maintenance_date').value = valveData.last_maintenance_date;
  }
 
 } catch (error) {

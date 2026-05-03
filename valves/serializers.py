@@ -13,11 +13,25 @@ class ValveSerializer(serializers.ModelSerializer):
             'location',
             'valve_type',
             'status',
+            'manufacturer',
+            'factory',
             'installation_date',
             'last_maintenance_date',
             'notes',
-            'drawing_link', # This field has been kept as it may not be an image
-            # 'images' # images field has been removed
+            'drawing_link',
+            'plug_stem_mat',
+            'butterfly_shaft_mat',
+            'seat_guide_mat',
+            'seat_diameter',
+            'trim_coating',
+            'leakage_class',
+            'packing_mat',
+            'model_number',
+            'shut_off_pressure',
+            'power_failure_pos',
+            'body_style',
+            'required_travel_angle',
+            'bench_range',
             ]
         read_only_fields = ['valve_id']
         # If you had fields = '__all__', the id would appear automatically

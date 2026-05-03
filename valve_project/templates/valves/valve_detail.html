@@ -35,6 +35,11 @@
                 </button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tech-details-tab" data-bs-toggle="tab" data-bs-target="#tech-details-pane" type="button" role="tab" aria-controls="tech-details-pane" aria-selected="false">
+                    <i class="fas fa-cogs me-1"></i> {% trans "Technical Specs" %}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance-pane" type="button" role="tab" aria-controls="maintenance-pane" aria-selected="false">
                     <i class="fas fa-history me-1"></i> {% trans "Maintenance History" %} ({{ maintenance_records|length }})
                 </button>
@@ -50,6 +55,11 @@
                     <span class="badge bg-secondary">{{ part_number_related_codes|length }}</span>
                 </button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="images-tab" data-bs-toggle="tab" data-bs-target="#images-pane" type="button" role="tab" aria-controls="images-pane" aria-selected="false">
+                    <i class="fas fa-file-image me-1"></i> {% trans "Drawing & Images" %}
+                </button>
+            </li>
         </ul>
 
         <!-- Tabs Content -->
@@ -61,19 +71,9 @@
                     <div class="col-md-6"><p><strong>{% trans "Tag Number" %}:</strong> {{ valve.tag_number }}</p></div>
                     <div class="col-md-6"><p><strong>{% trans "Location" %}:</strong> {{ valve.location }}</p></div>
                     <div class="col-md-6"><p><strong>{% trans "Status" %}:</strong> <span class="badge bg-{{ valve.status.get_status_color }} p-2">{{ valve.status.name }}</span></p></div>
-                    <div class="col-md-6"><p><strong>{% trans "Manufacturer" %}:</strong> {{ valve.manufacturer|default:_("Not specified") }}</p></div>
-                    <div class="col-md-6"><p><strong>{% trans "Model Number" %}:</strong> {{ valve.model_number|default:_("Not specified") }}</p></div>
-                    <div class="col-md-6"><p><strong>{% trans "Shut-off Pressures P1 / P2" %}:</strong> {{ valve.shut_off_pressure|default:_("Not specified") }}</p></div>
-                    <div class="col-md-6"><p><strong>{% trans "Power Failure Pos." %}:</strong> {{ valve.power_failure_pos|default:_("Not specified") }}</p></div>
-                    <div class="col-md-6"><p><strong>{% trans "Body Style" %}:</strong> {{ valve.body_style|default:_("Not specified") }}</p></div>
-                    <div class="col-md-6"><p><strong>{% trans "Required Travel / Angle" %}:</strong> {{ valve.required_travel_angle|default:_("Not specified") }}</p></div>
-                    <div class="col-md-6"><p><strong>{% trans "Bench Range" %}:</strong> {{ valve.bench_range|default:_("Not specified") }}</p></div>
                     <div class="col-md-6"><p><strong>{% trans "Installation Date" %}:</strong> {{ valve.installation_date|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Last Maintenance Date" %}:</strong> {{ valve.last_maintenance_date|default:_("Not specified") }}</p></div>
                     <div class="col-md-12"><p><strong>{% trans "Notes" %}:</strong> {{ valve.notes|default:_("No notes available.") }}</p></div>
-                    {% if valve.drawing_link %}
-                    <div class="col-md-12">
-                        <p><strong>{% trans "Drawing" %}:</strong> <a href="{{ valve.drawing_link.url }}" target="_blank" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-pdf me-1"></i> {% trans "View Drawing" %}</a></p>
-                    {% endif %}
                     <div class="col-md-12">
                         <p><strong>{% trans "Part Codes" %}:</strong></p>
                         {% if basic_part_codes %}
@@ -111,6 +111,26 @@
                             <p class="text-muted">{% trans "No part codes associated." %}</p>
                         {% endif %}
                     </div>
+                </div>
+            </div>
+
+            <!-- Technical Details -->
+            <div class="tab-pane fade" id="tech-details-pane" role="tabpanel" aria-labelledby="tech-details-tab" tabindex="0">
+                <div class="row g-3">
+                    <div class="col-md-6"><p><strong>{% trans "Manufacturer" %}:</strong> {{ valve.manufacturer|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Model Number" %}:</strong> {{ valve.model_number|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Shut-off Pressures P1 / P2" %}:</strong> {{ valve.shut_off_pressure|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Power Failure Pos." %}:</strong> {{ valve.power_failure_pos|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Body Style" %}:</strong> {{ valve.body_style|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Required Travel / Angle" %}:</strong> {{ valve.required_travel_angle|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Bench Range" %}:</strong> {{ valve.bench_range|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Plug/Stem MAT" %}:</strong> {{ valve.plug_stem_mat|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Butterfly/Shaft MAT" %}:</strong> {{ valve.butterfly_shaft_mat|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Seat/Guide MAT" %}:</strong> {{ valve.seat_guide_mat|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Seat Diameter" %}:</strong> {{ valve.seat_diameter|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Trim Coating" %}:</strong> {{ valve.trim_coating|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Leakage Class" %}:</strong> {{ valve.leakage_class|default:_("Not specified") }}</p></div>
+                    <div class="col-md-6"><p><strong>{% trans "Packing MAT" %}:</strong> {{ valve.packing_mat|default:_("Not specified") }}</p></div>
                 </div>
             </div>
 
@@ -253,15 +273,39 @@
 
             <!-- 5. الصور (Images) -->
             <div class="tab-pane fade" id="images-pane" role="tabpanel" aria-labelledby="images-tab" tabindex="0">
-                <div class="mb-3">
-                    {% if valve.images.all %}
-                        <p>{% blocktrans count counter=valve.images.all.count %}There is 1 additional image for this valve.{% plural %}There are {{ counter }} additional images for this valve.{% endblocktrans %}</p>
-                        <a href="{% url 'valves:valve-images-gallery-frontend' pk=valve.valve_id %}" class="btn btn-outline-primary">
-                            <i class="fas fa-camera-retro me-2"></i>{% trans "View Image Gallery" %}
-                        </a>
-                    {% else %}
-                        <p class="text-muted">{% trans "No additional images available for this valve." %}</p>
+                <div class="row g-4">
+                    {% if valve.drawing_link %}
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                                <h5>{% trans "Technical Drawing" %}</h5>
+                                <p class="text-muted small">{% trans "View or download the technical drawing for this valve." %}</p>
+                                <a href="{{ valve.drawing_link.url }}" target="_blank" class="btn btn-outline-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i> {% trans "Open Drawing" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     {% endif %}
+                    
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <i class="fas fa-images fa-3x text-primary mb-3"></i>
+                                <h5>{% trans "Image Gallery" %}</h5>
+                                {% if valve.images.all %}
+                                    <p class="text-muted small">{% blocktrans count counter=valve.images.all.count %}There is 1 additional image.{% plural %}There are {{ counter }} additional images.{% endblocktrans %}</p>
+                                    <a href="{% url 'valves:valve-images-gallery-frontend' pk=valve.valve_id %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-camera-retro me-1"></i> {% trans "View Gallery" %}
+                                    </a>
+                                {% else %}
+                                    <p class="text-muted small">{% trans "No additional images available." %}</p>
+                                    <button class="btn btn-outline-secondary" disabled>{% trans "Gallery Empty" %}</button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

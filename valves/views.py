@@ -86,26 +86,56 @@ def valve_create_frontend(request):
         # Extract form data
         tag_number = request.POST.get('tag_number')
         name = request.POST.get('name')
-        serial_number = request.POST.get('serial_number')
         valve_type_id = request.POST.get('valve_type')
         status_id = request.POST.get('status')
         manufacturer_id = request.POST.get('manufacturer')
         factory_id = request.POST.get('factory')
         location = request.POST.get('location')
-        description = request.POST.get('description')
+        installation_date = request.POST.get('installation_date') or None
+        last_maintenance_date = request.POST.get('last_maintenance_date') or None
+        drawing_link = request.POST.get('drawing_link')
+        model_number = request.POST.get('model_number')
+        shut_off_pressure = request.POST.get('shut_off_pressure')
+        power_failure_pos = request.POST.get('power_failure_pos')
+        body_style = request.POST.get('body_style')
+        required_travel_angle = request.POST.get('required_travel_angle')
+        bench_range = request.POST.get('bench_range')
+        plug_stem_mat = request.POST.get('plug_stem_mat')
+        butterfly_shaft_mat = request.POST.get('butterfly_shaft_mat')
+        seat_guide_mat = request.POST.get('seat_guide_mat')
+        seat_diameter = request.POST.get('seat_diameter')
+        trim_coating = request.POST.get('trim_coating')
+        leakage_class = request.POST.get('leakage_class')
+        packing_mat = request.POST.get('packing_mat')
+        notes = request.POST.get('notes')
 
         try:
             # Create new valve object
             valve = Valve.objects.create(
                 tag_number=tag_number,
                 name=name,
-                serial_number=serial_number,
                 valve_type_id=valve_type_id,
                 status_id=status_id,
                 manufacturer_id=manufacturer_id,
                 factory_id=factory_id,
                 location=location,
-                description=description
+                installation_date=installation_date,
+                last_maintenance_date=last_maintenance_date,
+                drawing_link=drawing_link,
+                model_number=model_number,
+                shut_off_pressure=shut_off_pressure,
+                power_failure_pos=power_failure_pos,
+                body_style=body_style,
+                required_travel_angle=required_travel_angle,
+                bench_range=bench_range,
+                plug_stem_mat=plug_stem_mat,
+                butterfly_shaft_mat=butterfly_shaft_mat,
+                seat_guide_mat=seat_guide_mat,
+                seat_diameter=seat_diameter,
+                trim_coating=trim_coating,
+                leakage_class=leakage_class,
+                packing_mat=packing_mat,
+                notes=notes
             )
             messages.success(request, f'Valve {valve.tag_number} was created successfully.')
             return redirect('valve-detail-frontend', pk=valve.pk)
@@ -307,13 +337,28 @@ def valve_update_frontend(request, pk):
             # Update valve data
             valve.tag_number = request.POST.get('tag_number')
             valve.name = request.POST.get('name')
-            valve.serial_number = request.POST.get('serial_number')
             valve.valve_type_id = request.POST.get('valve_type')
             valve.status_id = request.POST.get('status')
             valve.manufacturer_id = request.POST.get('manufacturer')
             valve.factory_id = request.POST.get('factory')
             valve.location = request.POST.get('location')
-            valve.description = request.POST.get('description')
+            valve.installation_date = request.POST.get('installation_date') or None
+            valve.last_maintenance_date = request.POST.get('last_maintenance_date') or None
+            valve.drawing_link = request.POST.get('drawing_link')
+            valve.model_number = request.POST.get('model_number')
+            valve.shut_off_pressure = request.POST.get('shut_off_pressure')
+            valve.power_failure_pos = request.POST.get('power_failure_pos')
+            valve.body_style = request.POST.get('body_style')
+            valve.required_travel_angle = request.POST.get('required_travel_angle')
+            valve.bench_range = request.POST.get('bench_range')
+            valve.plug_stem_mat = request.POST.get('plug_stem_mat')
+            valve.butterfly_shaft_mat = request.POST.get('butterfly_shaft_mat')
+            valve.seat_guide_mat = request.POST.get('seat_guide_mat')
+            valve.seat_diameter = request.POST.get('seat_diameter')
+            valve.trim_coating = request.POST.get('trim_coating')
+            valve.leakage_class = request.POST.get('leakage_class')
+            valve.packing_mat = request.POST.get('packing_mat')
+            valve.notes = request.POST.get('notes')
             valve.save()
             
             messages.success(request, f'Valve {valve.tag_number} was updated successfully.')

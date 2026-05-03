@@ -6,6 +6,22 @@ class ValveAdmin(admin.ModelAdmin):
     list_display = ('tag_number', 'name', 'valve_type', 'status', 'factory')
     list_filter = ('valve_type', 'status', 'factory')
     search_fields = ('tag_number', 'name')
+    fieldsets = (
+        (None, {
+            'fields': ('tag_number', 'name', 'location', 'factory', 'valve_type', 'status', 'manufacturer', 'model_number')
+        }),
+        ('Technical Specifications', {
+            'fields': (
+                'shut_off_pressure', 'power_failure_pos', 'body_style', 
+                'required_travel_angle', 'bench_range', 'plug_stem_mat', 
+                'butterfly_shaft_mat', 'seat_guide_mat', 'seat_diameter', 
+                'trim_coating', 'leakage_class', 'packing_mat'
+            )
+        }),
+        ('Additional Information', {
+            'fields': ('installation_date', 'last_maintenance_date', 'notes', 'drawing_link', 'sort_order')
+        }),
+    )
 
 @admin.register(MaintenanceHistory)
 class MaintenanceHistoryAdmin(admin.ModelAdmin):

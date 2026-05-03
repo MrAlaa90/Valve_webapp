@@ -76,6 +76,13 @@ class Valve(models.Model):
     body_style = models.CharField(max_length=255, null=True, blank=True)
     required_travel_angle = models.CharField(max_length=255, null=True, blank=True)
     bench_range = models.CharField(max_length=255, null=True, blank=True)
+    plug_stem_mat = models.CharField(max_length=255, null=True, blank=True)
+    butterfly_shaft_mat = models.CharField(max_length=255, null=True, blank=True)
+    seat_guide_mat = models.CharField(max_length=255, null=True, blank=True)
+    seat_diameter = models.CharField(max_length=255, null=True, blank=True)
+    trim_coating = models.CharField(max_length=255, null=True, blank=True)
+    leakage_class = models.CharField(max_length=255, null=True, blank=True)
+    packing_mat = models.CharField(max_length=255, null=True, blank=True)
     sort_order = models.IntegerField(default=0)
 
     def __str__(self):

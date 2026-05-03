@@ -86,6 +86,13 @@ def run_valve_importer():
                             'body_style': cleaned_row.get('Body Style') or None,
                             'required_travel_angle': cleaned_row.get('Required Travel / Angle') or None,
                             'bench_range': cleaned_row.get('Bench Range') or None,
+                            'plug_stem_mat': cleaned_row.get('Plug/Stem MAT') or None,
+                            'butterfly_shaft_mat': cleaned_row.get('Butterfly/Shaft MAT') or None,
+                            'seat_guide_mat': cleaned_row.get('Seat/Guide MAT') or None,
+                            'seat_diameter': cleaned_row.get('Seat Diameter') or None,
+                            'trim_coating': cleaned_row.get('Trim Coating') or None,
+                            'leakage_class': cleaned_row.get('Leakage Class') or None,
+                            'packing_mat': cleaned_row.get('Packing MAT') or None,
                         }
                         
                         obj, created = Valve.objects.update_or_create(

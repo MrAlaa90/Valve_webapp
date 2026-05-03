@@ -15,6 +15,13 @@ class ValveForm(forms.ModelForm):
             'last_maintenance_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'drawing_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'Link to engineering drawing file'}),
+            'plug_stem_mat': forms.TextInput(attrs={'class': 'form-control'}),
+            'butterfly_shaft_mat': forms.TextInput(attrs={'class': 'form-control'}),
+            'seat_guide_mat': forms.TextInput(attrs={'class': 'form-control'}),
+            'seat_diameter': forms.TextInput(attrs={'class': 'form-control'}),
+            'trim_coating': forms.TextInput(attrs={'class': 'form-control'}),
+            'leakage_class': forms.TextInput(attrs={'class': 'form-control'}),
+            'packing_mat': forms.TextInput(attrs={'class': 'form-control'}),
         }
         labels = {
             'tag_number': 'Valve Tag Number',
@@ -26,6 +33,13 @@ class ValveForm(forms.ModelForm):
             'last_maintenance_date': 'Last Maintenance',
             'notes': 'Notes',
             'drawing_link': 'Engineering Drawing Link',
+            'plug_stem_mat': 'Plug/Stem MAT',
+            'butterfly_shaft_mat': 'Butterfly/Shaft MAT',
+            'seat_guide_mat': 'Seat/Guide MAT',
+            'seat_diameter': 'Seat Diameter',
+            'trim_coating': 'Trim Coating',
+            'leakage_class': 'Leakage Class',
+            'packing_mat': 'Packing MAT',
         }
 
 class SparePartForm(forms.ModelForm):
