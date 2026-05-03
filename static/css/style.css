@@ -13,16 +13,14 @@
     --abuqir-dark: var(--aq-text);
 }
 
-/* تحسين البطاقات لتشابه موقع الشركة */
+/* توحيد خلفية البطاقات للون الداكن وإزالة الحدود الجانبية */
 body .card[class*="factory-card-"] {
+    background-color: #262b31 !important; /* لون الخلفية الداكن المطابق للصورة 1 */
+    color: #ffffff !important;
     border: none !important;
-    border-top: 4px solid var(--aq-blue) !important; /* الخط العلوي المميز للموقع */
     border-radius: 8px;
-    background-color: #ffffff !important;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     transition: transform 0.2s ease-in-out;
-    overflow: hidden;
-    color: var(--aq-text);
 }
 
 body .card[class*="factory-card-"]:hover {
@@ -30,11 +28,30 @@ body .card[class*="factory-card-"]:hover {
     box-shadow: 0 8px 15px rgba(0,0,0,0.1);
 }
 
-/* تمييز حالة المصانع بناءً على ألوان الشركة */
-body .card.factory-card-primary { border-top-color: var(--aq-blue) !important; }
-body .card.factory-card-success { border-top-color: var(--aq-green) !important; }
-body .card.factory-card-danger { border-top-color: #dc3545 !important; }
-body .card.factory-card-info { border-top-color: #0dcaf0 !important; }
+/* تطبيق الخط العلوي الملون فقط */
+body .card.factory-card-danger { border-top: 4px solid #dc3545 !important; }
+body .card.factory-card-success { border-top: 4px solid #198754 !important; }
+body .card.factory-card-primary { border-top: 4px solid #0d6efd !important; }
+body .card.factory-card-info { border-top: 4px solid #0dcaf0 !important; }
+
+/* ضبط خلفية القوائم الداخلية (List Groups) لتندمج مع البطاقة */
+body .card[class*="factory-card-"] .list-group-item {
+    background-color: transparent !important;
+    color: #e9ecef !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* إزالة خلفية رأس البطاقة (Header) */
+body .card[class*="factory-card-"] .card-header {
+    background-color: transparent !important;
+    border-bottom: none !important;
+    padding-top: 1.25rem;
+}
+
+/* ضبط لون الأيقونة في العناوين */
+body .card[class*="factory-card-"] .card-header h3 i {
+    color: #3ea8ff !important; /* درجة الأزرق الفاتح في الصورة 1 */
+}
 
 /* العناوين بنفس تنسيق الموقع الرسمي */
 .card-header {
