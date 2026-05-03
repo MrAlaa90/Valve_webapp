@@ -36,18 +36,15 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="list-group list-group-flush">
-                            <a href="{% url 'valves:valve-list-frontend' %}?factory={{ factory.name|slugify }}" 
-                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <a href="{% url 'valves:valve-list-frontend' %}?factory={{ factory.name|slugify }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                 <span><i class="fas fa-list-ul me-2 text-primary"></i>Total Inventory</span>
                                 <span class="badge bg-primary rounded-pill">{{ factory.total_valves }}</span>
                             </a>
-                            <a href="{% url 'valves:valve-list-frontend' %}?factory={{ factory.name|slugify }}&status=Operational" 
-                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <a href="{% url 'valves:valve-list-frontend' %}?factory={{ factory.name|slugify }}&amp;status=Operational" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                 <span><i class="fas fa-check-circle me-2 text-success"></i>Operational</span>
                                 <span class="badge bg-success rounded-pill">{{ factory.operational_valves }}</span>
                             </a>
-                            <a href="{% url 'valves:valve-list-frontend' %}?factory={{ factory.name|slugify }}&status=Needs+Maintenance" 
-                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <a href="{% url 'valves:valve-list-frontend' %}?factory={{ factory.name|slugify }}&amp;status=Needs+Maintenance" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                 <span><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Maintenance Required</span>
                                 <span class="badge bg-warning text-dark rounded-pill">{{ factory.needs_maintenance_valves }}</span>
                             </a>
