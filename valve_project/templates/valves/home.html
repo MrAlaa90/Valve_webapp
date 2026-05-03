@@ -7,12 +7,21 @@
 <div class="container-fluid px-0">
     <!-- Hero Header with Background Image -->
     <div class="position-relative overflow-hidden p-3 p-md-5 mb-4 text-center text-white" 
-         style="background: #004a99 linear-gradient(rgba(0, 74, 153, 0.7), rgba(0, 51, 102, 0.8)), url('{% static "images/image.webp" %}') center/cover no-repeat; min-height: 400px; display: flex; align-items: center; justify-content: center;">
+         style="background-color: #004a99;
+                background-image: linear-gradient(rgba(0, 74, 153, 0.35), rgba(0, 51, 102, 0.45)), url('{% static "images/image.webp" %}');
+                background-position: center center;
+                background-size: cover;
+                background-repeat: no-repeat;
+                min-height: 450px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-bottom: 2px solid var(--aq-blue);">
         <div class="col-md-8 p-lg-5 mx-auto my-5">
-            <h1 class="display-4 fw-bold">Valves Management System</h1>
-            <p class="lead fw-normal text-light">Abu Qir Fertilizers & Chemical Industries - Digital Maintenance Platform</p>
+            <h1 class="display-4 fw-bold" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.6);">Valves Management System</h1>
+            <p class="lead fw-normal text-light" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.6);">Abu Qir Fertilizers & Chemical Industries - Digital Maintenance Platform</p>
             <div class="mt-4">
-                <small class="fw-bold text-uppercase tracking-wider" style="letter-spacing: 2px;">A Legacy of Excellence</small>
+                <small class="fw-bold text-uppercase tracking-wider" style="letter-spacing: 2px; text-shadow: 1px 1px 3px rgba(0,0,0,0.6);">A Legacy of Excellence</small>
             </div>
         </div>
     </div>
