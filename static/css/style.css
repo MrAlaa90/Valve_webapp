@@ -103,3 +103,7 @@ body .card.factory-card-info { border-top-color: #0dcaf0 !important; }
     background-color: #2b3035 !important;
     color: #dee2e6;
 }
+
+[data-bs-theme="dark"] .card-header h3[style*="var(--aq-blue)"] {
+    color: #4dabff !important; /* Brighter blue for dark mode visibility */
+}
