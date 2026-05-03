@@ -1,33 +1,42 @@
-/* الألوان المؤسسية المقترحة */
+/* Abu Qir Fertilizers Official Brand Colors */
 :root {
-    --abuqir-blue: #004a99;
+    --aq-blue: #004a99;      /* الرسمي الأزرق */
+    --aq-blue-dark: #003366; 
+    --aq-green: #28a745;     /* أخضر الاستدامة */
+    --aq-light-bg: #f8f9fa;
+    --aq-text: #333333;
+    
+    /* Legacy aliases for compatibility */
+    --abuqir-blue: var(--aq-blue);
     --abuqir-light-blue: #eef4fb;
     --abuqir-gold: #ffc107;
-    --abuqir-dark: #1d1d1b;
+    --abuqir-dark: var(--aq-text);
 }
 
-/* تحسين بطاقات المصانع */
+/* تحسين البطاقات لتشابه موقع الشركة */
 body .card[class*="factory-card-"] {
     border: none !important;
-    border-radius: 12px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-top: 4px solid var(--aq-blue) !important; /* الخط العلوي المميز للموقع */
+    border-radius: 8px;
+    background-color: #ffffff !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease-in-out;
     overflow: hidden;
-    background-color: #fff !important; /* خلفية بيضاء للراحة البصرية */
-    color: var(--abuqir-dark) !important;
-    border-left: 5px solid #ccc !important; /* تمييز لوني جانبي فقط */
+    color: var(--aq-text);
 }
-
-body .card.factory-card-danger { border-left-color: #dc3545 !important; }
-body .card.factory-card-success { border-left-color: #198754 !important; }
-body .card.factory-card-primary { border-left-color: var(--abuqir-blue) !important; }
-body .card.factory-card-info { border-left-color: #0dcaf0 !important; }
 
 body .card[class*="factory-card-"]:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
 }
 
-/* تحسين العناوين */
+/* تمييز حالة المصانع بناءً على ألوان الشركة */
+body .card.factory-card-primary { border-top-color: var(--aq-blue) !important; }
+body .card.factory-card-success { border-top-color: var(--aq-green) !important; }
+body .card.factory-card-danger { border-top-color: #dc3545 !important; }
+body .card.factory-card-info { border-top-color: #0dcaf0 !important; }
+
+/* العناوين بنفس تنسيق الموقع الرسمي */
 .card-header {
     background-color: transparent !important;
     border-bottom: 1px solid rgba(0,0,0,0.05) !important;
@@ -35,9 +44,11 @@ body .card[class*="factory-card-"]:hover {
 }
 
 .card-header h3 {
-    color: var(--abuqir-blue);
-    font-weight: 700;
-    font-size: 1.25rem;
+    color: var(--aq-blue-dark);
+    font-weight: 600;
+    font-size: 1.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     margin-bottom: 0;
 }
 
@@ -59,11 +70,20 @@ body .card[class*="factory-card-"]:hover {
 
 /* جداول البيانات */
 .table thead th {
-    background-color: var(--abuqir-blue) !important;
+    background-color: var(--aq-blue) !important;
     color: white !important;
     font-weight: 500;
     border: none;
 }
+
+/* الأزرار والأيقونات */
+.btn-primary {
+    background-color: var(--aq-blue) !important;
+    border-color: var(--aq-blue) !important;
+}
+
+.text-primary { color: var(--aq-blue) !important; }
+.text-success { color: var(--aq-green) !important; }
 
 /* Styles for clickable table rows */
 .clickable-row {
@@ -77,4 +97,10 @@ body .card[class*="factory-card-"]:hover {
 /* Dark mode adjustment for hover effect */
 [data-bs-theme="dark"] .clickable-row:hover {
     background-color: #2c3034; /* A darker grey for dark mode */
+}
+
+/* Dark mode overrides for cards in brand style */
+[data-bs-theme="dark"] body .card[class*="factory-card-"] {
+    background-color: #2b3035 !important;
+    color: #dee2e6;
 }

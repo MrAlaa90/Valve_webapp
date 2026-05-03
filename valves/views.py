@@ -211,6 +211,7 @@ def home(request):
     try:
         factories = Factory.objects.all().order_by('name')
         main_factories = []
+        zld_factory = None
 
         for factory in factories:
             factory_valves = Valve.objects.filter(factory=factory)
@@ -219,8 +220,11 @@ def home(request):
             factory.operational_valves = factory_valves.filter(status__name__icontains='Operational').count()
             factory.needs_maintenance_valves = factory_valves.filter(status__name__icontains='Needs Maintenance').count()
 
-            # Add factory to list
-            main_factories.append(factory)
+            if factory.name == 'ZLD':
+                zld_factory = factory
+            else:
+                # Add factory to list
+                main_factories.append(factory)
 
         recent_maintenance = MaintenanceHistory.objects.all().order_by('-maintenance_date')[:5]
         recent_valves = Valve.objects.all().order_by('-valve_id')[:5]
@@ -228,11 +232,13 @@ def home(request):
     except Exception as e:
         messages.error(request, f"Error loading dashboard data: {str(e)}")
         main_factories = []
+        zld_factory = None
         recent_maintenance = []
         recent_valves = []
 
     context = {
         'main_factories': main_factories,
+        'zld_factory': zld_factory,
         'recent_maintenance': recent_maintenance,
         'recent_valves': recent_valves,
     }

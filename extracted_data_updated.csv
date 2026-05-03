@@ -1,0 +1,490 @@
+Factory,Tag_Number,Date,Work_Done,Test,Technician
+AFC I,FV-33002,16-07-2017,"replace packing after plug and seat m/c, pressure up to 180 bar ok.",,
+AFC I,FV-33122,01-06-2021,Check,,
+AFC I,FV-52005A,08-01-2022,Change diaphram,,
+AFC I,FV-54002,08-01-2022,Gland Tighted,,
+AFC I,FV-54003,16-07-2017,"after plug m/c, replace packing and gaskets, body pressure test up to 50 bar OK.",,
+AFC I,FV-54003,01-06-2021,change plug & seat,,
+AFC I,FV-54003,08-01-2022,Gland Tighted,,
+AFC I,FV-54004,20-01-2022,Gland Tighted,,
+AFC I,FV-56001,01-06-2021,maching for plug & seat,,
+AFC I,FV-58001,01-06-2021,maching for plug & seat,,
+AFC I,HV-33001,20-12-2021,gland tighted,,
+AFC I,HV-33005,12-11-2020,Gland Tighting,,
+AFC I,HV-33005,26-05-2021,Gland Tighting,,
+AFC I,HV-33006,01-06-2021,actuatore check,,
+AFC I,HV-33404,08-01-2022,Check,,
+AFC I,HV-33404,15-01-2023,check,,
+AFC I,HV-33702,20-11-2022,Gland Tighted,,
+AFC I,HV-33802,16-07-2017,"remove HW to change packing, fabricate new valve stem, due to stem pending",,
+AFC I,HV-52001,08-01-2022,Tigheting  Ponit,,
+AFC I,HV-54014,08-01-2022,Gland Tighted,,
+AFC I,HV-56001,22-07-2017,"change actuator O-ring and packing, leakage 3.5 bar, body 170 bar",,
+AFC I,HV-56002,08-01-2022,Maching Internal,,
+AFC I,HV-57001,11-01-2021,Spray,,
+AFC I,HV-57008,22-07-2017,"Dismantle internals, send for m/c",,
+AFC I,HV-58001,01-06-2021,maching for plug & seat,,
+AFC I,LV-33005,01-06-2021,change 3pcs of packing,,
+AFC I,LV-33005,10-07-2021,"Machening plug + seat, tested 170 bar "" side flange""",,
+AFC I,LV-33005,20-11-2022,Gland Tighted,,
+AFC I,LV-33201,15-01-2023,تربيط جشمة ال stoper,,
+AFC I,LV-33205,16-07-2017,"eakage test ok, replace packing and actuator O-ring.",,
+AFC I,LV-33205,20-12-2021,Gland Tighted,,
+AFC I,LV-52112,04-01-2022,Gland Tighted,,
+AFC I,LV-56110,08-01-2022,Check,,
+AFC I,LV-57003A,01-02-2022,gland tighted,,
+AFC I,LV-57010,10-01-2020,Check in workshop,,
+AFC I,LV-57012,21-06-2021,Gland Tighted,,
+AFC I,LV-57012,25-11-2021,Gland Tighted,,
+AFC I,LV-57012,08-01-2022,Gland Tighted,,
+AFC I,LV-58008B,25-09-2021,Clean Stem And Air Supply In Field,,
+AFC I,LV-58008B,11-12-2021,Gland Tighted,,
+AFC I,PV-33201,03-01-2022,Check,,
+AFC I,PV-33203,03-01-2022,Check,,
+AFC I,PV-33801,08-01-2022,Check,,
+AFC I,PV-33803A,07-12-2021,gland tying,,Mostafa
+AFC I,PV-33803A,08-01-2022,Maching Internal,,
+AFC I,PV-33808,22-12-2021,tighet nail of oil tank,,
+AFC I,PV-54008,22-07-2017,cleaning valve adjust close stopper,,
+AFC I,PV-55002,22-07-2017,"plug and seat machining, leakage up to 9 bar air is ok.",,
+AFC I,PV-87101.2,01-06-2021,maching for plug & seat,,
+AFC I,TV-33216,01-06-2021,check movment,,
+AFC I,TV-33402,08-01-2022,Check,,
+AFC I,TV-33703,20-11-2022,Gland Tighted,,
+AFC I,TV-53011,22-07-2017,"cleaning valve internals, adjust close stopper pressure test up to 150 bar and movement are ok",,
+AFC I,XV-54005,17-12-2020,"oil Leak ""1 liter"", waiting nearly shutdown",,
+AFC I,XV-56002,08-07-2021,closed with hand pumb,,
+AFC I,XV-56002,08-01-2022,Open With Hand Pumb,,
+AFC I,LIC-33126,28-11-2021,Gland Tighted,,
+AFC I,LV-87102.4,01-06-2021,maching for plug & seat,,
+AFC I,XV-33140B,11-01-2021,Piston Changed,,
+AFC I,XV-33112,11-01-2021,Sealing Changed,,
+AFC II,AV-31703,08-10-2015,Pressure and movement test are ok.,,
+AFC II,FFV-21403,09-10-2015,"Cleaning, test without and with accessories are ok.",,
+AFC II,FFV-21403,22-08-2019,Clean the valve and check its movement,,
+AFC II,FFV-21403,07-07-2020,Check for movement in workshop,,
+AFC II,FFV-21403,02-01-2021,Check,,
+AFC II,FFV-21403,10-01-2021,"Cleaning, test without and with accessories are ok.",,
+AFC II,FFV-21403,06-10-2022,check,,
+AFC II,FFV-21403,01-01-2023,Check,,
+AFC II,FV-01403,08-03-2021,Change Bushing,,
+AFC II,FV-02401,28-06-2015,"Small leakage found at pressure test, dismantle valve internals, change plug/stem, seat , plug seal ring, gaskets and packing with new ones, machining for valve body adjustment, inlet / outlet flanges and cage, pressure test and movement test are ok.",,
+AFC II,FV-03401,27-08-2019,Change its packing in field,,
+AFC II,FV-03401,07-07-2020,Tighten in the gland,,
+AFC II,FV-03402,07-10-2015,"Change packing and actuator bushing, movement test is ok.",,
+AFC II,FV-03405,28-06-2015,Change actuator bushing due to air leakage.,,
+AFC II,FV-03405,19-05-2025,,,
+AFC II,FV-03411,23-08-2019,Clean and check its movement,,
+AFC II,FV-03411,11-01-2021,Mount HandWheel,,
+AFC II,FV-05401,06-10-2022,change plug and cage,,
+AFC II,FV-05402,06-10-2022,change plug and seat and cage,,
+AFC II,FV-09401,13-10-2015,Replace packing at field,,
+AFC II,FV-09401,11-01-2021,Change Actuator & Scraper Ring,,
+AFC II,FV-09402,13-10-2015,Replace packing at field,,
+AFC II,FV-09402,22-06-2021,Gland tighted,,
+AFC II,FV-09402,11-01-2021,Change Actuator & Scraper Ringe,,
+AFC II,FV-10402A,07-12-2020,CHECK,,
+AFC II,FV-10402A,07-01-2021,change plug & seat,,
+AFC II,FV-10402A,16-03-2021,change plug & seat,,
+AFC II,FV-21408,10-05-2021,bushing,,
+AFC II,FV-31403,04-10-2015,"Movement test is ok, air leakage from actuator bushing, packing and bushing will be replace , Replace actuator bushing and packing, movement test is ok.",,
+AFC II,FV-31403,29-08-2019,Check for leak through and movement,,
+AFC II,FV-31404,03-10-2015,"Replaced by maintained valve, that we repair its bonnet by new 321 st.st guide Replaced by maintained valve, that we repair its bonnet by new 321 st.st guide due to the erosion found, plug, seat body machining.",,
+AFC II,FV-31404,24-08-2019,"Machining for internal, leak test and check for its movement",,
+AFC II,FV-31404,04-04-2020,Change the valve by new one,,
+AFC II,FV-31404,10-01-2021,Change the valve by Flow Serve,,
+AFC II,FV-31404,06-10-2022,check for gland,,
+AFC II,FV-31404,01-01-2023,"Change Packing ""5 Peaces""",,
+AFC II,FV-31414,08-10-2015,"Change gasket, actuator bushing and yoke.",,
+AFC II,FV-31453,05-10-2015,"Replace actuator bushing and packing, movement test is ok.",,
+AFC II,FV-31453,29-08-2019,Check for leak through and movement,,
+AFC II,FV-31454,03-10-2015,"Leakage through found, dismantle internals for machining",,
+AFC II,FV-31454,07-07-2020,Check for leakage 10 bar. Change packing,,
+AFC II,FV-31454,31-10-2020,Chang Actuator,,
+AFC II,FV-31454,02-01-2021,Change With Another One,,
+AFC II,FV-31454,10-01-2021,Change the valve by Flow Serve,,
+AFC II,FV-31454,01-01-2023,"Change Packing ""5 Peaces""",,
+AFC II,FV-31464,07-10-2015,Pressure and movement test are ok.,,
+AFC II,FV-32401,04-10-2015,"Leakage through found 40 ml/min is greater than the accepted value, dismantle for machining, and assemble after change packing, gasket, and actuator bushing pressure test is ok.",,
+AFC II,FV-32401,25-08-2019,"Machining for plug and seat, leak test and check movement",,
+AFC II,FV-32401,03-03-2021,Change Bushing,,
+AFC II,FV-32401,31-08-2021,"change plug , seat , bushing, coupling and packing, check leak test and movment",,
+AFC II,FV-32401,11-01-2022,Machining for plug and seat,,
+AFC II,FV-32401,01-01-2023,"Change Plug, seat, packing, Carpone peace in gland  , check leak test and movment",,
+AFC II,FV-32402,07-10-2015,"Leakage through found, machining for internals, change act. Bushing, packing and gasket.",,
+AFC II,FV-32402,27-08-2019,"Machining for plug and change seat, leak test and check movement",,
+AFC II,FV-32403,04-10-2015,"No leakage found at pressure test, actuator and movement test are ok.",,
+AFC II,FV-32403,24-08-2019,"Machining for its internals, leak test and check for its movement",,
+AFC II,FV-32404,02-01-2021,Change With Another One,,
+AFC II,FV-32404,10-01-2021,Change With Another One,,
+AFC II,FV-32406,20-12-2020,change body,,
+AFC II,FV-32429,28-06-2015,Tight the gland,,
+AFC II,FV-32453,04-10-2015,"Actuator yoke was broken from one side, replace it, no leakage found at pressure test, actuator and movement test are ok.",,
+AFC II,FV-32453,21-08-2019,"Change bushing, check its movement",,
+AFC II,FV-32453,16-12-2022,Tighted for the Bonit & Change Bushing With New,,
+AFC II,FV-32454,10-01-2021,Flushing,,
+AFC II,FV-32454,16-03-2022,change actuator in filed,,
+AFC II,FV-32456,09-10-2015,"Replace ceramic disc and sealing kit, test is ok.",,
+AFC II,FV-32456,19-09-2021,Change Boudy By Aonther One,,
+AFC II,FV-82401,07-10-2015,"Dismantle valves from pipe line, check for movement and internals found OK, valve opening adjusted to 90 deg. by releasing the opening stopper, Leakage through found, replace seat, cleaning and lapping for disc, movement and pressure test are ok.",,
+AFC II,HV-03607,07-10-2015,"Heavy leakage found at pressure test, dismantle internals for machining , Heavy leakage found due to plug and seat erosion, replace plug, seat and packing, pressure test up to 250 bar is ok.",,
+AFC II,HV-03607,27-08-2019,"Change plug and seat, leak test and check movement",,
+AFC II,HV-03610,10-10-2015,Tight gland,,
+AFC II,HV-07611,11-10-2015,"Leakage through found, machining for plug, seat, body flanges, replace packing and gaskets, pressure test up to 50 bar is ok.",,
+AFC II,HV-07611,24-08-2019,Dismount and send to workshop,,
+AFC II,HV-07611,28-08-2019,"Machining for plug and change seat, leak test and check movement",,
+AFC II,HV-08603,26-12-2020,handwheel release,,
+AFC II,HV-08604,16-10-2015,"Change graphite packing and bottom flange gasket, movement test is ok.",,
+AFC II,HV-08604,26-12-2020,handwheel release,,
+AFC II,HV-08605,14-10-2015,Replace packing and bottom flange gasket.,,
+AFC II,HV-08605,26-12-2020,handwheel release,,
+AFC II,HV-08606,15-10-2015,"Replace actuator, due to air leakage, packing and bottom flange gasket.",,
+AFC II,HV-08606,07-12-2020,decrease air supply from 6 to 5 bar,,
+AFC II,HV-08606,26-12-2020,stuck,,
+AFC II,HV-08607,16-10-2015,"Change Teflon packing and bottom flange gasket, movement test is ok.",,
+AFC II,HV-21602,09-10-2015,"Leakage through found, replace seat and body gasket, test ok.",,
+AFC II,HV-21602,29-08-2019,Check for movment,,
+AFC II,LV-03501,12-10-2015,"Leakage through found, replace plug, seat, stem, packing and gaskets, pressure test is ok.",,
+AFC II,LV-03501,22-08-2019,"Machining for seat and plug check movement, Dismount, send its internal to workshop",,
+AFC II,LV-03502,07-10-2015,Pressure and movement test are ok.,,
+AFC II,LV-03502,26-08-2019,"Machining for plug and seat, leak test and check movement",,
+AFC II,LV-03508,15-03-2022,change bushing in filed,,
+AFC II,LV-05504,23-10-2022,Gland Teghted,,
+AFC II,LV-05507A,21-02-2019,Check and adjust its stopper,,
+AFC II,LV-05507A,11-01-2021,Check Movment,,
+AFC II,LV-05507A,06-10-2022,machinig for flap and clamp and change seat,,
+AFC II,LV-05507B,28-08-2019,Change packing at field,,
+AFC II,LV-05507B,06-10-2022,"machinig for body, seat and cage. change plug",,
+AFC II,LV-05515,06-10-2022,check,,
+AFC II,LV-07508,11-10-2015,"Leakage through found, machining for body, seat and plug, test ok",,
+AFC II,LV-07508,28-08-2019,Check for leak through and movement,,
+AFC II,LV-08501,10-10-2015,Tight gland,,
+AFC II,LV-08504,16-10-2015,Replace packing at field,,
+AFC II,LV-08504,14-12-2020,Gland Tighted,,
+AFC II,LV-08507,06-01-2022,Gland Tighted,,
+AFC II,LV-08510A,14-10-2015,"Leakage through found, dismantle for maintenance, Replace plug, seat, stem packing and gasket, pressure test is ok.",,
+AFC II,LV-08510A,07-12-2020,Gland tighted,,
+AFC II,LV-08510A,06-10-2022,change packing,,
+AFC II,LV-08510A,25-07-2022,change Plug & Seat,,
+AFC II,LV-08510A,06-01-2022,change packing,,
+AFC II,LV-08510B,13-10-2015,"Leakage through found, dismantle for maintenance, Machining for seat, replace plug, stem packing and gasket, pressure test is ok.",,
+AFC II,LV-08510B,07-12-2020,Gland tighted,,
+AFC II,LV-08510B,06-10-2022,change packing,,
+AFC II,LV-08510B,25-07-2022,change Plug & Seat,,
+AFC II,LV-08510B,06-01-2022,change packing,,
+AFC II,LV-08513A,20-01-2021,gland tighted,,
+AFC II,LV-08513A,06-12-2021,gland tighted,,
+AFC II,LV-08513B,06-12-2021,gland tighted,,M Abdallah
+AFC II,LV-08515,16-10-2015,Replace packing at field,,
+AFC II,LV-08515,07-07-2020,Tighten on the gland,,
+AFC II,LV-08515,11-01-2021,Tighten On The Gland,,
+AFC II,LV-08516,16-10-2015,Replace packing at field,,
+AFC II,LV-08516,20-12-2020,change actuator,,
+AFC II,LV-09501,16-11-2022,Gland tighted,,
+AFC II,LV-09503A,13-10-2015,Tight gland at field,,
+AFC II,LV-09503A,08-01-2022,Tight gland at field,,
+AFC II,LV-09503B,13-10-2015,Replace packing at field,,
+AFC II,LV-09506,06-10-2022,check,,
+AFC II,LV-10501,06-10-2022,check,,
+AFC II,LV-21501,08-10-2015,Pressure and movement test are ok.,,
+AFC II,LV-21501,25-08-2019,"Machining for its internals, change packing leak test and check for its movement",,
+AFC II,LV-21504,03-10-2015,"Pressure test is good, and due to heavy erosion in actuator we replace actuator by new one, we change also packing.",,
+AFC II,LV-21510,09-10-2015,Replace by new control valve with accessories.,,
+AFC II,LV-21510,22-08-2019,"Change plug and seat, and its seal",,
+AFC II,LV-21510,07-07-2020,Machining for plug and seat change packing,,
+AFC II,LV-21510,01-01-2023,Change With New Spare One,,
+AFC II,LV-21514,02-10-2015,"Leakage through found at pressure test, dismantle valve internals, send body with seat, bonnet and plug for machining.",,
+AFC II,LV-21514,20-08-2019,"Dismount; send plug and seat for machining , Weld seat with valve body, send body with seat for re-machining.",,
+AFC II,LV-21514,01-01-2023,"Machining ""Plug & Seat"" & Change Packing & Change Bushing new desing",,
+AFC II,LV-21520,04-10-2015,"Bottom flange and packing pressure test are ok, but loose found in 2 pins that fix shaft with disc, it will be fabricate and replace , Fabricate new 3 pins, and replace the old loose pins.",,
+AFC II,LV-21520,20-08-2019,Dismount; send body for machining,,
+AFC II,LV-21520,07-07-2020,Change the valve by new one,,
+AFC II,LV-21520,11-01-2022,Change Gasket Of Bottom Flange,,
+AFC II,LV-21551,08-10-2015,Pressure and movement test are ok.,,
+AFC II,LV-21551,21-08-2019,leak test and its movement,,
+AFC II,LV-31501,29-08-2019,Check for leak through and movement,,
+AFC II,LV-32511,03-10-2015,"Leakage through found 120 ml/min is greater than the accepted value, dismantle internals for machining.",,
+AFC II,LV-32511,27-08-2019,"Machining for plug and change seat, leak test and check movement",,
+AFC II,LV-32511,01-01-2023,"Machining for plug and change seat, Packing, leak test and check movement, Change Bushing New Desing",,
+AFC II,LV-32517,20-08-2019,cleaning valve internal and check its movement,,
+AFC II,LV-32517,08-01-2020,cleaning valve internal and check its movement,,
+AFC II,LV-32517,02-01-2021,"Change ""1"" O-ring Seal",,
+AFC II,LV-32517,07-01-2022,Change With Another One,,
+AFC II,LV-32517,20-11-2022,Flushing,,
+AFC II,LV-32567,20-08-2019,"cleaning the valve, check its movement",,
+AFC II,LV-32567,02-01-2021,"Change ""1"" O-ring Seal",,
+AFC II,LV-32567,10-01-2021,Change With Another One,,
+AFC II,LV-32567,08-01-2022,Flushing,,
+AFC II,LV-32567,11-01-2022,Flushing,,
+AFC II,LV-32567,12-01-2022,Flushing,,
+AFC II,LV-32573,09-10-2015,"Pressure and movement test are ok, replace actuator due to air leakage.",,
+AFC II,LV-81501,28-04-2020,Check for movement in workshop,,
+AFC II,LV-82501,28-06-2015,"Dismantle valves from pipe line, check for movement and internals found OK, valve opening adjusted to 90 deg. by releasing the opening stopper.",,
+AFC II,LV-85501,12-10-2015,"Replace valve body with pre-maintained valve, due to leakage.",,
+AFC II,LV-83551,10-10-2015,"Tight gland, Check for valve movement and pressure test up to 65 bar found OK in presence of Dr. Qinawy, and we inform operation stuff to check the manual bypass that may cause the leakage.",,
+AFC II,LV-83551,23-08-2019,"Dismount, send its internal to workshop, Machining for internal and maintain its hand wheel",,
+AFC II,LV-83551,07-07-2020,Machining for Plug and seat,,
+AFC II,LV-89501,22-08-2019,Clean the valve and check its movement,,
+AFC II,LV-89508,25-08-2019,Clean the valve and check movement,,
+AFC II,PCV-21387,02-01-2021,Check And Adjustment,,
+AFC II,PCV-83213,26-08-2019,Adjust its range and check for body leakage,,
+AFC II,PV-03231A,11-10-2015,"Leakage through found, adjustment for bonnet and cage, replace plug, seat, stem, packing and gaskets, pressure test is ok.",,
+AFC II,PV-03231B,11-10-2015,"Leakage through found,adjustment for bonnet and cage, replace plug, seat, stem, packing and gaskets, pressure test is ok.",,
+AFC II,PV-03239,12-10-2015,Change actuator bushing due to air leakage,,
+AFC II,PV-03260,06-10-2015,"Dismantle internals for machining, due to the leakage found , Replace actuator bushing, plug and seat machining, change gasket and packing, pressure test up to 130 bar is ok , Assemble after seat, plug and bottom face machining, but small leakage found, replace seat by new one, re machining for plug, change packing and gaskets, pressure and movement test are ok.",,
+AFC II,PV-03260,24-08-2019,Dismount and send to workshop,,
+AFC II,PV-03260,28-08-2019,"Machining for plug and change seat, leak test and check movement",,
+AFC II,PV-03260,07-07-2020,Change actuator by another one,,
+AFC II,PV-03270,11-02-2021,gland tighet,,
+AFC II,PV-04204,28-08-2019,Dismount the valve and send internal to work shop,,
+AFC II,PV-05201,28-08-2019,Check the new valve to be mounting,,
+AFC II,PV-05236A,26-08-2019,Maintain for its hand wheel and check for its movement,,
+AFC II,PV-05236B,26-08-2019,Maintain for its hand wheel and check for its movement,,
+AFC II,PV-06205,27-08-2019,Check for leak through and movement,,
+AFC II,PV-10201B,15-10-2015,Replace actuator bushing at field.,,
+AFC II,PV-10201B,29-08-2019,"Change for plug, seat, and diaphragm and bushing,leak test and check movement",,
+AFC II,PV-10201B,06-10-2022,change diaphram,,
+AFC II,PV-10202A,08-10-2020,check,,
+AFC II,PV-10202A,24-04-2021,check found problem in condenser,,
+AFC II,PV-10202A,11-01-2022,Gland Tighted,,
+AFC II,PV-10202A,12-01-2021,Gland Tighted,,
+AFC II,PV-10203A,28-06-2015,Change actuator bushing due to air leakage.,,
+AFC II,PV-21251B,22-08-2019,"Dismount, send its internal to workshop",,
+AFC II,PV-21303,28-06-2015,"Change plug/ stem assembly, guide bushing and key due to some erosion on the old plug guide, weld guide bushing of the bottom flange after adjust the alignment, also we change gaskets and packing, movement test is OK.",,
+AFC II,PV-21303,26-08-2019,"Dismount, send its internal to workshop, Change plug and seat,leak test and check movement",,
+AFC II,PV-21303,24-12-2020,gland Tighte,,
+AFC II,PV-21303,01-01-2023,Machening For Seat & Change Plug With New & Bushing & Packing,,
+AFC II,PV-21340,02-01-2021,Change Body With Another One & spool's spring,,
+AFC II,PV-31207,05-10-2015,"Heavy leakage through found at pressure test, dismantle internals for machining , Assemble the valve after plug, seat cage machining, replace gasket, packing and plug seal ring, pressure test and movement are ok.",,
+AFC II,PV-31207,29-08-2019,Check for leak through and movement,,
+AFC II,PV-31213,02-10-2015,"The leakage through found (150 ml/min) is more than the accepted value (16 ml/min), dismantle valve internals plug, seat and body for machining, working in actuator maintenance.",,
+AFC II,PV-31213,21-08-2019,"Change bushing, check its movement",,
+AFC II,PV-31213,09-05-2021,check,,
+AFC II,PV-31213,01-01-2023,Check,,
+AFC II,PV-31251B,07-10-2015,"Leakage found between bonnet and body, dismantle for m/c , Replace plug, seat and cage, change packing and gasket, body studs need more time to dismantle, so no machining done for valve body, after assemble some leakage found.",,
+AFC II,PV-31251B,01-01-2023,Change Bushing,,
+AFC II,PV-31254,08-10-2015,"Pressure test is ok, change packing.",,
+AFC II,PV-31254,04-01-2022,Gland tighted,,
+AFC II,PV-31313,02-10-2015,"The leakage through found (40 ml/min) is more than the accepted value (16 ml/min), dismantle valve internals plug, seat and body for machining, working in actuator maintenance.",,
+AFC II,PV-31313,21-08-2019,"Change bushing, check its movement",,
+AFC II,PV-32212,09-10-2015,Small leakage found can be accepted.,,
+AFC II,PV-32212,20-08-2019,Dismount; send plug and seat for machining,,
+AFC II,PV-32212,21-08-2019,"machining for internal, change packing",,
+AFC II,PV-32312,09-10-2015,Small leakage found can be accepted.,,
+AFC II,PV-32312,20-08-2019,"change packing, check its movement",,
+AFC II,PV-82201A,27-08-2019,Change actuator bushing and support in the field,,
+AFC II,PV-82201,28-06-2015,Change actuator bushing due to air leakage.,,
+AFC II,PV-82208,30-10-2022,Gland Tighted,,
+AFC II,TV-03011,25-08-2019,"Machining for its internals, change packing leak test and check for its movement",,
+AFC II,TV-03013,08-12-2020,Change Packing,,
+AFC II,TV-04007,30-11-2020,gland leakage = Tighted,,
+AFC II,TV-31021,08-10-2015,Pressure and movement test are ok.,,
+AFC II,TV-31021,22-08-2019,Check for movment and machining for coupling,,
+AFC II,TV-31021,22-10-2020,Maintenance the actuator in field,,
+AFC II,TV-31021,10-01-2021,Adjust Handwheel,,
+AFC II,TV-31021,07-01-2022,Machinig for Plug + Body Weld,,
+AFC II,TV-31021,04-12-2022,Gland tighted,,
+AFC II,TV-31034,08-10-2015,Pressure and movement test are ok.,,
+AFC II,TV-31034,24-08-2019,"Machining for internal, leak test and check for its movement",,
+AFC II,TV-32001A,05-10-2015,"Leakage found at pressure test, dismantle for machining , Assemble valve, pressure test ok.",,
+AFC II,TV-32001A,06-10-2022,chage yoke,,
+AFC II,TV-32001A,06-01-2022,Adjustment,,
+AFC II,TV-32001B,05-10-2015,Pressure test found ok.,,
+AFC II,TV-32001B,06-10-2022,change actutor,,
+AFC II,TV-32001B,06-01-2022,Adjustment,,
+AFC II,TV-32011,06-10-2015,"Leakage found less than the accepted value, change actuator bushing and packing.",,
+AFC II,TV-32011,25-08-2019,"Machining for internal, leak test and check for its movement",,
+AFC II,TV-32012,22-08-2019,"Dismount, send its internal to workshop",,
+AFC II,TV-32012,23-08-2019,Check for movement and machining for its internal,,
+AFC II,TV-32012,13-12-2021,Gland Tighted,,
+AFC II,TV-32023,04-10-2015,"Leakage through found, dismantle internals for machining , Assemble after internals machining, test ok.",,
+AFC II,TV-32023,20-08-2019,Valves delivered to workshop,,
+AFC II,TV-32060,28-04-2020,change bushing,,
+AFC II,TV-32111,03-10-2015,"Pressure test is good, air leakage from actuator bushing, replace it movement test is ok.",,
+AFC II,TV-32111,24-08-2019,"change packing and actuator washer, leak test and check movement",,
+AFC II,TV-32112,29-08-2019,"Machining for plug and change seat, leak test and check movement",,
+AFC II,TV-32123,04-10-2015,"Leakage through found at pressure test is 65 ml/min, for this valve class type it is accepted up to 260 ml/min, movement and actuator test are ok.",,
+AFC II,TV-32123,20-08-2019,Valves delivered to workshop,,
+AFC II,TV-32160,28-04-2020,paint,,
+AFC II,TV-32160,06-12-2021,gland,,ahmed salah
+AFC II,TV-33001,22-08-2019,"Dismount, send its internal to workshop",,
+AFC II,TV-34010,01-05-2021,bushing,,
+AFC II,TV-81003,04-10-2015,"Heavy leakage through found, dismantle internals for machining , After body machining, replace plug, seat silencer and gasket, test ok.",,
+AFC II,TV-81003,20-08-2019,Dismount; send plug and seat for machining,,
+AFC II,XV-05901,26-08-2019,Dismount the valve and send its body to maintenance group to check,,
+AFC II,XV-05901,29-08-2019,Change piston seal kit and change its internal by manual valves work shop,,
+AFC II,XV-07911,13-10-2015,"Dismantle actuator at field, to replace actuator cover due to air leakage, Replace all internals soft kit, After replacing all soft seals and proximity switch, movement and air leakage test are ok.",,
+AFC II,XV-07912,15-10-2015,Replace packing at field,,
+AFC II,XV-07913,11-10-2015,"Remove seat clamp and cap nut, by heating around valve body, Fabricate tool to extract seat from body, extract both seats, Clean internals, adjustment for seat clamp and cap, assemble valve after replacing plug, seat and all soft parts, leakage through test with air up to 9 bar is ok, Pressure, movement and quick close tests, are ok.",,
+AFC II,XV-07914,13-10-2015,"Fabricate tool to extract seat from body, extract both seats, Cleaning valve internals, check seat clamp and cap threads, Replace piston plug, seat and all soft parts, pressure and movement test are ok.",,
+AFC II,XV-11901,12-07-2020,Leak though test 170 bar,,
+AFC II,XV-11903,08-10-2020,Bushing & Check,,
+AFC II,XV-11903,07-12-2020,Leak through test 170 bar,,
+AFC II,XV-21902,09-10-2015,Movement and pressure test are ok.,,
+AFC II,XV-21902,22-08-2019,Clean the valve and check its movement,,
+AFC II,XV-21902,07-07-2020,Check for movement in workshop,,
+AFC II,XV-21902,01-01-2023,Check for movement in workshop,,
+AFC II,XV-21903,07-10-2015,Pressure and movement test are ok.,,
+AFC II,XV-21903,23-08-2019,Check its movement,,
+AFC II,XV-21903,01-01-2023,Check its movement,,
+AFC II,XV-21905,01-01-2023,"Change Packing, Check Movement & tested ""15 bar""",,
+AFC II,XV-21906,02-01-2021,"Change ""2 pcs"" Packing & tighet the gland ""3 times""",,
+AFC II,XV-21906,10-01-2021,Change Packing At Field,,
+AFC II,XV-21908,09-10-2015,"Cleaning for internals, test is ok.",,
+AFC II,XV-21908,24-08-2019,Check its movement,,
+AFC II,XV-81902,20-08-2019,Change actuator seal kit adjust moving,,
+AFC II,XV-82902,25-08-2019,"Change piston, leak test and check for its movement",,
+AFC II,LV-02510B,12-11-2020,Gland Tighet,,
+AFC II,XV-218001,10-01-2021,Change Packing,,
+AFC II,XV-218002,10-01-2021,Machening,,
+AFC II,D5,10-01-2021,Change With New One,,
+AFC II,D8,10-01-2021,Cleaned,,
+AFC II,K2-32654,11-01-2021,Washer Changed,,
+AFC II,K4-32611,11-01-2021,Washer + Nails manufacturing,,
+AFC II,K4-32611,03-01-2022,Washer + stem manufacturing,,
+AFC III,FV-303401,14-05-2022,"change packing, bushing, plug, seat","9 bar air leakage, 50 bar body",M. A
+AFC III,FV-303402,05-08-2022,change pushing and packing,motion  test,Mohammed Saad
+AFC III,FV-310402,05-10-2022,machining plug and seat change pushing,,salah
+AFC III,FV-310406,05-08-2022,machining plug and seat and changes gaskits,50 bar both,Alaa
+AFC III,FV-324401,21-05-2022,internal m/c change packing gasket,10 bar leak 20 bar gland,M. A
+AFC III,FV-329401,20-05-2022,replace seat body seal packing,10 bar gland,M. A
+AFC III,FV-329402,13-05-2022,MACHINIG INTERNAL,"27 bar leakage, 35 bar body",ashraf
+AFC III,FV-390417,17-05-2022,"change diaphram and bushing, machining for internal",,salah
+AFC III,FV-390418,17-05-2022,bushing,4 bar leakage 10 shutoff,ashraf
+AFC III,FV-390419,17-05-2022,replace valve body,5 bar air,M. G
+AFC III,FV-390420,05-10-2022,change bushing machining gland bolt,10 bar leak 15 bar shutoff,salah
+AFC III,HV-301603,05-10-2022,change pushing and packing,,Alaa
+AFC III,HV-303607,13-05-2022,machining plug and seat,240 bar both,Alaa
+AFC III,HV-303610,17-05-2022,"internal m/c, replace gaskets, packing, bushing",,M. G
+AFC III,HV-307605,18-05-2022,"internal m/c, replace packing gaskets seal ring",180 for both,M. A
+AFC III,HV-308609,15-05-2022,machining internal and replace cage,180 bar leak 210 gland,Mohammed Saad
+AFC III,HV-322604,05-07-2022,"test ok, change 4 packing",170 bar leake through and gland,M. A
+AFC III,HV-322605,11-01-2020,Gland Tight,,
+AFC III,HV-322605,05-08-2022,internal m/c change packing base ring bushing,"180 bar body, 500 ml @ 3.5 bar leakage through",M. A
+AFC III,HV-322605,12-01-2022,"Change Packing ""Indoor""",,
+AFC III,HV-323605,19-05-2022,check,,M. A
+AFC III,LV-303502,13-05-2022,"body m/c, replace plug seat packing gaskets",170 bar leake through and gland,M. A
+AFC III,LV-305501,05-10-2022,machining plug and seat change pushing,,salah
+AFC III,LV-305507A,14-05-2022,CHECK,,Mohammed Saad
+AFC III,LV-308501,02-03-2022,check in filed,,
+AFC III,LV-308501,18-05-2022,"body m/c, replace plug seat packing gaskets",190 bar leakage and body,M. A
+AFC III,LV-308507,13-05-2022,machining plug and seat,"15 bar leakage, 25 bar shutoff",salah
+AFC III,LV-308507,07-01-2022,Spray,,
+AFC III,LV-308507,08-01-2022,Spray,,
+AFC III,LV-308510A,18-05-2022,internal m/c change packing gasket,180 bar both,Ahmed Adel
+AFC III,LV-308510B,18-05-2022,check packing,"leakage 180, body 210",M. G
+AFC III,LV-308513B,16-05-2022,CHECK REPLACE DIAPHRAM machining for internal,25 bar leak 35 gland,salah
+AFC III,LV-309503,28-05-2022,gland tighted,,
+AFC III,LV-310501,05-08-2022,machining plug and seat and change packing,40 bar leak through and  40 bar Gland,waly
+AFC III,LV-310503,05-08-2022,"internal m/c, replace plug seat gaskets",,M. G
+AFC III,LV-310509,04-08-2020,Change plug and seat and packing by new,,
+AFC III,LV-310509,05-09-2022,"internal m/c change plug, seat gaskets, and packing",,M. G
+AFC III,LV-322501,11-01-2020,Gland Tight,,
+AFC III,LV-322501,05-07-2022,"internal m/c  , change plug and soft seat and packing",160bar leak & 180bar shutoff,Mohammed Saad
+AFC III,LV-322502,05-10-2022,change bushing and packing,10 bar both,M. G
+AFC III,LV-323501,19-05-2022,internal m/c,10BAR LEAK 20 BAR GLAND,salah
+AFC III,LV-323505,08-06-2021,Gland tighted,,
+AFC III,LV-323505,21-05-2022,internal m/c change packing gasket,2 bar leak 10 bar gland,Alaa
+AFC III,LV-328503,24-03-2021,GLAND TIGHETED,,
+AFC III,LV-329503,28-03-2021,Gland Tighted,,
+AFC III,LV-329503,27-05-2022,Gland Tighted,,
+AFC III,LV-329506A,24-03-2021,GLAND TIGHETED,,
+AFC III,LV-329506A,02-01-2022,CHANGE (SEAT & PLUG & PAKING & PONIT GASKET),,
+AFC III,LV-335501B,01-06-2021,change piston,,
+AFC III,LV-381501,05-11-2022,machining plug and seat,5 bar leak 17 bar shutoff,salah
+AFC III,LV-381503,05-11-2022,"change acuator , yoke and pushing",20bar both,Alaa
+AFC III,LV-385501A,05-08-2022,machining plug and seat,10 bar both,salah
+AFC III,LV-389501,15-05-2022,change acutator and packing,,M. G
+AFC III,LV-389508,05-11-2022,check motion and clean flap,,alaa
+AFC III,PV-304204,13-05-2022,"internal m/c, change gaskets packing & bushing",leakage and body up to 40 bar,M. A
+AFC III,PV-305201,13-05-2022,machining for internal change cage and stem,,Mohammed Saad
+AFC III,PV-306205,14-05-2022,check,9 bar air leakage,M. A
+AFC III,PV-308205,20-12-2020,check & tested,,
+AFC III,PV-310201B,13-05-2022,BUSHING machining internal,30 bar gfor both,alaa
+AFC III,PV-310202,14-05-2022,machining plug and seat change pushing,20 bar leak 30bar gland,salah
+AFC III,PV-310203A,05-11-2022,change acuator  pushing,180bar leak & 210bar shutoff,salah
+AFC III,PV-310203B,05-12-2022,"BUSHING, HAND WHEEL",,salah
+AFC III,PV-320206A,01-01-2023,gland tighted,,
+AFC III,PV-322201,05-12-2022,"plug, seat m/c, change actuator, small leakage found","5 bar leakage, 15 bar body",M. A
+AFC III,PV-322203,05-09-2022,"MACHINING, PLUG AND SEAT",160 bar leakthrough,Mohammed Saad
+AFC III,PV-328203,20-05-2022,internal m/c change packing gasket welding for plug,,Anoas
+AFC III,PV-329202,19-05-2022,check,,M. A
+AFC III,PV-329202,12-01-2022,check,,
+AFC III,PV-329203,17-05-2022,replace body seal and seat,without pressure test,M. G
+AFC III,PV-329204,19-05-2022,check,,M. A
+AFC III,PV-329205A,19-05-2022,internal m/c,,salah
+AFC III,PV-329205B,19-05-2022,internal m/c change packing gasket,15bar both,M. G
+AFC III,PV-329207A,20-05-2022,change 2 packing ring,10bar for gland,Mohammed Saad
+AFC III,PV-329207C,19-05-2022,internal m/c change packing gasket,,Mohammed Saad
+AFC III,TV-303013,10-01-2021,"Change Packing ""Workshop""",,
+AFC III,TV-303027,11-01-2021,Gland Tighted,,
+AFC III,TV-304007,05-12-2022,check motion,160 bar both,Mohammed Saad
+AFC III,TV-305027,12-12-2021,gland tighted,,
+AFC III,TV-329005,05-11-2022,"change packing, gasket & body seal",,M. G
+AFC III,TV-335013,05-09-2022,"m/c, change packing and gasket",,M. A
+AFC III,TV-335015,19-05-2022,internal m/c,up to 20bar,Ahmed Adel
+AFC III,TV-335017,05-09-2022,"m/c, change packing, gasket & diaphragm",15 bar,M. A
+AFC III,TV-335020,29-11-2022,Gland Tighted,,
+AFC III,XV-304901,14-05-2022,check,,M. A
+AFC III,XV-304902,13-05-2022,"replace seat, packing and body seal",no pressure test done,M. G
+AFC III,XV-305901,20-12-2021,Stoper Adjust,,
+AFC III,XV-305904,27-05-2022,gland tighted,,
+AFC III,XV-308905,28-12-2022,Change Bushing With New,,
+AFC III,XV-321901,17-05-2022,check,,M. G
+AFC III,XV-322901,19-05-2022,replace plug seat,,M. G
+AFC III,XV-322902,05-10-2022,"MACHININGfor internal and change plug and BUSHING, change damaged actuator",,Mohammed Saad
+AFC III,XV-322903,08-06-2021,Gland tighted,,
+AFC III,XV-322903,05-10-2022,change plug seat packing,,M. A
+AFC III,XV-322903,12-01-2022,Gland Tighted,,
+AFC III,XV-322915,05-09-2022,"m/c, change packing and gasket",,M. G
+AFC III,XV-329901,12-01-2022,"Machining Plug & Seat, Change Bushing With New",,
+AFC III,XV-381902,13-06-2022,Gland Tighted,,
+AFC III,XV-381902,08-01-2022,Open The Valve,,
+AFC III,XV-390906,15-03-2022,Change (seat & plug),,
+AFC III,XV-390909,16-03-2022,cgange packing,,
+AFC III,XV-390914,15-03-2022,adjust flap + change packing,,
+AFC III,XV-390945,18-03-2022,change packing,,
+AFC III,XV-390950,16-03-2022,change packing,,
+AFC III,XV-390957,15-03-2022,change packing,,
+AFC III,NCMETER,11-01-2020,Changed With Another,,
+AFC I,PV-52807,14-12-2025,,,N/A
+AFC I,PV-54008,15-12-2025,Maintain internal mechanism,,N/A
+AFC I,FV-52302A,14-12-2025,Changing all so sealing parts (packing & gaskets) by new,,N/A
+AFC I,LV-33005,15-12-2025,,,N/A
+AFC I,PV-33005,14-12-2025,,,N/A
+AFC I,HV-33701,15-12-2025,,,N/A
+AFC I,LV-33801A,14-12-2025,,,N/A
+AFC I,HV-33701,14-12-2025,,,N/A
+AFC II,HV-03610,09-09-2025,تم التربيط على الbottom flange  لوجود تهريب (بدون جدوى),,N/A
+AFC II,LV-09503A,09-09-2025,تغير support,,N/A
+AFC II,LV-81501,09-09-2025,,,N/A
+AFC I,LV-58008B,09-09-2025,,,N/A
+AFC II,LV-08515,09-09-2025,,,N/A
+AFC II,LV-31501,09-09-2025,,,N/A
+AFC II,LV-08513A,09-09-2025,,,N/A
+AFC II,LV-08515,17-11-2025,,,N/A
+AFC II,LV-09503A,10-10-2025,,,N/A
+AFC I,HV-33001,09-09-2025,,,N/A
+AFC II,LV-21501,09-09-2025,,,N/A
+AFC II,LV-21504,09-09-2025,,,N/A
+AFC III,XV-390978,09-09-2025,تغيير الفلاب نتيجة تآكل فى العمود وتصنيع coupling وتم إرساله إلى الموقع بعد التجميع والاختبار,,N/A
+AFC II,PV-10202A,09-09-2025,,,N/A
+AFC II,LV-08515,10-10-2025,"تربيط جلاند LV-08515
+ومطلوب تغيير او تزويد حشو في اقرب فرصة",,N/A
+AFC I,TV-52054,11-11-2025,"large leakage, now ok",,N/A
+AFC III,LV-329504,11-11-2025,"adjusting stud thread & changing rusty nuts, now ok",,N/A
+AFC III,FV-310402,11-11-2025,"maintain actuator due to coupling rotation (in the field), now ok",,N/A
+AFC III,HV-302601,11-11-2025,"max opening 50% by open and close many time, now ok from 0 to 100%",,N/A
+AFC III,LV-335505,11-11-2025,"process side complained from leak throw, check found ok (test 12 bar) changing bushing preventively and back to field",,N/A
+AFC III,XV-307912,11-11-2025,"no response with air signal, start opening by hand pump with air and release pump pressure, now ok",,N/A
+AFC III,LV-308513A,11-11-2025,"tightening on gland due to ammonia leakage, now ok",,N/A
+AFC III,LV-329504,10-10-2025,"high noise and vibration, changing backing & backing guide and maintain the actuator, now in operation",,N/A
+AFC II,LV-32517,10-10-2025,,,N/A
+AFC II,LV-32517,10-11-2025,تمشيط السن الداخلي ل ٨ مسمار بجسم البلف الخاصه بتثبيت البلف على الخط,,N/A
+AFC III,LV-385501A,10-10-2025,"check found broking between plug and stem fabricate a new stem, changing backing & check at 15 bar and back to the field, now in operation",,N/A
+AFC III,LV-329502,10-10-2025,,,N/A
+AFC III,LV-329503,10-10-2025,,,N/A
+AFC III,HV-322605,10-10-2025,valve body visual check found ok,,N/A
+AFC III,LV-322501,10-10-2025,valve body visual check found ok,,N/A
+AFC III,XV-322902,10-10-2025,"tightening on gland due-to CO2 leakage as a jet, now ok",,N/A
+AFC II,FV-32401,10-10-2025,"Changing actuator & bushing & coupling and increasing stroke, check and back to the field",,N/A
