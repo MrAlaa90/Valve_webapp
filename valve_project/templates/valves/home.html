@@ -59,7 +59,7 @@
         {% if zld_factory %}
         <div class="row mt-4">
             <div class="col-12">
-                <div class="card border-0 shadow-sm overflow-hidden">
+                <div class="card border-0 shadow-sm overflow-hidden factory-card-success">
                     <div class="row g-0">
                         <div class="col-md-2 bg-success d-flex align-items-center justify-content-center text-white p-4">
                             <div class="text-center">
@@ -71,14 +71,14 @@
                             <div class="row text-center">
                                 <div class="col-md-4">
                                     <h5 class="text-muted small uppercase">Total Valves</h5>
-                                    <p class="h3 fw-bold text-primary">{{ zld_factory.total_valves }}</p>
+                                    <p class="h3 fw-bold text-info">{{ zld_factory.total_valves }}</p>
                                 </div>
                                 <div class="col-md-4">
                                     <h5 class="text-muted small uppercase">Operational</h5>
                                     <p class="h3 fw-bold text-success">{{ zld_factory.operational_valves }}</p>
                                 </div>
-                                <div class="col-md-4 border-start">
-                                    <a href="{% url 'valves:valve-list-frontend' %}?factory={{ zld_factory.name|slugify }}" class="btn btn-outline-primary btn-sm mt-2">View Detailed Report</a>
+                                <div class="col-md-4 border-start border-secondary">
+                                    <a href="{% url 'valves:valve-list-frontend' %}?factory={{ zld_factory.name|slugify }}" class="btn btn-outline-info btn-sm mt-2">View Detailed Report</a>
                                 </div>
                             </div>
                         </div>

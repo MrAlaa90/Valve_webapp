@@ -3,14 +3,19 @@
     --aq-blue: #004a99;      /* الرسمي الأزرق */
     --aq-blue-dark: #003366; 
     --aq-green: #28a745;     /* أخضر الاستدامة */
-    --aq-light-bg: #f8f9fa;
-    --aq-text: #333333;
+    --aq-light-bg: #1a1d21;  /* تم تعديله ليطابق الخلفية الداكنة */
+    --aq-text: #ffffff;
     
     /* Legacy aliases for compatibility */
     --abuqir-blue: var(--aq-blue);
-    --abuqir-light-blue: #eef4fb;
+    --abuqir-light-blue: #2c3035;
     --abuqir-gold: #ffc107;
     --abuqir-dark: var(--aq-text);
+}
+
+body {
+    background-color: var(--aq-light-bg) !important;
+    color: var(--aq-text) !important;
 }
 
 /* توحيد خلفية البطاقات للون الداكن وإزالة الحدود الجانبية */
