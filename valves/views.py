@@ -401,10 +401,15 @@ def maintenance_history_frontend(request):
     Display list of all maintenance records with filtering and pagination.
     """
     maintenance_list = MaintenanceHistory.objects.select_related(
-        'valve'
+        'valve', 'valve__factory', 'technician'
     ).order_by('-maintenance_date')
-    
+
+    # Get filter parameters
     search_query = request.GET.get('q', '')
+    selected_factory_id = request.GET.get('factory')
+    selected_start_date = request.GET.get('start_date')
+    selected_end_date = request.GET.get('end_date')
+
     if search_query:
         maintenance_list = maintenance_list.filter(
             Q(valve__tag_number__icontains=search_query) |
@@ -412,30 +417,58 @@ def maintenance_history_frontend(request):
             Q(maintenance_activities__icontains=search_query) |
             Q(technician__name__icontains=search_query)
         )
-    
+
+    if selected_factory_id:
+        maintenance_list = maintenance_list.filter(valve__factory_id=selected_factory_id)
+    if selected_start_date:
+        maintenance_list = maintenance_list.filter(maintenance_date__gte=selected_start_date)
+    if selected_end_date:
+        maintenance_list = maintenance_list.filter(maintenance_date__lte=selected_end_date)
+
+    # Pagination
     paginator = Paginator(maintenance_list, 15)
     page_number = request.GET.get('page')
     maintenance_records = paginator.get_page(page_number)
-    
+
+    # Context for filters
+    factories = Factory.objects.all().order_by('name')
+
     context = {
         'maintenance_records': maintenance_records,
         'search_query': search_query,
+        'factories': factories,
+        'selected_factory_id': selected_factory_id,
+        'selected_start_date': selected_start_date,
+        'selected_end_date': selected_end_date,
     }
     return render(request, 'valves/maintenance_list.html', context)
-
 @login_required
 def maintenance_detail_frontend(request, pk):
     """
     Display detailed information about a specific maintenance record.
     """
     maintenance = get_object_or_404(
-        MaintenanceHistory.objects.select_related('valve'),
+        MaintenanceHistory.objects.select_related('valve', 'technician'),
         pk=pk
     )
     
+    parts_used = maintenance.maintenancepart_set.all()
+    
+    # Get all selected activities
+    all_activities = []
+    if maintenance.maintenance_activities:
+        all_activities = [a.strip() for a in maintenance.maintenance_activities.split(',') if a.strip()]
+    
+    # Identify activities that are already linked to a part
+    linked_activity_names = [p.associated_activity for p in parts_used if p.associated_activity]
+    
+    # Only keep activities that are NOT linked to a part (to avoid double rows)
+    unlinked_activities = [a for a in all_activities if a not in linked_activity_names]
+    
     context = {
         'record': maintenance,
-        'parts_used': maintenance.maintenancepart_set.all(),
+        'parts_used': parts_used,
+        'activities': unlinked_activities,
     }
     return render(request, 'valves/maintenance_detail.html', context)
 
@@ -591,50 +624,44 @@ def get_valves_by_factory(request):
 @login_required
 def shutdown_report(request):
     """
-    Handle creation and display of shutdown reports, with filtering and pagination.
+    Handle creation and display of shutdown reports, focusing ONLY on shutdown records.
     """
-    maintenance_records_list = MaintenanceHistory.objects.select_related(
+    # Only show records marked as is_shutdown=True
+    maintenance_records_list = MaintenanceHistory.objects.filter(is_shutdown=True).select_related(
         'valve', 'valve__factory', 'technician'
-    ).prefetch_related('maintenancepart_set__part_code').all()
+    ).prefetch_related('maintenancepart_set__part_code')
 
-    # Get filter parameters from GET request
-    selected_factory_id = request.GET.get('factory')
-    selected_start_date = request.GET.get('start_date')
-    selected_end_date = request.GET.get('end_date')
+    selected_shutdown_id = request.GET.get('shutdown_id')
 
     # Apply filters
-    if selected_factory_id:
-        maintenance_records_list = maintenance_records_list.filter(valve__factory_id=selected_factory_id)
-    if selected_start_date:
-        maintenance_records_list = maintenance_records_list.filter(maintenance_date__gte=selected_start_date)
-    if selected_end_date:
-        maintenance_records_list = maintenance_records_list.filter(maintenance_date__lte=selected_end_date)
-
+    if selected_shutdown_id:
+        try:
+            shutdown = Shutdown.objects.get(pk=selected_shutdown_id)
+            maintenance_records_list = maintenance_records_list.filter(
+                valve__in=shutdown.valves.all(),
+                maintenance_date__range=(shutdown.start_date, shutdown.end_date)
+            )
+        except Shutdown.DoesNotExist:
+            pass
+    
     maintenance_records_list = maintenance_records_list.order_by('-maintenance_date')
 
     # Pagination
-    paginator = Paginator(maintenance_records_list, 15)  # Show 15 records per page
+    paginator = Paginator(maintenance_records_list, 15)
     page_number = request.GET.get('page')
     maintenance_records = paginator.get_page(page_number)
 
-    factories = Factory.objects.all().order_by('name') # For the filter dropdown
-
-    # Get selected factory name for display
-    selected_factory_name = "All Factories"
-    if selected_factory_id:
-        try:
-            factory_obj = Factory.objects.get(id=selected_factory_id)
-            selected_factory_name = factory_obj.name
-        except Factory.DoesNotExist:
-            pass # Keep default "All Factories"
+    # Fetch shutdowns for AFC I, II, III dropdowns
+    shutdowns_afc1 = Shutdown.objects.filter(factory__name='AFC I').order_by('-start_date')
+    shutdowns_afc2 = Shutdown.objects.filter(factory__name='AFC II').order_by('-start_date')
+    shutdowns_afc3 = Shutdown.objects.filter(factory__name='AFC III').order_by('-start_date')
 
     context = {
-        'maintenance_records': maintenance_records, # Now paginated
-        'factories': factories, # Pass all factories for the filter dropdown
-        'selected_factory_id': selected_factory_id,
-        'selected_start_date': selected_start_date,
-        'selected_end_date': selected_end_date,
-        'selected_factory_name': selected_factory_name, # Pass selected factory name
+        'maintenance_records': maintenance_records,
+        'shutdowns_afc1': shutdowns_afc1,
+        'shutdowns_afc2': shutdowns_afc2,
+        'shutdowns_afc3': shutdowns_afc3,
+        'selected_shutdown_id': selected_shutdown_id,
     }
     return render(request, 'valves/shutdown_report.html', context)
 

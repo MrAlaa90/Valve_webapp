@@ -13,6 +13,45 @@
     <link rel="icon" href="https://s2.googleusercontent.com/s2/favicons?domain=www.gutenberg.org" type="image/x-icon">
     {# jQuery UI CSS #}
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <style>
+        @media print {
+            .no-print, 
+            .navbar, 
+            .btn, 
+            #theme-toggle,
+            .dropdown-menu {
+                display: none !important;
+            }
+            
+            body {
+                background-color: white !important;
+                color: black !important;
+            }
+
+            .container {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .card {
+                border: 1px solid #dee2e6 !important;
+                box-shadow: none !important;
+            }
+            
+            .table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+            
+            .table th, .table td {
+                border: 1px solid #dee2e6 !important;
+                padding: 8px !important;
+                color: black !important;
+            }
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -36,13 +75,27 @@
                     <a class="nav-link" href="{% url 'valves:part-code-list-frontend' %}">Part Codes</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'valves:shutdown-report' %}">Shutdown Reports</a>
+                    <a class="nav-link" href="{% url 'valves:shutdown-report' %}">Reports</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'valves:documents-page' %}">Documents</a>
                 </li>
             </ul>
             <ul class="navbar-nav ms-auto">
+                <li class="nav-item dropdown me-2">
+                    <button type="button" class="btn btn-outline-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-print me-1"></i> Print Options
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-tag-number" checked> Tag Number</label></li>
+                        <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-spare-parts" checked> Spare Part Uses</label></li>
+                        <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-work" checked> Work</label></li>
+                        <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-technician" checked> Technician</label></li>
+                        <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-notes" checked> Notes</label></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><button onclick="printReport();" class="dropdown-item text-primary fw-bold"><i class="fas fa-print me-1"></i> Print Now</button></li>
+                    </ul>
+                </li>
                 <li class="nav-item">
                     <button id="theme-toggle" class="btn btn-outline-light">
                         <i class="fas fa-sun"></i>
@@ -111,6 +164,25 @@
         });
 
         themeToggleBtn.addEventListener('click', toggleTheme);
+
+        function printReport() {
+            let printStyle = document.getElementById('print-dynamic-style');
+            if (!printStyle) {
+                printStyle = document.createElement('style');
+                printStyle.id = 'print-dynamic-style';
+                document.head.appendChild(printStyle);
+            }
+            
+            let css = '';
+            document.querySelectorAll('.print-col-toggle').forEach(function(checkbox) {
+                let colClass = checkbox.getAttribute('data-col-class');
+                if (!checkbox.checked) {
+                    css += `.${colClass} { display: none !important; } `;
+                }
+            });
+            printStyle.innerHTML = css;
+            window.print();
+        }
     </script>
     {% block extra_js %}{% endblock %}
 </body>

@@ -50,8 +50,18 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.valve_tag_number.id_for_label }}" class="form-label fw-bold">{{ form.valve_tag_number.label }}</label>
-                                <div id="id_valve_tag_number_container">
-                                    {{ form.valve_tag_number }}
+                                <div class="input-group">
+                                    <div id="id_valve_tag_number_container" class="flex-grow-1">
+                                        {{ form.valve_tag_number }}
+                                    </div>
+                                    <div class="input-group-text">
+                                        <div class="form-check mb-0">
+                                            {{ form.is_shutdown }}
+                                            <label class="form-check-label fw-bold ms-1" for="{{ form.is_shutdown.id_for_label }}">
+                                                {{ form.is_shutdown.label }}
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                                 {% for error in form.valve_tag_number.errors %}
                                     <small class="text-danger">{{ error }}</small>
@@ -72,34 +82,60 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label for="{{ form.maintenance_date.id_for_label }}" class="form-label fw-bold">{{ form.maintenance_date.label }}</label>
                                 {{ form.maintenance_date }}
-                            </div>
-                            
-                            {# 1. الحقل الجديد: Oracle Code / Tracking Code #}
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.oracle_code.id_for_label }}" class="form-label fw-bold">{{ form.oracle_code.label }}</label>
-                                {{ form.oracle_code }}
-                                {% for error in form.oracle_code.errors %}
-                                    <small class="text-danger">{{ error }}</small>
-                                {% endfor %}
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Maintenance Activities</label>
-                            <div class="row">
-                                {% for checkbox in form.maintenance_activities %}
-                                <div class="col-md-4">
+                            <div class="row" id="activities-container">
+                                {% for choice_value, choice_label in form.maintenance_activities.field.choices %}
+                                <div class="col-md-4 mb-3">
                                     <div class="form-check">
-                                        {{ checkbox }}
+                                        <input class="form-check-input activity-checkbox" type="checkbox" name="maintenance_activities" value="{{ choice_value }}" id="activity_{{ forloop.counter }}" 
+                                               {% if choice_value in form.maintenance_activities.initial or choice_value in form.data.maintenance_activities %}checked{% endif %}>
+                                        <label class="form-check-label fw-bold" for="activity_{{ forloop.counter }}">
+                                            {{ choice_label }}
+                                        </label>
+                                        
+                                        {% if "Replacing" in choice_value %}
+                                        <div class="mt-2 part-code-input-container" style="display: none;" id="container_{{ forloop.counter }}">
+                                            <label class="small text-muted mb-1">SAP Code / Oracle Code / Order Number</label>
+                                            <input type="text" name="activity_code_{{ forloop.counter }}" class="form-control form-control-sm activity-part-code" 
+                                                   placeholder="SAP Code / Oracle Code / Order Number"
+                                                   data-activity="{{ choice_value }}">
+                                        </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 {% endfor %}
                             </div>
                         </div>
 
+                        {# The global oracle_code field can remain hidden or be used for general tracking #}
+                        <div style="display: none;">
+                            {{ form.oracle_code }}
+                        </div>
+
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.pressure_test.id_for_label }}" class="form-label fw-bold">{{ form.pressure_test.label }}</label>
+                                {{ form.pressure_test }}
+                                {% for error in form.pressure_test.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.testing_pressure.id_for_label }}" class="form-label fw-bold">{{ form.testing_pressure.label }}</label>
+                                {{ form.testing_pressure }}
+                                {% for error in form.testing_pressure.errors %}
+                                    <small class="text-danger">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
 
                         {# حقول رفع الصور #}
                         <div class="row border-top pt-3 mt-3">
@@ -180,6 +216,28 @@ $(document).ready(function() {
             $("#id_valve_tag_number").val(ui.item.value);
         }
     });
+
+    // Toggle individual activity code inputs
+    function toggleActivityInputs() {
+        $('.activity-checkbox').each(function() {
+            const checkbox = $(this);
+            const container = checkbox.closest('.form-check').find('.part-code-input-container');
+            
+            if (checkbox.is(':checked')) {
+                container.slideDown();
+            } else {
+                container.slideUp();
+                // Clear input if unchecked
+                container.find('input').val('');
+            }
+        });
+    }
+
+    // Bind event listener
+    $('.activity-checkbox').on('change', toggleActivityInputs);
+
+    // Initial check on page load
+    toggleActivityInputs();
 });
 </script>
 {% endblock extra_js %}

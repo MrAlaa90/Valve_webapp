@@ -2,104 +2,74 @@
 
 {% block title %}Reports{% endblock %}
 
-{% block extra_css %}
-<style>
-    @media print {
-        .no-print {
-            display: none !important;
-        }
-        .printable-area {
-            display: block;
-        }
-        body * {
-            visibility: hidden;
-        }
-        .printable-area, .printable-area * {
-            visibility: visible;
-        }
-        .printable-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-        }
-        .table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .table th, .table td {
-            border: 1px solid #dee2e6;
-            padding: .75rem;
-            vertical-align: top;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4 no-print">
         <h2>Reports</h2>
-        <div class="btn-group">
-            <button type="button" class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                Print Options
-            </button>
-            <ul class="dropdown-menu">
-                <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-tag-number" checked> Tag Number</label></li>
-                <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-spare-parts" checked> Spare Part Uses</label></li>
-                <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-work" checked> Work</label></li>
-                <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-technician" checked> Technician</label></li>
-                <li><label class="dropdown-item"><input type="checkbox" class="print-col-toggle" data-col-class="col-notes" checked> Notes</label></li>
-            </ul>
-            <button onclick="printReport();" class="btn btn-primary">Print</button>
-        </div>
     </div>
 
     <!-- Filter Form -->
     <div class="card mb-4 no-print">
-        <div class="card-header">
-            Filter Report
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-filter me-2"></i>Filter Report</span>
+            <a href="{% url 'valves:shutdown-report' %}" class="btn btn-sm btn-outline-secondary">Clear All Filters</a>
         </div>
         <div class="card-body">
-            <form method="get">
+            <form method="get" id="filter-form">
                 <div class="row">
-                    <div class="col-md-4">
-                        <select name="factory" class="form-control">
-                            <option value="">All Factories</option>
-                            {% for factory in factories %}
-                                <option value="{{ factory.id }}" {% if factory.id|stringformat:"s" == selected_factory_id %}selected{% endif %}>{{ factory.name }}</option>
-                            {% endfor %}
-                        </select>
+                    <div class="col-12 mb-3">
+                        <h6 class="text-primary fw-bold"><i class="fas fa-calendar-alt me-2"></i>Select Shutdown Month/Year</h6>
                     </div>
-                    <div class="col-md-3">
-                        <input type="date" name="start_date" class="form-control" value="{{ selected_start_date|default:'' }}">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label small fw-bold">AFC I</label>
+                        <div class="input-group">
+                            <select name="shutdown_id" class="form-select border-info shutdown-select">
+                                <option value="">Select Month/Year</option>
+                                {% for sd in shutdowns_afc1 %}
+                                    <option value="{{ sd.id }}" {% if sd.id|stringformat:"s" == selected_shutdown_id %}selected{% endif %}>
+                                        {{ sd.name|default:sd.start_date|date:"F Y" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-outline-info" type="button" onclick="submitShutdown(this.previousElementSibling)">Apply</button>
+                        </div>
                     </div>
-                    <div class="col-md-3">
-                        <input type="date" name="end_date" class="form-control" value="{{ selected_end_date|default:'' }}">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label small fw-bold">AFC II</label>
+                        <div class="input-group">
+                            <select name="shutdown_id" class="form-select border-success shutdown-select">
+                                <option value="">Select Month/Year</option>
+                                {% for sd in shutdowns_afc2 %}
+                                    <option value="{{ sd.id }}" {% if sd.id|stringformat:"s" == selected_shutdown_id %}selected{% endif %}>
+                                        {{ sd.name|default:sd.start_date|date:"F Y" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-outline-success" type="button" onclick="submitShutdown(this.previousElementSibling)">Apply</button>
+                        </div>
                     </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-secondary">Filter</button>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label small fw-bold">AFC III</label>
+                        <div class="input-group">
+                            <select name="shutdown_id" class="form-select border-primary shutdown-select">
+                                <option value="">Select Month/Year</option>
+                                {% for sd in shutdowns_afc3 %}
+                                    <option value="{{ sd.id }}" {% if sd.id|stringformat:"s" == selected_shutdown_id %}selected{% endif %}>
+                                        {{ sd.name|default:sd.start_date|date:"F Y" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-outline-primary" type="button" onclick="submitShutdown(this.previousElementSibling)">Apply</button>
+                        </div>
                     </div>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Maintenance Records Table -->
     <div class="card printable-area">
         <div class="card-header">
-            Maintenance Records
-            <div class="report-filters-summary">
-                {% if selected_factory_name and selected_factory_name != "All Factories" %}
-                    <strong>Factory:</strong> {{ selected_factory_name }}
-                {% endif %}
-                {% if selected_start_date %}
-                    <strong>Start Date:</strong> {{ selected_start_date }}
-                {% endif %}
-                {% if selected_end_date %}
-                    <strong>End Date:</strong> {{ selected_end_date }}
-                {% endif %}
-            </div>
+            Shutdown Maintenance Records
         </div>
         <div class="card-body">
             <table class="table table-striped" id="report-table">
@@ -142,10 +112,10 @@
         <ul class="pagination justify-content-center">
             {% if maintenance_records.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page=1{% if selected_factory_id %}&factory={{ selected_factory_id }}{% endif %}{% if selected_start_date %}&start_date={{ selected_start_date }}{% endif %}{% if selected_end_date %}&end_date={{ selected_end_date }}{% endif %}">&laquo; First</a>
+                    <a class="page-link" href="?page=1{% if selected_shutdown_id %}&shutdown_id={{ selected_shutdown_id }}{% endif %}">&laquo; First</a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ maintenance_records.previous_page_number }}{% if selected_factory_id %}&factory={{ selected_factory_id }}{% endif %}{% if selected_start_date %}&start_date={{ selected_start_date }}{% endif %}{% if selected_end_date %}&end_date={{ selected_end_date }}{% endif %}">Previous</a>
+                    <a class="page-link" href="?page={{ maintenance_records.previous_page_number }}{% if selected_shutdown_id %}&shutdown_id={{ selected_shutdown_id }}{% endif %}">Previous</a>
                 </li>
             {% endif %}
 
@@ -157,10 +127,10 @@
 
             {% if maintenance_records.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ maintenance_records.next_page_number }}{% if selected_factory_id %}&factory={{ selected_factory_id }}{% endif %}{% if selected_start_date %}&start_date={{ selected_start_date }}{% endif %}{% if selected_end_date %}&end_date={{ selected_end_date }}{% endif %}">Next</a>
+                    <a class="page-link" href="?page={{ maintenance_records.next_page_number }}{% if selected_shutdown_id %}&shutdown_id={{ selected_shutdown_id }}{% endif %}">Next</a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ maintenance_records.paginator.num_pages }}{% if selected_factory_id %}&factory={{ selected_factory_id }}{% endif %}{% if selected_start_date %}&start_date={{ selected_start_date }}{% endif %}{% if selected_end_date %}&end_date={{ selected_end_date }}{% endif %}">Last &raquo;</a>
+                    <a class="page-link" href="?page={{ maintenance_records.paginator.num_pages }}{% if selected_shutdown_id %}&shutdown_id={{ selected_shutdown_id }}{% endif %}">Last &raquo;</a>
                 </li>
             {% endif %}
         </ul>
@@ -171,20 +141,15 @@
 
 {% block extra_js %}
 <script>
-    function printReport() {
-        let printStyle = document.createElement('style');
-        printStyle.id = 'print-style';
-        let css = '';
-        document.querySelectorAll('.print-col-toggle').forEach(function(checkbox) {
-            let colClass = checkbox.getAttribute('data-col-class');
-            if (!checkbox.checked) {
-                css += `.${colClass} { display: none !important; }`;
+    function submitShutdown(selectElement) {
+        // Clear all other shutdown selects so only the chosen one is submitted
+        document.querySelectorAll('.shutdown-select').forEach(function(el) {
+            if (el !== selectElement) {
+                el.value = '';
             }
         });
-        printStyle.innerHTML = css;
-        document.head.appendChild(printStyle);
-        window.print();
-        document.head.removeChild(printStyle);
+        // Submit the form
+        selectElement.form.submit();
     }
 </script>
 {% endblock %}

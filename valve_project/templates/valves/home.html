@@ -6,21 +6,23 @@
 {% block extra_css %}
 <style>
     body {
-        background-image: linear-gradient(rgba(0, 74, 153, 0.35), rgba(0, 51, 102, 0.45)), url('{% static "images/image.webp" %}');
-        background-position: center center;
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        min-height: 100vh;
+        background: linear-gradient(rgba(0, 74, 153, 0.35), rgba(0, 51, 102, 0.45)), url('{% static "images/image.webp" %}') !important;
+        background-position: center center !important;
+        background-size: cover !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
+        min-height: 100vh !important;
     }
+    /* Ensure the main container doesn't have a background that blocks the body background */
     .container.mt-4 {
         background-color: transparent !important;
-        max-width: 100%;
-        padding: 0;
+        max-width: 100% !important;
+        padding: 0 !important;
         margin-top: 0 !important;
     }
     .hero-section {
-        min-height: 450px;
+        background: transparent !important;
+        min-height: auto;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -32,11 +34,11 @@
 {% block content %}
 <div class="container-fluid px-0">
     <!-- Hero Header (Background now on body) -->
-    <div class="position-relative overflow-hidden p-3 p-md-5 mb-4 text-center text-white hero-section">
-        <div class="col-md-8 p-lg-5 mx-auto my-5">
+    <div class="position-relative overflow-hidden p-0 mb-3 text-center text-white hero-section">
+        <div class="col-md-8 mx-auto py-2">
             <h1 class="display-4 fw-bold" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.6);">Valves Management System</h1>
-            <p class="lead fw-normal text-light" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.6);">Abu Qir Fertilizers & Chemical Industries - Digital Maintenance Platform</p>
-            <div class="mt-4">
+            <p class="lead fw-normal text-light mb-1" style="text-shadow: 1px 1px 4px rgba(0,0,0,0.6);">Abu Qir Fertilizers & Chemical Industries - Digital Maintenance Platform</p>
+            <div>
                 <small class="fw-bold text-uppercase tracking-wider" style="letter-spacing: 2px; text-shadow: 1px 1px 3px rgba(0,0,0,0.6);">A Legacy of Excellence</small>
             </div>
         </div>

@@ -1,5 +1,5 @@
 from django.test import TestCase
-from valves.models import Valve, MaintenanceHistory, PartCode
+from valves.models import Valve, MaintenanceHistory, PartCode, Technician
 from django.utils import timezone
 
 class ValveRelatedNameTest(TestCase):
@@ -40,3 +40,41 @@ class ValveRelatedNameTest(TestCase):
         self.assertEqual(db_valve.plug_stem_mat, "316SS")
         self.assertEqual(db_valve.packing_mat, "Graphite")
         self.assertEqual(db_valve.shut_off_pressure, "10 BAR")
+
+from valves.forms import MaintenanceHistoryForm
+from valves.models import Shutdown, Factory
+
+class MaintenanceShutdownTest(TestCase):
+    def setUp(self):
+        self.factory = Factory.objects.create(name="AFC I")
+        self.valve = Valve.objects.create(
+            tag_number="SHUTDOWN-VALVE",
+            name="Shutdown Test Valve",
+            factory=self.factory
+        )
+        self.technician = Technician.objects.create(name="Test Tech")
+
+    def test_shutdown_creation_on_save(self):
+        """Test that checking is_shutdown in the form creates a Shutdown record"""
+        form_data = {
+            'valve_tag_number': 'SHUTDOWN-VALVE',
+            'technician_name': 'Test Tech',
+            'maintenance_date': '2026-05-15',
+            'is_shutdown': True,
+            'maintenance_activities': ['On site'],
+        }
+        
+        form = MaintenanceHistoryForm(data=form_data)
+        self.assertTrue(form.is_valid())
+        form.save()
+        
+        # Check if Shutdown record was created
+        shutdowns = Shutdown.objects.filter(factory=self.factory, name="May 2026")
+        self.assertEqual(shutdowns.count(), 1)
+        
+        shutdown = shutdowns.first()
+        self.assertEqual(shutdown.start_date.year, 2026)
+        self.assertEqual(shutdown.start_date.month, 5)
+        self.assertEqual(shutdown.start_date.day, 1)
+        self.assertTrue(self.valve in shutdown.valves.all())
+

@@ -16,15 +16,42 @@
         </div>
     </div>
 
-    <!-- Search Form -->
+    <!-- Filter Form -->
     <div class="card mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-filter me-2"></i>Filter Records</span>
+            <a href="{% url 'valves:maintenance-history-frontend' %}" class="btn btn-sm btn-outline-secondary">Clear All Filters</a>
+        </div>
         <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-10">
-                    <input type="text" name="q" class="form-control" placeholder="Search by valve tag, maintenance type, or description..." value="{{ search_query }}">
+            <form method="get" id="filter-form">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Search Query</label>
+                        <input type="text" name="q" class="form-control" placeholder="Tag, notes, technician..." value="{{ search_query }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Manual Factory Filter</label>
+                        <select name="factory" class="form-control">
+                            <option value="">All Factories</option>
+                            {% for factory in factories %}
+                                <option value="{{ factory.id }}" {% if factory.id|stringformat:"s" == selected_factory_id %}selected{% endif %}>{{ factory.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">Start Date</label>
+                        <input type="date" name="start_date" class="form-control" value="{{ selected_start_date|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">End Date</label>
+                        <input type="date" name="end_date" class="form-control" value="{{ selected_end_date|default:'' }}">
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-secondary w-100">Search</button>
+
+                <div class="row mt-3">
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-secondary px-4">Apply Filters</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -52,6 +79,9 @@
                                 <a href="{% url 'valves:valve-detail-frontend' pk=record.valve.pk %}">
                                     {{ record.valve.tag_number }}
                                 </a>
+                                {% if record.is_shutdown %}
+                                    <span class="badge bg-danger ms-1" title="Shutdown">S</span>
+                                {% endif %}
                             </td>
                             <td>{{ record.maintenance_activities }}</td>
                             <td>{{ record.maintenance_notes|truncatechars:50 }}</td>
@@ -79,7 +109,7 @@
                 <ul class="pagination justify-content-center">
                     {% if maintenance_records.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ maintenance_records.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">&laquo;</a>
+                        <a class="page-link" href="?page={{ maintenance_records.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_factory_id %}&factory={{ selected_factory_id }}{% endif %}{% if selected_start_date %}&start_date={{ selected_start_date }}{% endif %}{% if selected_end_date %}&end_date={{ selected_end_date }}{% endif %}">&laquo;</a>
                     </li>
                     {% endif %}
 
@@ -90,14 +120,14 @@
                         </li>
                         {% else %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ i }}{% if search_query %}&q={{ search_query }}{% endif %}">{{ i }}</a>
+                            <a class="page-link" href="?page={{ i }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_factory_id %}&factory={{ selected_factory_id }}{% endif %}{% if selected_start_date %}&start_date={{ selected_start_date }}{% endif %}{% if selected_end_date %}&end_date={{ selected_end_date }}{% endif %}">{{ i }}</a>
                         </li>
                         {% endif %}
                     {% endfor %}
 
                     {% if maintenance_records.has_next %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ maintenance_records.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">&raquo;</a>
+                        <a class="page-link" href="?page={{ maintenance_records.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_factory_id %}&factory={{ selected_factory_id }}{% endif %}{% if selected_start_date %}&start_date={{ selected_start_date }}{% endif %}{% if selected_end_date %}&end_date={{ selected_end_date }}{% endif %}">&raquo;</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -110,6 +140,17 @@
 
 {% block extra_js %}
 <script>
+    function submitShutdown(selectElement) {
+        // Clear all other shutdown selects so only the chosen one is submitted
+        document.querySelectorAll('.shutdown-select').forEach(function(el) {
+            if (el !== selectElement) {
+                el.value = '';
+            }
+        });
+        // Submit the form
+        selectElement.form.submit();
+    }
+
     // Highlight search matches in the table
     $(document).ready(function() {
         let searchQuery = "{{ search_query }}";

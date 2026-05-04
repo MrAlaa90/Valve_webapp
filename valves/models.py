@@ -133,6 +133,9 @@ class MaintenanceHistory(models.Model):
     oracle_code = models.CharField(max_length=255, null=True, blank=True)
     maintenance_activities = models.CharField(max_length=500, blank=True, null=True)
     maintenance_notes = models.TextField(null=True, blank=True)
+    pressure_test = models.CharField(max_length=255, null=True, blank=True)
+    testing_pressure = models.FloatField(null=True, blank=True)
+    is_shutdown = models.BooleanField(default=False, verbose_name="Shutdown")
     is_active = models.BooleanField(default=True)
     before_image = models.ImageField(upload_to=get_maintenance_image_upload_path, verbose_name="Before Image", null=True, blank=True)
     after_image = models.ImageField(upload_to=get_maintenance_image_upload_path, verbose_name="After Image", null=True, blank=True)
@@ -143,8 +146,11 @@ class MaintenanceHistory(models.Model):
 class MaintenancePart(models.Model):
     maintenance_part_id = models.AutoField(primary_key=True)
     maintenance_event = models.ForeignKey(MaintenanceHistory, on_delete=models.CASCADE)
-    part = models.ForeignKey(SparePart, on_delete=models.CASCADE)
-    code = models.ForeignKey(PartCode, on_delete=models.CASCADE)
+    part = models.ForeignKey(SparePart, on_delete=models.CASCADE, null=True, blank=True)
+    code = models.ForeignKey(PartCode, on_delete=models.CASCADE, null=True, blank=True)
+    quantity_used = models.FloatField(default=1.0)
+    associated_activity = models.CharField(max_length=255, null=True, blank=True)
+    entered_code = models.CharField(max_length=255, null=True, blank=True)
 
 class ValveImage(models.Model):
     IMAGE_CATEGORIES = [
