@@ -23,8 +23,6 @@ services:
              gunicorn valve_project.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - .:/app
-    ports:
-      - "8000:8000"
     environment:
       - DB_HOST=db
       - POSTGRES_DB=valvedb
@@ -38,6 +36,20 @@ services:
       - DJANGO_SUPERUSER_PASSWORD=admin
     depends_on:
       - db
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./staticfiles:/app/staticfiles:ro
+      - ./media:/app/media:ro
+    depends_on:
+      - web
     restart: always
 
 volumes:
