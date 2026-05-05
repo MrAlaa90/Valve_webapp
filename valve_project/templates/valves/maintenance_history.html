@@ -32,12 +32,12 @@
                 <thead class="table-dark">
                     <tr>
                         <th scope="col">#</th>
-                        <th scope="col">Valve Tag No.</th>
                         <th scope="col">Maintenance Date</th>
-                        <th scope="col">Maintenance Activities</th>
+                        <th scope="col">Valve Tag No.</th>
+                        <th scope="col">Valve Type</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Technician</th>
                         <th scope="col">Spare Part</th>
-                        <th scope="col">Technician in Charge</th>
-                        <th scope="col">Valve Status</th>
                         <th scope="col">Actions</th>
                     </tr>
                 </thead>
@@ -45,6 +45,7 @@
                     {% for record in maintenance_records %}
                     <tr>
                         <th scope="row">{{ forloop.counter }}</th>
+                        <td>{{ record.maintenance_date|date:"Y-m-d" }}</td>
                         <td class="font-monospace fw-bold">
                             {% if record.valve %}
                                 <a href="{% url 'valves:valve-detail-frontend' pk=record.valve.valve_id %}">
@@ -54,8 +55,9 @@
                                 N/A
                             {% endif %}
                         </td>
-                        <td>{{ record.maintenance_date|date:"Y-m-d" }}</td>
+                        <td>{{ record.valve.valve_type.name|default:"General" }}</td>
                         <td>{{ record.maintenance_activities|default:"Not specified" }}</td>
+                        <td>{{ record.technician.name|default:"Not specified" }}</td>
                         <td>
                             {% for part in record.maintenancepart_set.all %}
                                 <div class="small">
@@ -66,19 +68,6 @@
                             {% empty %}
                                 <span class="text-muted small">None</span>
                             {% endfor %}
-                        </td>
-                        <td>{{ record.technician.name|default:"Not specified" }}</td>
-                        <td>
-                            {# Highlight the status based on the value #}
-                            {% if record.valve.status.name == 'Operational' %}
-                                <span class="badge bg-success">Operational</span>
-                            {% elif record.valve.status.name == 'Needs Maintenance' %}
-                                <span class="badge bg-warning text-dark">Needs Maintenance</span>
-                            {% elif record.valve.status.name == 'Out of Service' %}
-                                <span class="badge bg-danger">Out of Service</span>
-                            {% else %}
-                                <span class="badge bg-secondary">{{ record.valve.status.name|default:"Unknown" }}</span>
-                            {% endif %}
                         </td>
                         <td>
                             {# Details button #}

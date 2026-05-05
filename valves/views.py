@@ -401,7 +401,7 @@ def maintenance_history_frontend(request):
     Display list of all maintenance records with filtering and pagination.
     """
     maintenance_list = MaintenanceHistory.objects.select_related(
-        'valve', 'valve__factory', 'technician'
+        'valve', 'valve__factory', 'valve__valve_type', 'technician'
     ).prefetch_related(
         'maintenancepart_set',
         'maintenancepart_set__code'
