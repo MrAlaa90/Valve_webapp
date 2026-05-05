@@ -12,6 +12,27 @@
                 <i class="fas fa-barcode text-primary me-2"></i>
                 {% trans "Part Codes List" %}
             </h1>
+            <div class="text-end mb-3 no-print">
+                <button class="btn btn-outline-aq-blue" type="button" data-bs-toggle="collapse" data-bs-target="#printOptions" aria-expanded="false" aria-controls="printOptions">
+                    <i class="fas fa-print me-1"></i> {% trans "Print Options" %}
+                </button>
+            </div>
+            
+            <!-- Print Options -->
+            <div class="collapse mb-4 no-print" id="printOptions">
+                <div class="card card-body shadow-sm">
+                    <h6 class="card-title fw-bold mb-3"><i class="fas fa-cog me-2"></i>{% trans "Select Columns to Print" %}</h6>
+                    <div id="print-column-checks" class="d-flex flex-wrap gap-3">
+                        <!-- Dynamically populated by JS -->
+                    </div>
+                    <div class="mt-3 text-end">
+                        <button class="btn btn-dark" onclick="prepareAndPrint()">
+                            <i class="fas fa-print me-1"></i> {% trans "Print Selected" %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <p class="lead text-center text-muted">{% trans "Browse and search all part codes registered in the system." %}</p>
         </div>
     </div>
@@ -111,41 +132,118 @@
 
             <!-- Pagination Controls -->
             {% if part_codes.has_other_pages %}
-            <nav aria-label="Page navigation" class="mt-4">
-                <ul class="pagination justify-content-center">
+            <nav aria-label="Page navigation" class="mt-4 no-print">
+                <ul class="pagination justify-content-center flex-wrap">
                     {% if part_codes.has_previous %}
                         <li class="page-item">
-                            <a class="page-link" href="?page=1&q={{ search_query }}">{% trans "First" %}</a>
+                            <a class="page-link" href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if part_number_filter %}&part_number={{ part_number_filter }}{% endif %}">&laquo;&laquo; {% trans "First" %}</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ part_codes.previous_page_number }}&q={{ search_query }}">{% trans "Previous" %}</a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">{% trans "Previous" %}</a>
+                            <a class="page-link" href="?page={{ part_codes.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if part_number_filter %}&part_number={{ part_number_filter }}{% endif %}">&laquo;</a>
                         </li>
                     {% endif %}
 
-                    <li class="page-item active" aria-current="page">
-                        <span class="page-link">{{ part_codes.number }} {% trans "of" %} {{ part_codes.paginator.num_pages }}</span>
-                    </li>
+                    {% for i in part_codes.paginator.page_range %}
+                        {% if part_codes.number == i %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ i }}</span>
+                        </li>
+                        {% elif i > part_codes.number|add:'-3' and i < part_codes.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}{% if search_query %}&q={{ search_query }}{% endif %}{% if part_number_filter %}&part_number={{ part_number_filter }}{% endif %}">{{ i }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
 
                     {% if part_codes.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ part_codes.next_page_number }}&q={{ search_query }}">{% trans "Next" %}</a>
+                            <a class="page-link" href="?page={{ part_codes.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if part_number_filter %}&part_number={{ part_number_filter }}{% endif %}">&raquo;</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ part_codes.paginator.num_pages }}&q={{ search_query }}">{% trans "Last" %}</a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">{% trans "Next" %}</a>
+                            <a class="page-link" href="?page={{ part_codes.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if part_number_filter %}&part_number={{ part_number_filter }}{% endif %}">{% trans "Last" %} &raquo;&raquo;</a>
                         </li>
                     {% endif %}
                 </ul>
             </nav>
+            <div class="text-center text-muted small mt-2 no-print">
+                Showing page {{ part_codes.number }} of {{ part_codes.paginator.num_pages }}
+            </div>
             {% endif %}
-        </div>
-    </div>
-</div>
-{% endblock content %}
+            </div>
+            </div>
+            </div>
+
+            {% block extra_js %}
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+            const table = document.querySelector('table');
+            if (!table) return;
+
+            const headers = table.querySelectorAll('thead th');
+            const checkContainer = document.getElementById('print-column-checks');
+
+            if (!checkContainer) return;
+
+            headers.forEach((th, index) => {
+            const headerText = th.innerText.trim();
+            if (headerText === '#' || headerText === 'Actions' || headerText === '{% trans "Actions" %}') return;
+
+            const div = document.createElement('div');
+            div.className = 'form-check';
+            div.innerHTML = `
+                <input class="form-check-input col-print-check" type="checkbox" value="${index}" id="colCheck${index}" checked>
+                <label class="form-check-label small" for="colCheck${index}">
+                    ${headerText}
+                </label>
+            `;
+            checkContainer.appendChild(div);
+            });
+            });
+
+            function prepareAndPrint() {
+            const table = document.querySelector('table');
+            const allChecks = document.querySelectorAll('.col-print-check');
+            const selectedIndices = Array.from(allChecks)
+            .filter(c => c.checked)
+            .map(c => parseInt(c.value));
+
+            const headers = table.querySelectorAll('thead th');
+            if (headers.length > 0 && headers[0].innerText.trim() === '#' && !selectedIndices.includes(0)) {
+            selectedIndices.unshift(0);
+            }
+
+            const printTable = table.cloneNode(true);
+            printTable.querySelectorAll('a, button').forEach(el => {
+            const span = document.createElement('span');
+            span.innerText = el.innerText;
+            el.parentNode.replaceChild(span, el);
+            });
+
+            const rows = printTable.querySelectorAll('tr');
+            rows.forEach(row => {
+            const cells = row.querySelectorAll('th, td');
+            for (let i = cells.length - 1; i >= 0; i--) {
+                if (!selectedIndices.includes(i)) {
+                    cells[i].remove();
+                }
+            }
+            });
+
+            const win = window.open('', '', 'height=700,width=1200');
+            win.document.write('<html><head><title>Part Codes Report</title>');
+            win.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">');
+            win.document.write('<style>body { padding: 30px; font-size: 10px; } table { width: 100% !important; border-collapse: collapse; } th, td { border: 1px solid #dee2e6 !important; padding: 5px !important; word-break: break-word; }</style>');
+            win.document.write('</head><body>');
+            win.document.write('<div class="text-center mb-4">');
+            win.document.write('<h2>Part Codes Report</h2>');
+            win.document.write('<p>Generated on: ' + new Date().toLocaleString() + '</p>');
+            win.document.write('</div>');
+            win.document.write(printTable.outerHTML);
+            win.document.write('</body></html>');
+            win.document.close();
+
+            setTimeout(() => { win.print(); }, 500);
+            }
+            </script>
+            {% endblock %}
+            {% endblock content %}

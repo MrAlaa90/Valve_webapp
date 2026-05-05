@@ -16,6 +16,7 @@
 <!-- Form for Valve Data -->
 <form id="valveForm" class="row g-3">
 {% csrf_token %}
+<input type="hidden" name="next" value="{{ next_url }}">
 <!-- Hidden field for method override (for PUT requests in API) -->
 <input type="hidden" name="_method" id="methodOverride" value="{{ is_update|yesno:'PUT,POST' }}">
 
@@ -208,7 +209,7 @@
 
             <!-- Form Buttons -->
             <div class="col-12 d-flex justify-content-between pt-3">
-                <a href="{% url 'valves:valve-list-frontend' %}" class="btn btn-outline-secondary">
+                <a href="{{ next_url|default:valve_list_url }}" class="btn btn-outline-secondary">
                     <i class="fas fa-times me-1"></i> {% trans "Cancel and Return" %}
                 </a>
                 <button type="submit" id="submitButton" class="btn btn-primary">
@@ -230,6 +231,9 @@ document.addEventListener('DOMContentLoaded', function() {
 const form = document.getElementById('valveForm');
 const messageBox = document.getElementById('messageBox');
 const submitButton = document.getElementById('submitButton');
+
+// Get redirect URL from hidden field
+const NEXT_URL = document.querySelector('input[name="next"]').value;
 
 // تعريف مسار قائمة البلوف بشكل نظيف كمسار مطلق، لضمان عدم وجود شُرَط مائلة زائدة
 const VALVE_LIST_URL = '/valves/';
@@ -484,10 +488,10 @@ try {
             
             // Redirect logic
             setTimeout(() => {
-                if (isEdit) {
-                    window.location.reload(); // Reload to show new images
+                if (NEXT_URL) {
+                    window.location.replace(NEXT_URL);
                 } else {
-                    window.location.replace(`/valves/${valveId}/`); // Go to new valve's detail page
+                    window.location.replace(`/valves/${valveId}/`); // Go to valve's detail page
                 }
             }, 1500);
         }

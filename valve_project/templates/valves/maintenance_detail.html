@@ -19,10 +19,10 @@
                     {% trans "Maintenance Record for Valve" %}: <span class="text-primary">{{ record.valve.tag_number|default:"N/A" }}</span>
                 </h1>
                 <div>
-                    <a href="{% url 'valves:maintenance-update-frontend' pk=record.maintenance_id %}" class="btn btn-warning me-2">
+                    <a href="{% url 'valves:maintenance-update-frontend' pk=record.maintenance_id %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}" class="btn btn-warning me-2">
                         <i class="fas fa-edit me-1"></i> {% trans "Edit Record" %}
                     </a>
-                    <a href="{% url 'valves:maintenance-history-frontend' %}" class="btn btn-outline-secondary">
+                    <a href="{{ request.GET.next|default:MAINTENANCE_LIST_URL }}" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left me-1"></i> {% trans "Back to List" %}
                     </a>
                 </div>

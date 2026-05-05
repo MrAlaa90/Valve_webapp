@@ -44,6 +44,7 @@
                     {# يجب استخدام enctype="multipart/form-data" لأن النموذج يحتوي على حقول صور #}
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ next_url }}">
 
                         {# حقول النماذج الرسومية: يتم استعراض حقل حقل لإضافة تنسيقات Bootstrap #}
 
@@ -181,8 +182,8 @@
                                 <i class="fas fa-save me-2"></i>
                                 Save Record
                             </button>
-                            <a href="{% if valve %}{% url 'valves:valve-detail-frontend' pk=valve.pk %}#maintenance-pane{% else %}{% url 'valves:maintenance-history-frontend' %}{% endif %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-1"></i> {% trans "Cancel and Return to Maintenance History" %}
+                            <a href="{{ next_url|default:default_back_url }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> {% trans "Cancel and Return" %}
                             </a>
                         </div>
                     </form>

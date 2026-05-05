@@ -82,7 +82,12 @@ def valve_create_frontend(request):
     GET: Display the valve creation form
     POST: Process the submitted form and create a new valve
     """
+    # Get redirect URL from query param or referer
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER', '')
+    valve_list_url = reverse('valves:valve-list-frontend')
+
     if request.method == 'POST':
+        post_next = request.POST.get('next')
         # Extract form data
         tag_number = request.POST.get('tag_number')
         name = request.POST.get('name')
@@ -138,10 +143,13 @@ def valve_create_frontend(request):
                 notes=notes
             )
             messages.success(request, f'Valve {valve.tag_number} was created successfully.')
-            return redirect('valve-detail-frontend', pk=valve.pk)
+            
+            if post_next:
+                return HttpResponseRedirect(post_next)
+            return redirect('valves:valve-detail-frontend', pk=valve.pk)
         except Exception as e:
             messages.error(request, f'Error creating valve: {str(e)}')
-            return redirect('valve-create-frontend')
+            next_url = post_next
 
     # For GET requests, prepare the form context
     context = {
@@ -149,6 +157,9 @@ def valve_create_frontend(request):
         'statuses': ValveStatus.objects.all().order_by('name'),
         'manufacturers': Manufacturer.objects.all().order_by('name'),
         'factories': Factory.objects.all().order_by('name'),
+        'next_url': next_url,
+        'valve_list_url': valve_list_url,
+        'title': "Create New Valve",
     }
     return render(request, 'valves/valve_form.html', context)
 
@@ -293,6 +304,9 @@ def maintenance_form_frontend(request, pk=None):
     initial_data = {}
     technicians = Technician.objects.all().order_by('name')
 
+    # Get redirect URL from query param or referer
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER', '')
+
     if pk:
         # Update an existing record
         record = get_object_or_404(MaintenanceHistory, pk=pk)
@@ -306,23 +320,40 @@ def maintenance_form_frontend(request, pk=None):
 
     if request.method == 'POST':
         form = MaintenanceHistoryForm(request.POST, request.FILES, instance=record)
+        post_next = request.POST.get('next')
         if form.is_valid():
             instance = form.save()
             messages.success(request, "Maintenance record saved successfully!")
+
+            # If we have a 'next' URL from the form, use it
+            if post_next:
+                return HttpResponseRedirect(post_next)
+
+            # Default fallback
             redirect_url = reverse('valves:valve-detail-frontend', kwargs={'pk': instance.valve.pk})
             return HttpResponseRedirect(redirect_url + '#maintenance-pane')
         else:
             messages.error(request, "Please correct the errors below.")
+            next_url = post_next # Preserve next_url on form error
     else:
         form = MaintenanceHistoryForm(instance=record, initial=initial_data)
 
     title = "Update Maintenance Record" if pk else "Create New Maintenance Record"
+    
+    # Sensible default fallback if next_url is missing
+    if valve_instance:
+        default_back_url = reverse('valves:valve-detail-frontend', kwargs={'pk': valve_instance.pk}) + '#maintenance-pane'
+    else:
+        default_back_url = reverse('valves:maintenance-history-frontend')
+
     context = {
         'form': form,
         'title': title,
         'pk': pk,
         'valve': valve_instance,
-        'technicians': technicians
+        'technicians': technicians,
+        'next_url': next_url,
+        'default_back_url': default_back_url
     }
     return render(request, 'valves/maintenance_form.html', context)
 
@@ -332,8 +363,12 @@ def valve_update_frontend(request, pk):
     Handle updating an existing valve through the frontend interface.
     """
     valve = get_object_or_404(Valve, pk=pk)
-    
+
+    # Get redirect URL
+    next_url = request.GET.get('next') or request.META.get('HTTP_REFERER', '')
+
     if request.method == 'POST':
+        post_next = request.POST.get('next')
         try:
             # Update valve data
             valve.tag_number = request.POST.get('tag_number')
@@ -361,21 +396,29 @@ def valve_update_frontend(request, pk):
             valve.packing_mat = request.POST.get('packing_mat')
             valve.notes = request.POST.get('notes')
             valve.save()
-            
+
             messages.success(request, f'Valve {valve.tag_number} was updated successfully.')
-            return redirect('valve-detail-frontend', pk=valve.pk)
+
+            if post_next:
+                return HttpResponseRedirect(post_next)
+            return redirect('valves:valve-detail-frontend', pk=valve.pk)
         except Exception as e:
             messages.error(request, f'Error updating valve: {str(e)}')
-    
+            next_url = post_next
+
     context = {
         'valve': valve,
         'valve_types': ValveType.objects.all().order_by('name'),
         'statuses': ValveStatus.objects.all().order_by('name'),
         'manufacturers': Manufacturer.objects.all().order_by('name'),
         'factories': Factory.objects.all().order_by('name'),
+        'next_url': next_url,
+        'valve_list_url': reverse('valves:valve-list-frontend'),
+        'is_update': True,
+        'pk': pk,
+        'title': f"Update Valve: {valve.tag_number}"
     }
     return render(request, 'valves/valve_form.html', context)
-
 @login_required
 def valve_delete_frontend(request, pk):
     """
@@ -454,27 +497,28 @@ def maintenance_detail_frontend(request, pk):
         MaintenanceHistory.objects.select_related('valve', 'technician'),
         pk=pk
     )
-    
+
     parts_used = maintenance.maintenancepart_set.all()
-    
+
     # Get all selected activities
     all_activities = []
     if maintenance.maintenance_activities:
         all_activities = [a.strip() for a in maintenance.maintenance_activities.split(',') if a.strip()]
-    
+
     # Identify activities that are already linked to a part
     linked_activity_names = [p.associated_activity for p in parts_used if p.associated_activity]
-    
+
     # Only keep activities that are NOT linked to a part (to avoid double rows)
     unlinked_activities = [a for a in all_activities if a not in linked_activity_names]
-    
+
     context = {
         'record': maintenance,
         'parts_used': parts_used,
         'activities': unlinked_activities,
+        'MAINTENANCE_LIST_URL': reverse('valves:maintenance-history-frontend'),
+        'title': f"Maintenance Record - {maintenance.valve.tag_number}",
     }
     return render(request, 'valves/maintenance_detail.html', context)
-
 @login_required
 def part_code_list_frontend(request):
     """
