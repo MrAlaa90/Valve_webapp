@@ -35,6 +35,7 @@
                         <th scope="col">Valve Tag No.</th>
                         <th scope="col">Maintenance Date</th>
                         <th scope="col">Maintenance Activities</th>
+                        <th scope="col">Spare Part</th>
                         <th scope="col">Technician in Charge</th>
                         <th scope="col">Valve Status</th>
                         <th scope="col">Actions</th>
@@ -55,6 +56,17 @@
                         </td>
                         <td>{{ record.maintenance_date|date:"Y-m-d" }}</td>
                         <td>{{ record.maintenance_activities|default:"Not specified" }}</td>
+                        <td>
+                            {% for part in record.maintenancepart_set.all %}
+                                <div class="small">
+                                    <strong>{{ part.code.sap_code|default:part.entered_code }}</strong>: 
+                                    {{ part.code.description|truncatechars:30 }} 
+                                    <span class="badge bg-light text-dark">x{{ part.quantity_used }}</span>
+                                </div>
+                            {% empty %}
+                                <span class="text-muted small">None</span>
+                            {% endfor %}
+                        </td>
                         <td>{{ record.technician.name|default:"Not specified" }}</td>
                         <td>
                             {# Highlight the status based on the value #}

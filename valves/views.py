@@ -402,6 +402,9 @@ def maintenance_history_frontend(request):
     """
     maintenance_list = MaintenanceHistory.objects.select_related(
         'valve', 'valve__factory', 'technician'
+    ).prefetch_related(
+        'maintenancepart_set',
+        'maintenancepart_set__code'
     ).order_by('-maintenance_date')
 
     # Get filter parameters
