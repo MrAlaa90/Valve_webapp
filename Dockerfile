@@ -8,8 +8,8 @@ ENV PYTHONUNBUFFERED=1
 # Set work directory
 WORKDIR /app
 
-# Create a non-root user and group
-RUN addgroup -S django && adduser -S django -G django
+# Create a non-root user and group with specific UID/GID for better host compatibility
+RUN addgroup -g 1000 -S django && adduser -u 1000 -S django -G django
 
 # Install system dependencies
 RUN set -ex && \
