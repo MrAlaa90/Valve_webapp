@@ -23,13 +23,19 @@
                         </label>
                         <div class="btn-group w-100" role="group" aria-label="Factory selection">
                             <input type="radio" class="btn-check" name="factory" id="factory_afc1" value="AFC I" {% if selected_factory == "AFC I" %}checked{% endif %} onchange="this.form.submit()">
-                            <label class="btn btn-outline-info py-2" for="factory_afc1">AFC I</label>
+                            <label class="btn btn-outline-info py-2" for="factory_afc1">
+                                <i class="{% if selected_factory == 'AFC I' %}fas fa-check-circle{% else %}far fa-circle{% endif %} me-2"></i>AFC I
+                            </label>
 
                             <input type="radio" class="btn-check" name="factory" id="factory_afc2" value="AFC II" {% if selected_factory == "AFC II" %}checked{% endif %} onchange="this.form.submit()">
-                            <label class="btn btn-outline-success py-2" for="factory_afc2">AFC II</label>
+                            <label class="btn btn-outline-success py-2" for="factory_afc2">
+                                <i class="{% if selected_factory == 'AFC II' %}fas fa-check-circle{% else %}far fa-circle{% endif %} me-2"></i>AFC II
+                            </label>
 
                             <input type="radio" class="btn-check" name="factory" id="factory_afc3" value="AFC III" {% if selected_factory == "AFC III" %}checked{% endif %} onchange="this.form.submit()">
-                            <label class="btn btn-outline-primary py-2" for="factory_afc3">AFC III</label>
+                            <label class="btn btn-outline-primary py-2" for="factory_afc3">
+                                <i class="{% if selected_factory == 'AFC III' %}fas fa-check-circle{% else %}far fa-circle{% endif %} me-2"></i>AFC III
+                            </label>
                         </div>
                     </div>
                     <div class="col-md-6 mb-3">
