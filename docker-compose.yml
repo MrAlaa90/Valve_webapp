@@ -36,6 +36,8 @@ services:
       - DJANGO_SUPERUSER_PASSWORD=admin
     depends_on:
       - db
+    ports:
+      - "8000:8000"
     restart: always
 
   nginx:
