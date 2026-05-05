@@ -68,13 +68,15 @@
                             <th>Valve</th>
                             <th>Type</th>
                             <th>Description</th>
+                            <th>Technician</th>
+                            <th>Spare Part</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for record in maintenance_records %}
                         <tr>
-                            <td>{{ record.maintenance_date }}</td>
+                            <td>{{ record.maintenance_date|date:"Y-m-d" }}</td>
                             <td>
                                 <a href="{% url 'valves:valve-detail-frontend' pk=record.valve.pk %}">
                                     {{ record.valve.tag_number }}
@@ -83,8 +85,20 @@
                                     <span class="badge bg-danger ms-1" title="Shutdown">S</span>
                                 {% endif %}
                             </td>
-                            <td>{{ record.maintenance_activities }}</td>
-                            <td>{{ record.maintenance_notes|truncatechars:50 }}</td>
+                            <td>{{ record.valve.valve_type.name|default:"General" }}</td>
+                            <td>{{ record.maintenance_activities|default:"-" }}</td>
+                            <td>{{ record.technician.name|default:"-" }}</td>
+                            <td>
+                                {% for part in record.maintenancepart_set.all %}
+                                    <div class="small">
+                                        <strong>{{ part.code.sap_code|default:part.entered_code }}</strong>:
+                                        {{ part.code.description|truncatechars:30 }}
+                                        <span class="badge bg-light text-dark">x{{ part.quantity_used }}</span>
+                                    </div>
+                                {% empty %}
+                                    <span class="text-muted small">-</span>
+                                {% endfor %}
+                            </td>
                             <td>
                                 <a href="{% url 'valves:maintenance-detail-frontend' pk=record.pk %}" class="btn btn-sm btn-info" title="View Details">
                                     <i class="fas fa-eye"></i>
