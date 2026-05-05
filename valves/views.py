@@ -631,19 +631,18 @@ def shutdown_report(request):
         'valve', 'valve__factory', 'technician'
     ).prefetch_related('maintenancepart_set__part_code')
 
-    selected_shutdown_id = request.GET.get('shutdown_id')
+    selected_factory = request.GET.get('factory')
+    selected_period = request.GET.get('period')
 
     # Apply filters
-    if selected_shutdown_id:
-        try:
-            shutdown = Shutdown.objects.get(pk=selected_shutdown_id)
-            maintenance_records_list = maintenance_records_list.filter(
-                valve__in=shutdown.valves.all(),
-                maintenance_date__range=(shutdown.start_date, shutdown.end_date)
-            )
-        except Shutdown.DoesNotExist:
-            pass
-    
+    if selected_factory:
+        maintenance_records_list = maintenance_records_list.filter(valve__factory__name=selected_factory)
+
+    if selected_period:
+        maintenance_records_list = maintenance_records_list.filter(
+            valve__shutdown__name=selected_period
+        ).distinct()
+
     maintenance_records_list = maintenance_records_list.order_by('-maintenance_date')
 
     # Pagination
@@ -651,20 +650,16 @@ def shutdown_report(request):
     page_number = request.GET.get('page')
     maintenance_records = paginator.get_page(page_number)
 
-    # Fetch shutdowns for AFC I, II, III dropdowns
-    shutdowns_afc1 = Shutdown.objects.filter(factory__name='AFC I').order_by('-start_date')
-    shutdowns_afc2 = Shutdown.objects.filter(factory__name='AFC II').order_by('-start_date')
-    shutdowns_afc3 = Shutdown.objects.filter(factory__name='AFC III').order_by('-start_date')
+    # Get distinct shutdown names (Months/Years) for the period dropdown
+    periods = Shutdown.objects.values_list('name', flat=True).distinct().order_by('-start_date')
 
     context = {
         'maintenance_records': maintenance_records,
-        'shutdowns_afc1': shutdowns_afc1,
-        'shutdowns_afc2': shutdowns_afc2,
-        'shutdowns_afc3': shutdowns_afc3,
-        'selected_shutdown_id': selected_shutdown_id,
+        'periods': periods,
+        'selected_factory': selected_factory,
+        'selected_period': selected_period,
     }
     return render(request, 'valves/shutdown_report.html', context)
-
 
 
 @login_required
