@@ -50,4 +50,6 @@ urlpatterns = [
     path('shutdown-report/<int:pk>/print/', views.shutdown_report_print, name='shutdown-report-print'),
     path('part-codes/<int:pk>/delete/', views.part_code_delete_frontend, name='part-code-delete-frontend'),
     path('documents/', views.documents_page, name='documents-page'),
+    path('backups/', views.backup_management_view, name='backup-management'),
+    path('backups/download/<str:filename>/', views.backup_download_view, name='backup-download'),
 ]

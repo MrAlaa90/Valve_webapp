@@ -1586,6 +1586,93 @@ def documents_page(request):
     return render(request, 'valves/documents.html', context)
 
 
+# ==========================================
+# Backup & Restore Enterprise Views
+# ==========================================
+
+from django.http import FileResponse, Http404
+import backup_manager
+
+
+def backup_management_view(request):
+    """Enterprise Backup & Restore Management Dashboard."""
+    engine = backup_manager.get_backup_engine()
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'create':
+            note = request.POST.get('note', 'Manual snapshot from Web/Desktop UI')
+            res = engine.create_backup(backup_type='manual', note=note)
+            if res.get('success'):
+                messages.success(request, f"Backup successfully created: {res.get('filename')} (SHA: {res.get('checksum')[:12]}...)")
+            else:
+                messages.error(request, f"Failed to create backup: {res.get('error')}")
+            return redirect('valves:backup-management')
+
+        elif action == 'restore':
+            filename = request.POST.get('filename')
+            if filename:
+                archive_path = engine.backup_dir / filename
+                res = engine.restore_backup(archive_path)
+                if res.get('success'):
+                    messages.success(request, f"System successfully restored from {filename}. Pre-restore safety snapshot created: {res.get('safety_backup')}.")
+                else:
+                    messages.error(request, f"Restore failed: {res.get('error')}")
+            elif 'backup_file' in request.FILES:
+                uploaded = request.FILES['backup_file']
+                upload_path = engine.backup_dir / f"uploaded_{uploaded.name}"
+                with open(upload_path, 'wb+') as dest:
+                    for chunk in uploaded.chunks():
+                        dest.write(chunk)
+                res = engine.restore_backup(upload_path)
+                if res.get('success'):
+                    messages.success(request, f"System successfully restored from uploaded archive: {uploaded.name}.")
+                else:
+                    messages.error(request, f"Restore failed: {res.get('error')}")
+            return redirect('valves:backup-management')
+
+        elif action == 'verify':
+            filename = request.POST.get('filename')
+            if filename:
+                archive_path = engine.backup_dir / filename
+                res = engine.verify_backup(archive_path)
+                if res.get('valid'):
+                    messages.success(request, f"Integrity Verified: {filename} matches SHA-256 and has zero corruption.")
+                else:
+                    messages.error(request, f"Verification Failed for {filename}: {res.get('error')}")
+            return redirect('valves:backup-management')
+
+    backups = engine.list_backups()
+    context = {
+        'backups': backups,
+        'retention_limits': engine.RETENTION_LIMITS,
+        'backup_dir': str(engine.backup_dir),
+        'db_path': str(engine.db_path),
+        'total_backups_count': len(backups),
+        'total_size_mb': round(sum(b.get('size_mb', 0) for b in backups), 2),
+    }
+    return render(request, 'valves/backup_management.html', context)
+
+
+def backup_download_view(request, filename):
+    """Secure point-in-time backup archive export."""
+    engine = backup_manager.get_backup_engine()
+    target_path = engine.backup_dir / filename
+
+    try:
+        target_path = target_path.resolve()
+        if not str(target_path).startswith(str(engine.backup_dir.resolve())):
+            raise Http404("Invalid file path.")
+    except Exception:
+        raise Http404("Invalid file path.")
+
+    if not target_path.exists():
+        raise Http404("Backup file not found.")
+
+    return FileResponse(open(target_path, 'rb'), as_attachment=True, filename=filename)
+
+
+
 
 
 

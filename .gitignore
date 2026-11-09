@@ -30,6 +30,7 @@ myenv/
 build/
 develop-eggs/
 dist/
+dist_installer/
 downloads/
 eggs/
 .eggs/

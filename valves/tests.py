@@ -78,3 +78,80 @@ class MaintenanceShutdownTest(TestCase):
         self.assertEqual(shutdown.start_date.day, 1)
         self.assertTrue(self.valve in shutdown.valves.all())
 
+
+import tempfile
+import shutil
+from pathlib import Path
+from django.db import connection
+from django.urls import reverse
+import backup_manager
+from desktop_app.paths import get_default_data_dir
+
+
+class DesktopPragmasTest(TestCase):
+    def test_sqlite_enterprise_pragmas(self):
+        """Verifies SQLite enterprise pragmas are applied on active connection"""
+        if connection.vendor == 'sqlite':
+            cursor = connection.cursor()
+            cursor.execute("PRAGMA foreign_keys;")
+            fk = cursor.fetchone()[0]
+            self.assertEqual(fk, 1)
+
+            cursor.execute("PRAGMA busy_timeout;")
+            timeout = cursor.fetchone()[0]
+            self.assertEqual(timeout, 10000)
+            cursor.close()
+
+
+class BackupEngineAndViewsTest(TestCase):
+    def setUp(self):
+        self.test_dir = Path(tempfile.mkdtemp())
+        self.data_dir = self.test_dir / "data"
+        self.backup_dir = self.test_dir / "backups"
+        self.data_dir.mkdir(parents=True)
+        self.backup_dir.mkdir(parents=True)
+
+        # Create dummy db file and media
+        self.db_file = self.data_dir / "db.sqlite3"
+        import sqlite3
+        conn = sqlite3.connect(self.db_file)
+        conn.execute("CREATE TABLE test_table (id INTEGER PRIMARY KEY, name TEXT);")
+        conn.execute("INSERT INTO test_table (name) VALUES ('Test Valve');")
+        conn.commit()
+        conn.close()
+
+        self.media_file = self.data_dir / "media" / "test.txt"
+        self.media_file.parent.mkdir(parents=True)
+        self.media_file.write_text("dummy media content")
+
+        self.engine = backup_manager.GFSBackupEngine(
+            data_dir=self.data_dir,
+            backup_dir=self.backup_dir
+        )
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir, ignore_errors=True)
+
+    def test_create_and_verify_backup(self):
+        """Test atomic backup creation and SHA-256 verification"""
+        res = self.engine.create_backup(backup_type="manual", note="Unit test backup")
+        self.assertTrue(res.get("success"))
+        archive_path = Path(res["archive_path"])
+        self.assertTrue(archive_path.exists())
+
+        # Check sha256 file
+        sha_file = archive_path.parent / f"{archive_path.name}.sha256"
+        self.assertTrue(sha_file.exists())
+
+        # Verify integrity
+        verify_res = self.engine.verify_backup(archive_path)
+        self.assertTrue(verify_res.get("valid"))
+        self.assertEqual(verify_res.get("sha256"), res["checksum"])
+
+    def test_backup_management_view(self):
+        """Test that the /backups/ dashboard view renders with 200 OK"""
+        response = self.client.get(reverse('valves:backup-management'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Enterprise Backup & Disaster Recovery")
+
+

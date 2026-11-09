@@ -1,8 +1,21 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from .models import Valve, SparePart, PartCode, MaintenanceHistory, MaintenancePart, ValveType, ValveStatus, Manufacturer, Technician, Shutdown
+import backup_manager
+
+
+@admin.action(description="Create Enterprise GFS Backup Snapshot")
+def trigger_backup_action(modeladmin, request, queryset):
+    engine = backup_manager.get_backup_engine()
+    res = engine.create_backup(backup_type='manual', note="Admin action manual trigger")
+    if res.get('success'):
+        messages.success(request, f"GFS Backup created: {res.get('filename')} (SHA: {res.get('checksum')[:8]}...)")
+    else:
+        messages.error(request, f"Backup error: {res.get('error')}")
+
 
 @admin.register(Valve)
 class ValveAdmin(admin.ModelAdmin):
+    actions = [trigger_backup_action]
     list_display = ('tag_number', 'name', 'valve_type', 'status', 'factory')
     list_filter = ('valve_type', 'status', 'factory')
     search_fields = ('tag_number', 'name')

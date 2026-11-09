@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Enterprise Backup & Disaster Recovery - Valve Workshop{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 font-weight-bold mb-1">
+                <i class="fas fa-shield-alt text-primary me-2"></i>Enterprise Backup & Disaster Recovery
+            </h2>
+            <p class="text-muted mb-0">Grandfather-Father-Son (GFS) Automated Snapshot & Point-in-Time Recovery System</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBackupModal">
+                <i class="fas fa-plus-circle me-1"></i> Create Backup Now
+            </button>
+            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#uploadRestoreModal">
+                <i class="fas fa-upload me-1"></i> Upload & Restore
+            </button>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Metrics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3 text-primary">
+                            <i class="fas fa-database fa-2x"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Database Engine</div>
+                            <div class="h5 mb-0 fw-bold">SQLite 3 (WAL)</div>
+                            <small class="text-success"><i class="fas fa-check-circle"></i> Enterprise Pragmas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3 text-success">
+                            <i class="fas fa-archive fa-2x"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Stored Snapshots</div>
+                            <div class="h5 mb-0 fw-bold">{{ total_backups_count }} Archives</div>
+                            <small class="text-muted">{{ total_size_mb }} MB total</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-3 me-3 text-info">
+                            <i class="fas fa-history fa-2x"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">GFS Retention Quotas</div>
+                            <div class="h6 mb-0 fw-bold">7D / 4W / 12M / 5Y</div>
+                            <small class="text-muted">Auto-Pruning Active</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-3 me-3 text-warning">
+                            <i class="fas fa-lock fa-2x"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">Integrity Standard</div>
+                            <div class="h6 mb-0 fw-bold">SHA-256 Verified</div>
+                            <small class="text-muted">Zero Corruption Tolerance</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Backups Table -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>Available Snapshots</h5>
+            <small class="text-muted">Isolated Storage: <code>{{ backup_dir }}</code></small>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Category</th>
+                            <th>Snapshot Archive</th>
+                            <th>Timestamp</th>
+                            <th>Size</th>
+                            <th>Integrity Checksum</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in backups %}
+                        <tr>
+                            <td>
+                                {% if b.category == 'daily' %}
+                                    <span class="badge bg-primary">Daily</span>
+                                {% elif b.category == 'weekly' %}
+                                    <span class="badge bg-info text-dark">Weekly</span>
+                                {% elif b.category == 'monthly' %}
+                                    <span class="badge bg-success">Monthly</span>
+                                {% elif b.category == 'yearly' %}
+                                    <span class="badge bg-warning text-dark">Yearly</span>
+                                {% elif b.category == 'shutdown' %}
+                                    <span class="badge bg-secondary">Pre-Shutdown</span>
+                                {% else %}
+                                    <span class="badge bg-dark">Manual</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ b.filename }}</strong>
+                                {% if b.manifest.note %}
+                                    <br><small class="text-muted">{{ b.manifest.note }}</small>
+                                {% endif %}
+                            </td>
+                            <td><small class="text-muted">{{ b.timestamp }}</small></td>
+                            <td><span class="badge bg-light text-dark border">{{ b.size_mb }} MB</span></td>
+                            <td>
+                                {% if b.has_checksum %}
+                                    <span class="badge bg-success bg-opacity-10 text-success">
+                                        <i class="fas fa-check-circle me-1"></i>SHA-256 Available
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">No Checksum</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'valves:backup-download' b.filename %}" class="btn btn-outline-primary" title="Export to USB / External Drive">
+                                        <i class="fas fa-download"></i> Export
+                                    </a>
+                                    <form method="POST" action="{% url 'valves:backup-management' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="verify">
+                                        <input type="hidden" name="filename" value="{{ b.filename }}">
+                                        <button type="submit" class="btn btn-outline-info" title="Verify SHA-256 Checksum">
+                                            <i class="fas fa-check-double"></i> Verify
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-outline-danger" title="Restore Point-in-Time" data-bs-toggle="modal" data-bs-target="#confirmRestoreModal-{{ forloop.counter }}">
+                                        <i class="fas fa-undo"></i> Restore
+                                    </button>
+                                </div>
+
+                                <!-- Restore Modal for this item -->
+                                <div class="modal fade text-start" id="confirmRestoreModal-{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Snapshot Restoration</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to restore the system to this snapshot?</p>
+                                                <div class="alert alert-secondary">
+                                                    <strong>Target Archive:</strong> {{ b.filename }}<br>
+                                                    <strong>Created:</strong> {{ b.timestamp }}<br>
+                                                    <strong>Size:</strong> {{ b.size_mb }} MB
+                                                </div>
+                                                <p class="text-muted small mb-0">
+                                                    <i class="fas fa-shield-alt text-success me-1"></i> A safety backup of the current database will be generated automatically before restoring.
+                                                </p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form method="POST" action="{% url 'valves:backup-management' %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="restore">
+                                                    <input type="hidden" name="filename" value="{{ b.filename }}">
+                                                    <button type="submit" class="btn btn-danger">Proceed with Restoration</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="fas fa-box-open fa-2x mb-2 d-block"></i>
+                                No backups currently found. Click "Create Backup Now" above to generate your first snapshot.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Create Backup -->
+<div class="modal fade" id="createBackupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'valves:backup-management' %}">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus-circle text-primary me-2"></i>Create Manual Snapshot</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Snapshot Description / Note (Optional)</label>
+                        <input type="text" name="note" class="form-control" placeholder="e.g. Pre-maintenance update, external audit archive">
+                    </div>
+                    <div class="alert alert-info small mb-0">
+                        <i class="fas fa-info-circle me-1"></i> This creates an atomic live SQLite snapshot, bundles all media files, calculates a SHA-256 checksum, and stores the archive in your local app data directory.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Start Backup</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Upload & Restore -->
+<div class="modal fade" id="uploadRestoreModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'valves:backup-management' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="restore">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-upload me-2"></i>Upload External Backup Archive</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Backup Archive (.zip)</label>
+                        <input type="file" name="backup_file" class="form-control" accept=".zip" required>
+                    </div>
+                    <div class="alert alert-warning small mb-0">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Uploading and restoring will verify SHA-256 integrity, create a safety snapshot of current data, and restore the database and media files from the uploaded archive.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-undo me-1"></i> Upload & Restore</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
