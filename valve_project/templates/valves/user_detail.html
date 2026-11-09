@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تفاصيل وتكليفات المستخدم: {{ target_user.username }} - Valve Workshop{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" dir="rtl">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'valves:user-list' %}">إدارة المستخدمين</a></li>
+                    <li class="breadcrumb-item active">{{ target_user.username }}</li>
+                </ol>
+            </nav>
+            <h2 class="h3 font-weight-bold mb-0">
+                <i class="fas fa-id-badge text-primary me-2"></i>تفاصيل وتكليفات المستخدم: {{ target_user.username }}
+            </h2>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'valves:user-update' target_user.pk %}" class="btn btn-primary">
+                <i class="fas fa-edit me-1"></i> تعديل البيانات والصلاحيات
+            </a>
+            <a href="{% url 'valves:user-list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-1"></i> عودة للقائمة
+            </a>
+        </div>
+    </div>
+
+    <!-- User Information Overview -->
+    <div class="row g-4 mb-4">
+        <!-- Profile Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
+                        {{ target_user.username|slice:":1"|upper }}
+                    </div>
+                    <h4 class="fw-bold mb-1">{{ target_user.username }}</h4>
+                    {% if target_user.get_full_name %}
+                        <p class="text-muted mb-2">{{ target_user.get_full_name }}</p>
+                    {% endif %}
+                    <span class="badge bg-{{ profile.role_badge_color }} fs-6 px-3 py-2 mb-3">
+                        {{ profile.get_role_display }}
+                    </span>
+
+                    <hr>
+
+                    <div class="text-start">
+                        <div class="mb-2">
+                            <span class="text-muted small d-block">البريد الإلكتروني:</span>
+                            <strong>{{ target_user.email|default:"غير مسجل" }}</strong>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted small d-block">رقم الهاتف:</span>
+                            <strong>{{ profile.phone_number|default:"غير مسجل" }}</strong>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted small d-block">المصنع المسؤول عنه:</span>
+                            {% if profile.factory %}
+                                <span class="badge bg-{{ profile.factory.get_color }}">{{ profile.factory.name }}</span>
+                            {% else %}
+                                <strong>جميع المصانع</strong>
+                            {% endif %}
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted small d-block">فني الصيانة المرتبط:</span>
+                            {% if profile.technician %}
+                                <span class="text-primary fw-bold"><i class="fas fa-hard-hat me-1"></i>{{ profile.technician.name }}</span>
+                            {% else %}
+                                <span class="text-muted">غير مربوط بسجل فني</span>
+                            {% endif %}
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted small d-block">حالة الحساب:</span>
+                            {% if target_user.is_active %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                    <i class="fas fa-check-circle me-1"></i>حساب نشط ومفعل
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
+                                    <i class="fas fa-ban me-1"></i>حساب معطل
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted small d-block">تاريخ الإنشاء:</span>
+                            <small class="text-muted">{{ target_user.date_joined|date:"Y-m-d H:i" }}</small>
+                        </div>
+                        <div class="mb-0">
+                            <span class="text-muted small d-block">آخر تسجيل دخول:</span>
+                            <small class="text-muted">
+                                {% if target_user.last_login %}
+                                    {{ target_user.last_login|date:"Y-m-d H:i" }}
+                                {% else %}
+                                    لم يقم بتسجيل الدخول بعد
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Permissions & Assignments (على اية داخل البرنامج) -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-primary">
+                        <i class="fas fa-user-check me-2"></i>ما هو مكلف به والصلاحيات الممنوحة له داخل المنظومة
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-light border mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle text-primary fa-2x ms-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">طبيعة الحساب والتكليف:</h6>
+                                <p class="mb-0 small text-muted">
+                                    المستخدم <strong>{{ target_user.username }}</strong> مصنف كـ <strong>{{ profile.get_role_display }}</strong>.
+                                    {% if profile.factory %}
+                                        ومسؤول بشكل رئيسي عن صمامات ومعدات <strong>مصنع {{ profile.factory.name }}</strong>.
+                                    {% else %}
+                                        ولديه إمكانية الوصول والتكليف على <strong>كافة المصانع (AFC I, AFC II, AFC III)</strong>.
+                                    {% endif %}
+                                    {% if profile.technician %}
+                                        وترتبط سجلات أعماله الميدانية بملف الفني: <strong>{{ profile.technician.name }}</strong>.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-3"><i class="fas fa-shield-alt text-success me-2"></i>قائمة الصلاحيات الميدانية والإدارية:</h6>
+                    <div class="row g-2 mb-4">
+                        {% for perm in permissions_list %}
+                        <div class="col-md-6">
+                            <div class="p-2 border rounded bg-light d-flex align-items-center">
+                                <i class="fas fa-check-circle text-success ms-2"></i>
+                                <span class="small fw-semibold">{{ perm }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if profile.notes %}
+                    <div class="p-3 bg-warning bg-opacity-10 border border-warning rounded">
+                        <h6 class="fw-bold text-dark mb-1"><i class="fas fa-sticky-note me-2"></i>ملاحظات وتكليفات خاصة من الإدارة:</h6>
+                        <p class="mb-0 small">{{ profile.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Operational Activity Section -->
+    <div class="row g-4">
+        <!-- Linked Maintenance Records -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-wrench text-warning me-2"></i>أعمال الصيانة الميدانية المسجلة باسمه
+                    </h5>
+                    {% if profile.technician %}
+                        <span class="badge bg-primary">{{ maintenance_records|length }} سجل صيانة</span>
+                    {% endif %}
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>تاريخ الصيانة</th>
+                                    <th>رقم الصمام (Tag)</th>
+                                    <th>المصنع</th>
+                                    <th>طبيعة الصيانة</th>
+                                    <th>الضغط</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for m in maintenance_records %}
+                                <tr>
+                                    <td><small class="fw-bold">{{ m.maintenance_date }}</small></td>
+                                    <td>
+                                        <a href="{% url 'valves:valve-detail-frontend' m.valve.pk %}" class="fw-bold text-primary">
+                                            {{ m.valve.tag_number }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {% if m.valve.factory %}
+                                            <span class="badge bg-{{ m.valve.factory.get_color }}">{{ m.valve.factory.name }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><small>{{ m.maintenance_activities|default:"صيانة عامة"|truncatechars:35 }}</small></td>
+                                    <td>
+                                        {% if m.testing_pressure %}
+                                            <span class="badge bg-light text-dark border">{{ m.testing_pressure }} Bar</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        {% if profile.technician %}
+                                            لم يتم تسجيل أي عمليات صيانة باسم هذا الفني بعد.
+                                        {% else %}
+                                            هذا المستخدم غير مرتبط بملف فني صيانة ميداني. يمكنك ربطه عبر زر التعديل بالأعلى.
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Audit Log Entries -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-history text-info me-2"></i>سجل العمليات والنشاطات الأخيرة
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>التوقيت</th>
+                                    <th>نوع العملية</th>
+                                    <th>العنصر المعدل</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in audit_logs %}
+                                <tr>
+                                    <td><small class="text-muted">{{ log.action_time|date:"Y-m-d H:i" }}</small></td>
+                                    <td>
+                                        {% if log.is_addition %}
+                                            <span class="badge bg-success bg-opacity-10 text-success"><i class="fas fa-plus-circle me-1"></i>إضافة</span>
+                                        {% elif log.is_change %}
+                                            <span class="badge bg-info bg-opacity-10 text-info"><i class="fas fa-pen me-1"></i>تعديل</span>
+                                        {% elif log.is_deletion %}
+                                            <span class="badge bg-danger bg-opacity-10 text-danger"><i class="fas fa-trash me-1"></i>حذف</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="fw-bold">{{ log.content_type.name }}: {{ log.object_repr|truncatechars:20 }}</small>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted">
+                                        لا توجد حركات إدارية مسجلة باسم هذا المستخدم.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

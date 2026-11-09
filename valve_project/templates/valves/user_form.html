@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - Valve Workshop{% endblock %}
+
+{% block content %}
+<div class="container py-4" dir="rtl" style="max-width: 800px;">
+    <!-- Breadcrumb & Header -->
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{% url 'valves:user-list' %}">إدارة المستخدمين</a></li>
+                <li class="breadcrumb-item active">{{ title }}</li>
+            </ol>
+        </nav>
+        <h2 class="h3 font-weight-bold mb-1">
+            <i class="fas fa-user-edit text-primary me-2"></i>{{ title }}
+        </h2>
+        <p class="text-muted">تحديد وتعديل بيانات المستخدم، مستوى الصلاحيات، والتكليف بالمصنع وسجل الصيانة</p>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- User Form Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                <!-- Basic User Credentials -->
+                <h5 class="fw-bold mb-3 text-primary border-bottom pb-2">
+                    <i class="fas fa-user-lock me-2"></i>بيانات الحساب والولوج
+                </h5>
+
+                {% if form.username %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ form.username.label }} <span class="text-danger">*</span></label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="alert alert-secondary py-2 mb-3">
+                    <i class="fas fa-info-circle me-1"></i> اسم المستخدم (Username): <strong>{{ target_user.username }}</strong> (ثابت لا يتغير)
+                </div>
+                {% endif %}
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ form.first_name.label }}</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ form.last_name.label }}</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                {% if form.password %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ form.password.label }} <span class="text-danger">*</span></label>
+                        {{ form.password }}
+                        <small class="text-muted">{{ form.password.help_text }}</small>
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ form.confirm_password.label }} <span class="text-danger">*</span></label>
+                        {{ form.confirm_password }}
+                        {% if form.confirm_password.errors %}
+                            <div class="text-danger small mt-1">{{ form.confirm_password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if form.new_password %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ form.new_password.label }}</label>
+                    {{ form.new_password }}
+                    <small class="text-muted">{{ form.new_password.help_text }}</small>
+                    {% if form.new_password.errors %}
+                        <div class="text-danger small mt-1">{{ form.new_password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Role and Assignments -->
+                <h5 class="fw-bold mb-3 mt-4 text-primary border-bottom pb-2">
+                    <i class="fas fa-briefcase me-2"></i>الدور والتكليفات داخل النظام
+                </h5>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ form.role.label }} <span class="text-danger">*</span></label>
+                    {{ form.role }}
+                    {% if form.role.errors %}
+                        <div class="text-danger small mt-1">{{ form.role.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ form.factory.label }}</label>
+                        {{ form.factory }}
+                        {% if form.factory.errors %}
+                            <div class="text-danger small mt-1">{{ form.factory.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">{{ form.technician.label }}</label>
+                        {{ form.technician }}
+                        {% if form.technician.errors %}
+                            <div class="text-danger small mt-1">{{ form.technician.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ form.phone_number.label }}</label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}
+                        <div class="text-danger small mt-1">{{ form.phone_number.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">{{ form.notes.label }}</label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <div class="text-danger small mt-1">{{ form.notes.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4 p-3 bg-light rounded border">
+                    <div class="form-check form-switch mb-0">
+                        {{ form.is_active }}
+                        <label class="form-check-label fw-bold me-2" for="{{ form.is_active.id_for_label }}">
+                            {{ form.is_active.label }}
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'valves:user-list' %}" class="btn btn-secondary">إلغاء</a>
+                    <button type="submit" class="btn btn-primary px-4 fw-bold">
+                        <i class="fas fa-save me-1"></i> حفظ البيانات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

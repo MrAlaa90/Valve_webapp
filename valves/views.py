@@ -1672,6 +1672,236 @@ def backup_download_view(request, filename):
     return FileResponse(open(target_path, 'rb'), as_attachment=True, filename=filename)
 
 
+# ==========================================
+# User Management & Access Control Views
+# ==========================================
+
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
+from django.contrib.admin.models import LogEntry
+from .models import UserProfile, Factory, Technician
+from .forms import UserCreateForm, UserUpdateForm
+
+
+def admin_required(view_func):
+    """Decorator ensuring only system administrators can access user management."""
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('valves:login')
+        is_admin = request.user.is_superuser or (
+            hasattr(request.user, 'profile') and request.user.profile.role == 'admin'
+        )
+        if not is_admin:
+            messages.error(request, "عذراً، هذه الخاصية مخصصة لمدير النظام (Admin) فقط.")
+            return redirect('valves:home')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+@admin_required
+def user_list_view(request):
+    """Dashboard to manage and inspect all users and their assignments."""
+    users = list(User.objects.all().select_related('profile', 'profile__factory', 'profile__technician').order_by('-is_superuser', '-is_active', 'username'))
+
+    # Auto-ensure profile for any user
+    for u in users:
+        if not hasattr(u, 'profile'):
+            role = 'admin' if u.is_superuser else ('supervisor' if u.is_staff else 'technician')
+            UserProfile.objects.create(user=u, role=role)
+
+    # Attach stats
+    for u in users:
+        u.maintenance_count = 0
+        if hasattr(u, 'profile') and u.profile.technician:
+            u.maintenance_count = MaintenanceHistory.objects.filter(technician=u.profile.technician).count()
+        u.recent_actions_count = LogEntry.objects.filter(user=u).count()
+
+    total_users = len(users)
+    active_users = sum(1 for u in users if u.is_active)
+    admins_count = sum(1 for u in users if u.is_superuser or (hasattr(u, 'profile') and u.profile.role == 'admin'))
+    technicians_count = sum(1 for u in users if hasattr(u, 'profile') and u.profile.role == 'technician')
+
+    context = {
+        'users': users,
+        'total_users': total_users,
+        'active_users': active_users,
+        'admins_count': admins_count,
+        'technicians_count': technicians_count,
+    }
+    return render(request, 'valves/user_list.html', context)
+
+
+@admin_required
+def user_create_view(request):
+    """Add a new user and assign roles and assignments."""
+    if request.method == 'POST':
+        form = UserCreateForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            first_name = form.cleaned_data.get('first_name', '')
+            last_name = form.cleaned_data.get('last_name', '')
+            email = form.cleaned_data.get('email', '')
+            role = form.cleaned_data['role']
+            factory = form.cleaned_data.get('factory')
+            technician = form.cleaned_data.get('technician')
+            phone_number = form.cleaned_data.get('phone_number', '')
+            notes = form.cleaned_data.get('notes', '')
+            is_active = form.cleaned_data.get('is_active', True)
+
+            is_superuser = (role == 'admin')
+            is_staff = (role in ['admin', 'supervisor'])
+
+            user = User.objects.create_user(
+                username=username,
+                password=password,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                is_active=is_active,
+                is_staff=is_staff,
+                is_superuser=is_superuser,
+            )
+
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.role = role
+            profile.factory = factory
+            profile.technician = technician
+            profile.phone_number = phone_number
+            profile.notes = notes
+            profile.save()
+
+            messages.success(request, f"تم بنجاح إضافة المستخدم: {username} ({profile.get_role_display()})")
+            return redirect('valves:user-list')
+    else:
+        form = UserCreateForm()
+
+    return render(request, 'valves/user_form.html', {'form': form, 'title': 'إضافة مستخدم جديد للنظام'})
+
+
+@admin_required
+def user_detail_view(request, pk):
+    """Inspect user assignments, role, permissions, and operational history."""
+    target_user = get_object_or_404(User.objects.select_related('profile', 'profile__factory', 'profile__technician'), pk=pk)
+
+    if not hasattr(target_user, 'profile'):
+        role = 'admin' if target_user.is_superuser else ('supervisor' if target_user.is_staff else 'technician')
+        profile = UserProfile.objects.create(user=target_user, role=role)
+    else:
+        profile = target_user.profile
+
+    # Fetch technician maintenance records if linked
+    maintenance_records = []
+    if profile.technician:
+        maintenance_records = MaintenanceHistory.objects.filter(technician=profile.technician).select_related('valve', 'technician').order_by('-maintenance_date')[:30]
+
+    # Fetch audit log entries
+    audit_logs = LogEntry.objects.filter(user=target_user).select_related('content_type').order_by('-action_time')[:30]
+
+    context = {
+        'target_user': target_user,
+        'profile': profile,
+        'maintenance_records': maintenance_records,
+        'audit_logs': audit_logs,
+        'permissions_list': profile.permissions_summary,
+    }
+    return render(request, 'valves/user_detail.html', context)
+
+
+@admin_required
+def user_update_view(request, pk):
+    """Edit user details, roles, permissions, and password."""
+    target_user = get_object_or_404(User, pk=pk)
+    profile, _ = UserProfile.objects.get_or_create(
+        user=target_user,
+        defaults={'role': 'admin' if target_user.is_superuser else 'technician'}
+    )
+
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST)
+        if form.is_valid():
+            target_user.first_name = form.cleaned_data.get('first_name', '')
+            target_user.last_name = form.cleaned_data.get('last_name', '')
+            target_user.email = form.cleaned_data.get('email', '')
+            target_user.is_active = form.cleaned_data.get('is_active', True)
+
+            new_password = form.cleaned_data.get('new_password')
+            if new_password:
+                target_user.set_password(new_password)
+
+            role = form.cleaned_data['role']
+            target_user.is_superuser = (role == 'admin')
+            target_user.is_staff = (role in ['admin', 'supervisor'])
+            target_user.save()
+
+            profile.role = role
+            profile.factory = form.cleaned_data.get('factory')
+            profile.technician = form.cleaned_data.get('technician')
+            profile.phone_number = form.cleaned_data.get('phone_number', '')
+            profile.notes = form.cleaned_data.get('notes', '')
+            profile.save()
+
+            messages.success(request, f"تم بنجاح تحديث بيانات وتكليفات المستخدم: {target_user.username}")
+            return redirect('valves:user-detail', pk=pk)
+    else:
+        form = UserUpdateForm(initial={
+            'first_name': target_user.first_name,
+            'last_name': target_user.last_name,
+            'email': target_user.email,
+            'role': profile.role,
+            'factory': profile.factory,
+            'technician': profile.technician,
+            'phone_number': profile.phone_number,
+            'notes': profile.notes,
+            'is_active': target_user.is_active,
+        })
+
+    return render(request, 'valves/user_form.html', {
+        'form': form,
+        'title': f'تعديل بيانات المستخدم: {target_user.username}',
+        'target_user': target_user,
+    })
+
+
+@admin_required
+def user_delete_view(request, pk):
+    """Safely delete user with validation against deleting self or last admin."""
+    target_user = get_object_or_404(User, pk=pk)
+
+    if request.user.pk == target_user.pk:
+        messages.error(request, "لا يمكنك حذف حسابك الشخصي الذي تستخدمه حالياً!")
+        return redirect('valves:user-list')
+
+    if target_user.is_superuser and User.objects.filter(is_superuser=True).count() <= 1:
+        messages.error(request, "لا يمكن حذف آخر مدير نظام (Superuser) في المنظومة!")
+        return redirect('valves:user-list')
+
+    if request.method == 'POST':
+        username = target_user.username
+        target_user.delete()
+        messages.success(request, f"تم حذف المستخدم ({username}) بنجاح.")
+        return redirect('valves:user-list')
+
+    return render(request, 'valves/user_confirm_delete.html', {'target_user': target_user})
+
+
+@admin_required
+def user_toggle_status_view(request, pk):
+    """Toggle user active / disabled status."""
+    target_user = get_object_or_404(User, pk=pk)
+
+    if request.user.pk == target_user.pk:
+        messages.error(request, "لا يمكنك تعطيل حسابك الشخصي!")
+        return redirect('valves:user-list')
+
+    target_user.is_active = not target_user.is_active
+    target_user.save()
+    status_str = "تفعيل" if target_user.is_active else "تعطيل"
+    messages.success(request, f"تم {status_str} حساب المستخدم ({target_user.username}) بنجاح.")
+    return redirect('valves:user-list')
+
+
+
 
 
 

@@ -52,4 +52,12 @@ urlpatterns = [
     path('documents/', views.documents_page, name='documents-page'),
     path('backups/', views.backup_management_view, name='backup-management'),
     path('backups/download/<str:filename>/', views.backup_download_view, name='backup-download'),
+
+    # User Management & Administration
+    path('users/', views.user_list_view, name='user-list'),
+    path('users/create/', views.user_create_view, name='user-create'),
+    path('users/<int:pk>/', views.user_detail_view, name='user-detail'),
+    path('users/<int:pk>/update/', views.user_update_view, name='user-update'),
+    path('users/<int:pk>/delete/', views.user_delete_view, name='user-delete'),
+    path('users/<int:pk>/toggle-status/', views.user_toggle_status_view, name='user-toggle-status'),
 ]

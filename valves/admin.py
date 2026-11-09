@@ -1,6 +1,13 @@
 from django.contrib import admin, messages
-from .models import Valve, SparePart, PartCode, MaintenanceHistory, MaintenancePart, ValveType, ValveStatus, Manufacturer, Technician, Shutdown
+from .models import Valve, SparePart, PartCode, MaintenanceHistory, MaintenancePart, ValveType, ValveStatus, Manufacturer, Technician, Shutdown, UserProfile
 import backup_manager
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'role', 'factory', 'technician', 'phone_number')
+    list_filter = ('role', 'factory')
+    search_fields = ('user__username', 'user__first_name', 'user__last_name', 'phone_number')
 
 
 @admin.action(description="Create Enterprise GFS Backup Snapshot")

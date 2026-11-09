@@ -324,4 +324,165 @@ class DocumentUploadForm(forms.Form):
     document_type = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'list': 'doctype-list'}))
     name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
     file = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-control'}))
+
+
+from django.contrib.auth.models import User
+from .models import UserProfile, Factory, Technician
+
+
+class UserCreateForm(forms.Form):
+    username = forms.CharField(
+        label="اسم المستخدم (Username)",
+        max_length=150,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. ahmed_tech'})
+    )
+    first_name = forms.CharField(
+        label="الاسم الأول",
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. أحمد'})
+    )
+    last_name = forms.CharField(
+        label="اسم العائلة",
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. علي'})
+    )
+    email = forms.EmailField(
+        label="البريد الإلكتروني",
+        required=False,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'ahmed@company.com'})
+    )
+    password = forms.CharField(
+        label="كلمة المرور",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        help_text="يجب ألا تقل عن 6 خانات"
+    )
+    confirm_password = forms.CharField(
+        label="تأكيد كلمة المرور",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    role = forms.ChoiceField(
+        label="الدور والصلاحيات داخل المنظومة",
+        choices=UserProfile.ROLE_CHOICES,
+        initial='technician',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    factory = forms.ModelChoiceField(
+        label="المصنع المكلف به (اختياري)",
+        queryset=Factory.objects.all(),
+        required=False,
+        empty_label="-- جميع المصانع / بدون تخصيص --",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    technician = forms.ModelChoiceField(
+        label="فني الصيانة المرتبط (اختياري)",
+        queryset=Technician.objects.all().order_by('name'),
+        required=False,
+        empty_label="-- بدون ربط بسجل فني --",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    phone_number = forms.CharField(
+        label="رقم الهاتف (اختياري)",
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '01xxxxxxxxx'})
+    )
+    notes = forms.CharField(
+        label="ملاحظات وتكليفات خاصة",
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2})
+    )
+    is_active = forms.BooleanField(
+        label="الحساب مفعل ويمكنه تسجيل الدخول",
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
+    def clean_username(self):
+        username = self.cleaned_data['username'].strip()
+        if User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError("اسم المستخدم هذا مستخدم بالفعل، يرجى اختيار اسم آخر.")
+        return username
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        confirm_password = cleaned_data.get("confirm_password")
+
+        if password and confirm_password:
+            if password != confirm_password:
+                self.add_error('confirm_password', "كلمات المرور غير متطابقة.")
+            if len(password) < 6:
+                self.add_error('password', "كلمة المرور يجب أن تكون 6 خانات على الأقل.")
+        return cleaned_data
+
+
+class UserUpdateForm(forms.Form):
+    first_name = forms.CharField(
+        label="الاسم الأول",
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    last_name = forms.CharField(
+        label="اسم العائلة",
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    email = forms.EmailField(
+        label="البريد الإلكتروني",
+        required=False,
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
+    new_password = forms.CharField(
+        label="تعيين كلمة مرور جديدة",
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        required=False,
+        help_text="اتركه فارغاً إذا كنت لا ترغب بتغيير كلمة المرور الحالية"
+    )
+    role = forms.ChoiceField(
+        label="الدور والصلاحيات داخل المنظومة",
+        choices=UserProfile.ROLE_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    factory = forms.ModelChoiceField(
+        label="المصنع المكلف به (اختياري)",
+        queryset=Factory.objects.all(),
+        required=False,
+        empty_label="-- جميع المصانع / بدون تخصيص --",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    technician = forms.ModelChoiceField(
+        label="فني الصيانة المرتبط (اختياري)",
+        queryset=Technician.objects.all().order_by('name'),
+        required=False,
+        empty_label="-- بدون ربط بسجل فني --",
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    phone_number = forms.CharField(
+        label="رقم الهاتف (اختياري)",
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    notes = forms.CharField(
+        label="ملاحظات وتكليفات خاصة",
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2})
+    )
+    is_active = forms.BooleanField(
+        label="الحساب مفعل ويمكنه تسجيل الدخول",
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+
+    def clean_new_password(self):
+        new_password = self.cleaned_data.get('new_password')
+        if new_password and len(new_password) < 6:
+            raise forms.ValidationError("كلمة المرور الجديدة يجب ألا تقل عن 6 خانات.")
+        return new_password
+
         

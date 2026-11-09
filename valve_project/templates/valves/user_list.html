@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إدارة المستخدمين والصلاحيات - Valve Workshop{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" dir="rtl">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h3 font-weight-bold mb-1">
+                <i class="fas fa-users-cog text-primary me-2"></i>إدارة المستخدمين والصلاحيات والتكليفات
+            </h2>
+            <p class="text-muted mb-0">لوحة تحكم مدير النظام لإضافة وتعديل وحذف المستخدمين والاطلاع على مهامهم وسجلاتهم داخل المنظومة</p>
+        </div>
+        <div>
+            <a href="{% url 'valves:user-create' %}" class="btn btn-primary btn-lg shadow-sm">
+                <i class="fas fa-user-plus me-1"></i> إضافة مستخدم جديد
+            </a>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-info-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 ms-3 text-primary">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">إجمالي المستخدمين</div>
+                            <div class="h4 mb-0 fw-bold">{{ total_users }} مستخدم</div>
+                            <small class="text-success"><i class="fas fa-check"></i> مسجلين بالنظام</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-danger bg-opacity-10 p-3 ms-3 text-danger">
+                            <i class="fas fa-user-shield fa-2x"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">مديرو النظام (Admins)</div>
+                            <div class="h4 mb-0 fw-bold">{{ admins_count }} مسؤول</div>
+                            <small class="text-muted">صلاحيات إدارة كاملة</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-3 ms-3 text-info">
+                            <i class="fas fa-tools fa-2x"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">فنيو ومسؤولو الصيانة</div>
+                            <div class="h4 mb-0 fw-bold">{{ technicians_count }} فني</div>
+                            <small class="text-muted">مكلفون بالعمل الميداني</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-3 ms-3 text-success">
+                            <i class="fas fa-user-check fa-2x"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small">الحسابات النشطة</div>
+                            <div class="h4 mb-0 fw-bold">{{ active_users }} حساب</div>
+                            <small class="text-success"><i class="fas fa-bolt"></i> يمكنهم الدخول</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-list-ul me-2 text-primary"></i>قائمة المستخدمين وتكليفاتهم</h5>
+            <span class="badge bg-light text-dark border">العدد: {{ users|length }}</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>المستخدم</th>
+                            <th>الدور والصلاحية</th>
+                            <th>المصنع المسؤول عنه</th>
+                            <th>الفني المرتبط</th>
+                            <th>عمليات الصيانة</th>
+                            <th>الحالة</th>
+                            <th>آخر دخول</th>
+                            <th class="text-center" style="min-width: 180px;">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary d-flex align-items-center justify-content-center ms-2" style="width: 40px; height: 40px; font-weight: bold;">
+                                        {{ u.username|slice:":1"|upper }}
+                                    </div>
+                                    <div>
+                                        <strong>{{ u.username }}</strong>
+                                        {% if u.get_full_name %}
+                                            <div class="text-muted small">{{ u.get_full_name }}</div>
+                                        {% endif %}
+                                        {% if u.email %}
+                                            <div class="text-muted small"><i class="fas fa-envelope me-1"></i>{{ u.email }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ u.profile.role_badge_color }} px-2 py-1">
+                                    {{ u.profile.get_role_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if u.profile.factory %}
+                                    <span class="badge bg-{{ u.profile.factory.get_color }}">{{ u.profile.factory.name }}</span>
+                                {% else %}
+                                    <span class="text-muted small">جميع المصانع</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.profile.technician %}
+                                    <span class="fw-bold text-dark"><i class="fas fa-hard-hat text-warning me-1"></i>{{ u.profile.technician.name }}</span>
+                                {% else %}
+                                    <span class="text-muted small">غير مرتبط</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.maintenance_count > 0 %}
+                                    <span class="badge bg-primary rounded-pill">{{ u.maintenance_count }} عملية</span>
+                                {% else %}
+                                    <span class="text-muted small">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if u.is_active %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                        <i class="fas fa-check-circle me-1"></i>مفعل
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
+                                        <i class="fas fa-times-circle me-1"></i>معطل
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {% if u.last_login %}
+                                        {{ u.last_login|date:"Y-m-d H:i" }}
+                                    {% else %}
+                                        لم يدخل بعد
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'valves:user-detail' u.pk %}" class="btn btn-outline-info" title="عرض تفاصيل وصلاحيات المستخدم">
+                                        <i class="fas fa-eye"></i> تفاصيل
+                                    </a>
+                                    <a href="{% url 'valves:user-update' u.pk %}" class="btn btn-outline-primary" title="تعديل المستخدم والصلاحية">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="POST" action="{% url 'valves:user-toggle-status' u.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        {% if u.is_active %}
+                                            <button type="submit" class="btn btn-outline-warning" title="تعطيل الحساب" {% if u.pk == request.user.pk %}disabled{% endif %}>
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-outline-success" title="تفعيل الحساب">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                    <a href="{% url 'valves:user-delete' u.pk %}" class="btn btn-outline-danger {% if u.pk == request.user.pk %}disabled{% endif %}" title="حذف المستخدم">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                لا يوجد مستخدمين مسجلين حالياً.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

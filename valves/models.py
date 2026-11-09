@@ -1,5 +1,8 @@
 import os
 from django.db import models
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 def get_valve_image_upload_path(instance, filename):
     # file will be uploaded to MEDIA_ROOT/valves/<tag_number>/<category>/<filename>
@@ -165,3 +168,83 @@ class ValveImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.valve.tag_number} - {self.get_category_display()}"
+
+
+class UserProfile(models.Model):
+    """
+    ملف تعريف المستخدم وصلاحياته وتكليفاته داخل منظومة الورشة.
+    """
+    ROLE_CHOICES = [
+        ('admin', 'Admin - مدير النظام (صلاحيات كاملة)'),
+        ('supervisor', 'Supervisor - مهندس / مشرف صيانة'),
+        ('technician', 'Technician - فني صيانة ميداني'),
+        ('viewer', 'Viewer - مشاهد فقط (للاطلاع والقراءة)'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='technician', verbose_name="الدور والصلاحية")
+    factory = models.ForeignKey(Factory, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="المصنع المسؤول عنه")
+    technician = models.ForeignKey(Technician, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="فني الصيانة المرتبط")
+    phone_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="رقم الهاتف")
+    notes = models.TextField(blank=True, null=True, verbose_name="ملاحظات وتكليفات")
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        verbose_name = "ملف المستخدم"
+        verbose_name_plural = "ملفات المستخدمين"
+
+    def __str__(self):
+        return f"{self.user.username} ({self.get_role_display()})"
+
+    @property
+    def role_badge_color(self):
+        colors = {
+            'admin': 'danger',
+            'supervisor': 'warning text-dark',
+            'technician': 'primary',
+            'viewer': 'secondary',
+        }
+        return colors.get(self.role, 'info')
+
+    @property
+    def permissions_summary(self):
+        """قائمة الصلاحيات الفعلية الممنوحة للمستخدم داخل المنظومة"""
+        if self.role == 'admin' or self.user.is_superuser:
+            return [
+                "إدارة المستخدمين والصلاحيات (إضافة / تعديل / حذف)",
+                "إدارة وتعديل الصمامات والمواصفات الهندسية",
+                "تسجيل وتعديل سجلات الصيانة وقراءات الاختبار",
+                "إدارة قطع الغيار وأكواد SAP/Oracle والمخزون",
+                "توليد وطباعة تقارير العمرة والشداون",
+                "إنشاء واستعادة النسخ الاحتياطية وتصديرها لـ USB",
+                "الوصول للوحة تحكم إدارة دجانغو (Admin Panel)",
+            ]
+        elif self.role == 'supervisor':
+            return [
+                "إدارة وتعديل الصمامات والمواصفات الفنية",
+                "تسجيل وتعديل سجلات الصيانة وقراءات الاختبار",
+                "إدارة قطع الغيار وأكواد SAP/Oracle والمخزون",
+                "توليد وطباعة تقارير العمرة والشداون",
+                "إنشاء نسخ احتياطية يدوية للنظام",
+            ]
+        elif self.role == 'technician':
+            return [
+                "تسجيل عمليات الصيانة الميدانية وربط قطع الغيار المستخدمة",
+                "رفع صور الصيانة (قبل وبعد الإصلاح)",
+                "البحث واستعراض الصمامات وقطع الغيار",
+                "الاطلاع على مستندات ومخططات P&ID",
+            ]
+        else:  # viewer
+            return [
+                "استعراض الصمامات والبحث في المواصفات الهندسية",
+                "استعراض سجلات الصيانة السابقة للمصانع",
+                "الاطلاع على التقارير والمستندات (للقراءة فقط)",
+            ]
+
+
+@receiver(post_save, sender=User)
+def create_or_save_user_profile(sender, instance, created, **kwargs):
+    if created:
+        role = 'admin' if instance.is_superuser else ('supervisor' if instance.is_staff else 'technician')
+        UserProfile.objects.get_or_create(user=instance, defaults={'role': role})
+

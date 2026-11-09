@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.contrib.auth.models import User
 from valves.models import Valve, MaintenanceHistory, PartCode, Technician
 from django.utils import timezone
 
@@ -153,5 +154,78 @@ class BackupEngineAndViewsTest(TestCase):
         response = self.client.get(reverse('valves:backup-management'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Enterprise Backup & Disaster Recovery")
+
+
+class UserManagementTest(TestCase):
+    def setUp(self):
+        self.admin_user = User.objects.create_superuser(
+            username="admin_test",
+            password="adminpassword123",
+            email="admin@test.com"
+        )
+        self.normal_user = User.objects.create_user(
+            username="normal_test",
+            password="normalpassword123",
+            email="normal@test.com"
+        )
+        self.factory = Factory.objects.create(name="AFC II")
+        self.technician = Technician.objects.create(name="Tarek Tech")
+
+    def test_user_list_requires_admin(self):
+        # Anonymous user redirected to login
+        resp = self.client.get(reverse('valves:user-list'))
+        self.assertEqual(resp.status_code, 302)
+
+        # Normal user redirected with error
+        self.client.login(username="normal_test", password="normalpassword123")
+        resp = self.client.get(reverse('valves:user-list'))
+        self.assertEqual(resp.status_code, 302)
+
+        # Admin user gets 200 OK
+        self.client.login(username="admin_test", password="adminpassword123")
+        resp = self.client.get(reverse('valves:user-list'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "admin_test")
+        self.assertContains(resp, "normal_test")
+
+    def test_user_create_by_admin(self):
+        self.client.login(username="admin_test", password="adminpassword123")
+        post_data = {
+            'username': 'new_technician',
+            'first_name': 'Ali',
+            'last_name': 'Hassan',
+            'email': 'ali@test.com',
+            'password': 'password123',
+            'confirm_password': 'password123',
+            'role': 'technician',
+            'factory': self.factory.pk,
+            'technician': self.technician.pk,
+            'is_active': True,
+        }
+        resp = self.client.post(reverse('valves:user-create'), data=post_data)
+        self.assertEqual(resp.status_code, 302)
+
+        # Verify user created with profile
+        new_user = User.objects.get(username='new_technician')
+        self.assertEqual(new_user.first_name, 'Ali')
+        self.assertEqual(new_user.profile.role, 'technician')
+        self.assertEqual(new_user.profile.factory, self.factory)
+        self.assertEqual(new_user.profile.technician, self.technician)
+
+    def test_user_cannot_delete_self(self):
+        self.client.login(username="admin_test", password="adminpassword123")
+        # Attempt to delete self
+        resp = self.client.post(reverse('valves:user-delete', kwargs={'pk': self.admin_user.pk}))
+        self.assertEqual(resp.status_code, 302)
+        # Verify self still exists
+        self.assertTrue(User.objects.filter(pk=self.admin_user.pk).exists())
+
+    def test_user_detail_view(self):
+        self.client.login(username="admin_test", password="adminpassword123")
+        resp = self.client.get(reverse('valves:user-detail', kwargs={'pk': self.normal_user.pk}))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "normal_test")
+        self.assertContains(resp, "الصلاحيات")
+
 
 
