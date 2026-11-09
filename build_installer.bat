@@ -15,3 +15,4 @@ if exist "env_laptop\Scripts\python.exe" (
 echo.
 echo Build script finished. Press any key to exit.
 pause
+
