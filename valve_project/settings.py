@@ -63,17 +63,13 @@ else:
     BACKUP_DIR = BASE_DIR / 'backups'
     SECRET_KEY = os.environ.get('SECRET_KEY', '901866ce8340bb820742ec60ffaaf183864bf59f2f6249e19504bb583e2562b6')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False' if (IS_FROZEN or DESKTOP_MODE) else 'True') == 'True'
+# في وضع الديسكتوب، يتم تفعيل DEBUG لضمان عدم توقف السيرفر وإتاحة تتبع أي خطأ
+if DESKTOP_MODE:
+    DEBUG = True
+else:
+    DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = [
-    'valvesworkshop.site',
-    'www.valvesworkshop.site',
-    'localhost',
-    '127.0.0.1',
-    '0.0.0.0',
-    '*',
-]
+ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://valvesworkshop.site',
@@ -140,7 +136,7 @@ if DESKTOP_MODE or 'test' in sys.argv or os.environ.get('USE_SQLITE'):
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': str(DB_PATH),
             'OPTIONS': {
-                'timeout': 20,
+                'timeout': 30,
             },
         }
     }
@@ -195,8 +191,8 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BUNDLE_DIR / 'staticfiles'
 
-# WhiteNoise configuration for high performance static delivery
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage' if not DEBUG else 'django.contrib.staticfiles.storage.StaticFilesStorage'
+# استخدام التخزين الآمن الذي لا ينهار إذا كان هناك ملف مفقود
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 WHITENOISE_USE_FINDERS = True
 
 # Media files (Dynamic User Uploads)
@@ -214,7 +210,10 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if not DESKTOP_MODE:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+else:
+    SECURE_PROXY_SSL_HEADER = None
 
 # Logging Configuration
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
