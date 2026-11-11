@@ -4,21 +4,21 @@
 {% block title %}Enterprise Backup & Disaster Recovery - Valve Workshop{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" dir="auto">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <div>
             <h2 class="h3 font-weight-bold mb-1">
-                <i class="fas fa-shield-alt text-primary me-2"></i>Enterprise Backup & Disaster Recovery
+                <i class="fas fa-shield-alt text-primary me-2"></i>النسخ الاحتياطي واستعادة النظام (Backup & Disaster Recovery)
             </h2>
-            <p class="text-muted mb-0">Grandfather-Father-Son (GFS) Automated Snapshot & Point-in-Time Recovery System</p>
+            <p class="text-muted mb-0">نظام النسخ الدائري الآمن (GFS 7-Day Rolling Engine) مع إمكانية الاستعادة الفورية بنقرة زر بدون أي فقدان للبيانات.</p>
         </div>
         <div class="d-flex gap-2">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBackupModal">
-                <i class="fas fa-plus-circle me-1"></i> Create Backup Now
+            <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createBackupModal">
+                <i class="fas fa-plus-circle me-1"></i> إنشاء نسخة الآن (Create Backup)
             </button>
-            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#uploadRestoreModal">
-                <i class="fas fa-upload me-1"></i> Upload & Restore
+            <button type="button" class="btn btn-outline-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#uploadRestoreModal">
+                <i class="fas fa-upload me-1"></i> رفع واستعادة أرشيف (Upload & Restore)
             </button>
         </div>
     </div>
@@ -27,7 +27,7 @@
     {% if messages %}
     <div class="mb-4">
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
             <i class="fas fa-info-circle me-2"></i>{{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -45,7 +45,7 @@
                             <i class="fas fa-database fa-2x"></i>
                         </div>
                         <div>
-                            <div class="text-muted small">Database Engine</div>
+                            <div class="text-muted small">محرك قاعدة البيانات</div>
                             <div class="h5 mb-0 fw-bold">SQLite 3 (WAL)</div>
                             <small class="text-success"><i class="fas fa-check-circle"></i> Enterprise Pragmas</small>
                         </div>
@@ -62,9 +62,9 @@
                             <i class="fas fa-archive fa-2x"></i>
                         </div>
                         <div>
-                            <div class="text-muted small">Stored Snapshots</div>
-                            <div class="h5 mb-0 fw-bold">{{ total_backups_count }} Archives</div>
-                            <small class="text-muted">{{ total_size_mb }} MB total</small>
+                            <div class="text-muted small">النسخ المحفوظة</div>
+                            <div class="h5 mb-0 fw-bold">{{ total_backups_count }} أرشيف</div>
+                            <small class="text-muted">{{ total_size_mb }} MB الإجمالي</small>
                         </div>
                     </div>
                 </div>
@@ -79,9 +79,9 @@
                             <i class="fas fa-history fa-2x"></i>
                         </div>
                         <div>
-                            <div class="text-muted small">GFS Retention Quotas</div>
-                            <div class="h6 mb-0 fw-bold">7D / 4W / 12M / 5Y</div>
-                            <small class="text-muted">Auto-Pruning Active</small>
+                            <div class="text-muted small">سياسة الاحتفاظ الأسبوعي</div>
+                            <div class="h6 mb-0 fw-bold">7 أيام دورية (Rolling 7D)</div>
+                            <small class="text-muted">مسح اليوم الأقدم مع اليوم الثامن</small>
                         </div>
                     </div>
                 </div>
@@ -96,9 +96,9 @@
                             <i class="fas fa-lock fa-2x"></i>
                         </div>
                         <div>
-                            <div class="text-muted small">Integrity Standard</div>
+                            <div class="text-muted small">معيار الحماية والتكامل</div>
                             <div class="h6 mb-0 fw-bold">SHA-256 Verified</div>
-                            <small class="text-muted">Zero Corruption Tolerance</small>
+                            <small class="text-muted">حماية ضد التلف تماماً</small>
                         </div>
                     </div>
                 </div>
@@ -108,21 +108,21 @@
 
     <!-- Active Backups Table -->
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>Available Snapshots</h5>
-            <small class="text-muted">Isolated Storage: <code>{{ backup_dir }}</code></small>
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>النسخ الاحتياطية المتاحة للاستعادة (Available Snapshots)</h5>
+            <small class="text-muted">المسار المعزول: <code>{{ backup_dir }}</code></small>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Category</th>
-                            <th>Snapshot Archive</th>
-                            <th>Timestamp</th>
-                            <th>Size</th>
-                            <th>Integrity Checksum</th>
-                            <th class="text-end">Actions</th>
+                            <th>النوع (Category)</th>
+                            <th>اسم الأرشيف (Archive)</th>
+                            <th>تاريخ الإنشاء (Timestamp)</th>
+                            <th>الحجم (Size)</th>
+                            <th>بصمة التكامل (Checksum)</th>
+                            <th class="text-end">الإجراءات (Actions)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -130,17 +130,17 @@
                         <tr>
                             <td>
                                 {% if b.category == 'daily' %}
-                                    <span class="badge bg-primary">Daily</span>
+                                    <span class="badge bg-primary">يومي (Daily)</span>
                                 {% elif b.category == 'weekly' %}
-                                    <span class="badge bg-info text-dark">Weekly</span>
+                                    <span class="badge bg-info text-dark">أسبوعي (Weekly)</span>
                                 {% elif b.category == 'monthly' %}
-                                    <span class="badge bg-success">Monthly</span>
+                                    <span class="badge bg-success">شهري (Monthly)</span>
                                 {% elif b.category == 'yearly' %}
-                                    <span class="badge bg-warning text-dark">Yearly</span>
+                                    <span class="badge bg-warning text-dark">سنوي (Yearly)</span>
                                 {% elif b.category == 'shutdown' %}
-                                    <span class="badge bg-secondary">Pre-Shutdown</span>
+                                    <span class="badge bg-secondary">قبل الإغلاق (Pre-Shutdown)</span>
                                 {% else %}
-                                    <span class="badge bg-dark">Manual</span>
+                                    <span class="badge bg-dark">يدوي (Manual)</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -154,68 +154,36 @@
                             <td>
                                 {% if b.has_checksum %}
                                     <span class="badge bg-success bg-opacity-10 text-success">
-                                        <i class="fas fa-check-circle me-1"></i>SHA-256 Available
+                                        <i class="fas fa-check-circle me-1"></i>SHA-256 متوفر
                                     </span>
                                 {% else %}
-                                    <span class="badge bg-warning text-dark">No Checksum</span>
+                                    <span class="badge bg-warning text-dark">بدون Checksum</span>
                                 {% endif %}
                             </td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{% url 'valves:backup-download' b.filename %}" class="btn btn-outline-primary" title="Export to USB / External Drive">
-                                        <i class="fas fa-download"></i> Export
+                                    <a href="{% url 'valves:backup-download' b.filename %}" class="btn btn-outline-primary" title="تحميل على الفلاشة أو القرص الخارجي">
+                                        <i class="fas fa-download"></i> تصدير
                                     </a>
                                     <form method="POST" action="{% url 'valves:backup-management' %}" class="d-inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="verify">
                                         <input type="hidden" name="filename" value="{{ b.filename }}">
-                                        <button type="submit" class="btn btn-outline-info" title="Verify SHA-256 Checksum">
-                                            <i class="fas fa-check-double"></i> Verify
+                                        <button type="submit" class="btn btn-outline-info" title="فحص البصمة والتأكد من سلامة الأرشيف">
+                                            <i class="fas fa-check-double"></i> فحص
                                         </button>
                                     </form>
-                                    <button type="button" class="btn btn-outline-danger" title="Restore Point-in-Time" data-bs-toggle="modal" data-bs-target="#confirmRestoreModal-{{ forloop.counter }}">
-                                        <i class="fas fa-undo"></i> Restore
+                                    <button type="button" class="btn btn-outline-danger" title="استعادة النظام إلى هذه اللحظة" data-bs-toggle="modal" data-bs-target="#confirmRestoreModal-{{ forloop.counter }}">
+                                        <i class="fas fa-undo"></i> استعادة (Restore)
                                     </button>
-                                </div>
-
-                                <!-- Restore Modal for this item -->
-                                <div class="modal fade text-start" id="confirmRestoreModal-{{ forloop.counter }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-danger text-white">
-                                                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirm Snapshot Restoration</h5>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <p>Are you sure you want to restore the system to this snapshot?</p>
-                                                <div class="alert alert-secondary">
-                                                    <strong>Target Archive:</strong> {{ b.filename }}<br>
-                                                    <strong>Created:</strong> {{ b.timestamp }}<br>
-                                                    <strong>Size:</strong> {{ b.size_mb }} MB
-                                                </div>
-                                                <p class="text-muted small mb-0">
-                                                    <i class="fas fa-shield-alt text-success me-1"></i> A safety backup of the current database will be generated automatically before restoring.
-                                                </p>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <form method="POST" action="{% url 'valves:backup-management' %}">
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="action" value="restore">
-                                                    <input type="hidden" name="filename" value="{{ b.filename }}">
-                                                    <button type="submit" class="btn btn-danger">Proceed with Restoration</button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">
-                                <i class="fas fa-box-open fa-2x mb-2 d-block"></i>
-                                No backups currently found. Click "Create Backup Now" above to generate your first snapshot.
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fas fa-box-open fa-3x mb-3 text-secondary d-block"></i>
+                                لا توجد نسخ احتياطية مسجلة حالياً. اضغط على زر "إنشاء نسخة الآن" بأعلى الصفحة لإنشاء أول نسخة.
                             </td>
                         </tr>
                         {% endfor %}
@@ -227,28 +195,28 @@
 </div>
 
 <!-- Modal: Create Backup -->
-<div class="modal fade" id="createBackupModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="createBackupModal" tabindex="-1" aria-hidden="true" dir="auto">
     <div class="modal-dialog">
         <form method="POST" action="{% url 'valves:backup-management' %}">
             {% csrf_token %}
             <input type="hidden" name="action" value="create">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-plus-circle text-primary me-2"></i>Create Manual Snapshot</h5>
+                    <h5 class="modal-title"><i class="fas fa-plus-circle text-primary me-2"></i>إنشاء نسخة احتياطية فورية</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Snapshot Description / Note (Optional)</label>
-                        <input type="text" name="note" class="form-control" placeholder="e.g. Pre-maintenance update, external audit archive">
+                        <label class="form-label fw-bold">وصف أو ملاحظة النسخة (اختياري)</label>
+                        <input type="text" name="note" class="form-control" placeholder="مثال: نسخة قبل أعمال الصيانة الشاملة، أو قبل التحديث">
                     </div>
                     <div class="alert alert-info small mb-0">
-                        <i class="fas fa-info-circle me-1"></i> This creates an atomic live SQLite snapshot, bundles all media files, calculates a SHA-256 checksum, and stores the archive in your local app data directory.
+                        <i class="fas fa-info-circle me-1"></i> يتم إنشاء نسخة ذرية حية لقاعدة البيانات بدون إيقاف العمل، مع حزم الملفات والمرفقات واحتساب بصمة SHA-256 للحماية ضد أي تلف.
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Start Backup</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> بدء النسخ الاحتياطي</button>
                 </div>
             </div>
         </form>
@@ -256,32 +224,65 @@
 </div>
 
 <!-- Modal: Upload & Restore -->
-<div class="modal fade" id="uploadRestoreModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="uploadRestoreModal" tabindex="-1" aria-hidden="true" dir="auto">
     <div class="modal-dialog">
         <form method="POST" action="{% url 'valves:backup-management' %}" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" name="action" value="restore">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="fas fa-upload me-2"></i>Upload External Backup Archive</h5>
+                    <h5 class="modal-title"><i class="fas fa-upload me-2"></i>رفع واستعادة نسخة احتياطية خارجية</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Select Backup Archive (.zip)</label>
+                        <label class="form-label fw-bold">حدد ملف الأرشيف (.zip)</label>
                         <input type="file" name="backup_file" class="form-control" accept=".zip" required>
                     </div>
                     <div class="alert alert-warning small mb-0">
-                        <i class="fas fa-exclamation-triangle me-1"></i> Uploading and restoring will verify SHA-256 integrity, create a safety snapshot of current data, and restore the database and media files from the uploaded archive.
+                        <i class="fas fa-exclamation-triangle me-1"></i> <strong>تنبيه هام:</strong> سيقوم النظام بفحص سلامة الأرشيف تلقائياً، وإنشاء نسخة أمان احتياطية من بياناتك الحالية فوراً، ثم استبدال قاعدة البيانات والمرفقات بتلك الموجودة بالأرشيف المرفوع.
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger"><i class="fas fa-undo me-1"></i> Upload & Restore</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-undo me-1"></i> تأكيد الرفع والاستعادة</button>
                 </div>
             </div>
         </form>
     </div>
 </div>
-{% endblock %}
 
+<!-- Restore Modals (Placed outside table to prevent DOM clipping or backdrop issues) -->
+{% for b in backups %}
+<div class="modal fade text-start" id="confirmRestoreModal-{{ forloop.counter }}" tabindex="-1" aria-hidden="true" dir="auto">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>تأكيد استعادة النسخة الاحتياطية</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="fw-bold">هل أنت متأكد من رغبتك في استعادة النظام إلى هذه اللحظة الزمنية؟</p>
+                <div class="alert alert-secondary">
+                    <strong>الأرشيف المستهدف:</strong> {{ b.filename }}<br>
+                    <strong>تاريخ الإنشاء:</strong> {{ b.timestamp }}<br>
+                    <strong>الحجم:</strong> {{ b.size_mb }} MB
+                </div>
+                <p class="text-muted small mb-0">
+                    <i class="fas fa-shield-alt text-success me-1"></i> سيتم تلقائياً حفظ نسخة أمان احتياطية كاملة من قاعدة البيانات الحالية قبل بدء الاستعادة لتتمكن من الرجوع إليها إن أردت.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <form method="POST" action="{% url 'valves:backup-management' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="restore">
+                    <input type="hidden" name="filename" value="{{ b.filename }}">
+                    <button type="submit" class="btn btn-danger">تأكيد الاستعادة الآن</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

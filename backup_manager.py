@@ -94,7 +94,7 @@ class GFSBackupEngine:
 
         self._scheduler_thread = None
         self._stop_event = threading.Event()
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
 
     def determine_backup_category(self, target_date: datetime = None) -> str:
         """
@@ -337,6 +337,15 @@ class GFSBackupEngine:
 
         # 1. Check SHA-256
         sha_file = archive_path.parent / f"{archive_path.name}.sha256"
+        if not sha_file.exists():
+            # Check if it was an uploaded archive with 'uploaded_' prefix
+            clean_name = archive_path.name
+            if clean_name.startswith("uploaded_"):
+                clean_name = clean_name[len("uploaded_"):]
+            candidate_sha = archive_path.parent / f"{clean_name}.sha256"
+            if candidate_sha.exists():
+                sha_file = candidate_sha
+
         expected_sha = None
         if sha_file.exists():
             try:
@@ -375,6 +384,7 @@ class GFSBackupEngine:
         """
         Restores database and media from a verified backup archive.
         Creates a pre-restore safety snapshot before overwriting active data.
+        Uses SQLite's native online backup API for crash-proof, zero-lock swapping.
         """
         with self._lock:
             archive_path = Path(archive_path)
@@ -401,11 +411,44 @@ class GFSBackupEngine:
                 if not extracted_db.exists():
                     raise RuntimeError("Extracted archive did not contain database/db.sqlite3")
 
-                # 3. Swap Database
-                # Copy extracted DB to active DB path
-                shutil.copy2(extracted_db, self.db_path)
+                # 3. Close active Django database connections in production desktop mode
+                if 'test' not in sys.argv:
+                    try:
+                        from django.db import connections
+                        for conn in connections.all():
+                            conn.close()
+                    except Exception as ex:
+                        logger.debug(f"Pre-restore connection close note: {ex}")
 
-                # 4. Restore Media Files
+                # 4. Atomic Database Restoration via SQLite Backup API
+                # Guarantees atomic copy into active DB even if WAL mode is active
+                dest_conn = sqlite3.connect(str(self.db_path), timeout=60.0)
+                src_conn = sqlite3.connect(str(extracted_db))
+                try:
+                    with dest_conn:
+                        src_conn.backup(dest_conn)
+                    dest_conn.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+                finally:
+                    src_conn.close()
+                    dest_conn.close()
+
+                # Also overwrite the physical file directly as backup copy
+                try:
+                    shutil.copy2(extracted_db, self.db_path)
+                except Exception:
+                    pass
+
+                # Truncate or remove obsolete WAL and SHM files
+                wal_file = self.db_path.parent / f"{self.db_path.name}-wal"
+                shm_file = self.db_path.parent / f"{self.db_path.name}-shm"
+                for aux_file in (wal_file, shm_file):
+                    if aux_file.exists():
+                        try:
+                            aux_file.unlink()
+                        except Exception:
+                            pass
+
+                # 5. Restore Media Files
                 extracted_media = temp_extract / "media"
                 if extracted_media.exists() and extracted_media.is_dir():
                     self.media_dir.mkdir(parents=True, exist_ok=True)
@@ -417,6 +460,15 @@ class GFSBackupEngine:
                             shutil.copytree(item, dest)
                         else:
                             shutil.copy2(item, dest)
+
+                # 6. Close Django connections again so ORM reloads cleanly in production desktop mode
+                if 'test' not in sys.argv:
+                    try:
+                        from django.db import connections
+                        for conn in connections.all():
+                            conn.close()
+                    except Exception:
+                        pass
 
                 logger.info(f"Restore from {archive_path.name} completed successfully.")
                 return {

@@ -130,8 +130,11 @@ class BackupEngineAndViewsTest(TestCase):
             data_dir=self.data_dir,
             backup_dir=self.backup_dir
         )
+        self.old_engine_instance = backup_manager._engine_instance
+        backup_manager._engine_instance = self.engine
 
     def tearDown(self):
+        backup_manager._engine_instance = self.old_engine_instance
         shutil.rmtree(self.test_dir, ignore_errors=True)
 
     def test_create_and_verify_backup(self):
@@ -151,10 +154,84 @@ class BackupEngineAndViewsTest(TestCase):
         self.assertEqual(verify_res.get("sha256"), res["checksum"])
 
     def test_backup_management_view(self):
-        """Test that the /backups/ dashboard view renders with 200 OK"""
+        """Test that the /backups/ dashboard view renders with 200 OK for logged in user"""
+        user = User.objects.create_user(username="backup_tester", password="password123")
+        self.client.login(username="backup_tester", password="password123")
         response = self.client.get(reverse('valves:backup-management'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Enterprise Backup & Disaster Recovery")
+        self.assertContains(response, "النسخ الاحتياطي واستعادة النظام")
+
+    def test_restore_backup(self):
+        """Test point-in-time restore from backup archive"""
+        res = self.engine.create_backup(backup_type="manual", note="Pre-change snapshot")
+        self.assertTrue(res.get("success"))
+        archive_path = Path(res["archive_path"])
+
+        # Insert extra data
+        conn = sqlite3.connect(str(self.db_file))
+        conn.execute("INSERT INTO test_table (name) VALUES ('Temporary Valve 2');")
+        conn.commit()
+        conn.close()
+
+        # Verify extra data exists
+        conn = sqlite3.connect(str(self.db_file))
+        cur = conn.cursor()
+        cur.execute("SELECT count(*) FROM test_table;")
+        self.assertEqual(cur.fetchone()[0], 2)
+        conn.close()
+
+        # Restore from backup archive
+        restore_res = self.engine.restore_backup(archive_path)
+        self.assertTrue(restore_res.get("success"))
+        self.assertTrue(restore_res.get("safety_backup"))
+
+        # Verify active DB restored back to 1 row
+        conn = sqlite3.connect(str(self.db_file))
+        cur = conn.cursor()
+        cur.execute("SELECT count(*) FROM test_table;")
+        self.assertEqual(cur.fetchone()[0], 1)
+        cur.execute("SELECT name FROM test_table;")
+        self.assertEqual(cur.fetchone()[0], "Test Valve")
+        conn.close()
+
+    def test_restore_via_view_action(self):
+        """Test trigger restore through POST to backup-management view"""
+        user = User.objects.create_superuser(username="admin_backup_view", password="password123", email="admin@b.com")
+        self.client.login(username="admin_backup_view", password="password123")
+
+        # Create a backup
+        create_resp = self.client.post(reverse('valves:backup-management'), {'action': 'create', 'note': 'View test'})
+        self.assertEqual(create_resp.status_code, 302)
+
+        engine = backup_manager.get_backup_engine()
+        backups = engine.list_backups()
+        self.assertTrue(len(backups) > 0)
+        latest_file = backups[0]['filename']
+
+        # Trigger restore
+        restore_resp = self.client.post(reverse('valves:backup-management'), {
+            'action': 'restore',
+            'filename': latest_file,
+        })
+        self.assertEqual(restore_resp.status_code, 302)
+
+    def test_upload_and_restore_via_view(self):
+        """Test uploading an external backup archive and restoring from it"""
+        user = User.objects.create_superuser(username="admin_upload_view", password="password123", email="admin2@b.com")
+        self.client.login(username="admin_upload_view", password="password123")
+
+        # Create an archive to upload
+        res = self.engine.create_backup(backup_type="manual", note="Uploadable test backup")
+        archive_path = Path(res["archive_path"])
+
+        with open(archive_path, 'rb') as f:
+            uploaded = SimpleUploadedFile("external_backup.zip", f.read(), content_type="application/zip")
+
+        resp = self.client.post(reverse('valves:backup-management'), {
+            'action': 'restore',
+            'backup_file': uploaded,
+        })
+        self.assertEqual(resp.status_code, 302)
 
 
 class UserManagementTest(TestCase):

@@ -1591,9 +1591,11 @@ def documents_page(request):
 # ==========================================
 
 from django.http import FileResponse, Http404
+from django.contrib.auth.decorators import login_required
 import backup_manager
 
 
+@login_required
 def backup_management_view(request):
     """Enterprise Backup & Restore Management Dashboard."""
     engine = backup_manager.get_backup_engine()
@@ -1604,9 +1606,9 @@ def backup_management_view(request):
             note = request.POST.get('note', 'Manual snapshot from Web/Desktop UI')
             res = engine.create_backup(backup_type='manual', note=note)
             if res.get('success'):
-                messages.success(request, f"Backup successfully created: {res.get('filename')} (SHA: {res.get('checksum')[:12]}...)")
+                messages.success(request, f"تم إنشاء النسخة الاحتياطية بنجاح: {res.get('filename')} (SHA: {res.get('checksum')[:12]}...)")
             else:
-                messages.error(request, f"Failed to create backup: {res.get('error')}")
+                messages.error(request, f"فشل إنشاء النسخة الاحتياطية: {res.get('error')}")
             return redirect('valves:backup-management')
 
         elif action == 'restore':
@@ -1615,9 +1617,13 @@ def backup_management_view(request):
                 archive_path = engine.backup_dir / filename
                 res = engine.restore_backup(archive_path)
                 if res.get('success'):
-                    messages.success(request, f"System successfully restored from {filename}. Pre-restore safety snapshot created: {res.get('safety_backup')}.")
+                    messages.success(
+                        request,
+                        f"تمت استعادة النظام بنجاح من النسخة {filename}. "
+                        f"تم حفظ نسخة أمان تلقائية قبل الاستعادة باسم: {res.get('safety_backup')}."
+                    )
                 else:
-                    messages.error(request, f"Restore failed: {res.get('error')}")
+                    messages.error(request, f"فشلت عملية الاستعادة: {res.get('error')}")
             elif 'backup_file' in request.FILES:
                 uploaded = request.FILES['backup_file']
                 upload_path = engine.backup_dir / f"uploaded_{uploaded.name}"
@@ -1626,9 +1632,13 @@ def backup_management_view(request):
                         dest.write(chunk)
                 res = engine.restore_backup(upload_path)
                 if res.get('success'):
-                    messages.success(request, f"System successfully restored from uploaded archive: {uploaded.name}.")
+                    messages.success(
+                        request,
+                        f"تمت استعادة النظام بنجاح من الأرشيف المرفوع: {uploaded.name}. "
+                        f"تم حفظ نسخة أمان تلقائية قبل الاستعادة باسم: {res.get('safety_backup')}."
+                    )
                 else:
-                    messages.error(request, f"Restore failed: {res.get('error')}")
+                    messages.error(request, f"فشلت عملية الاستعادة: {res.get('error')}")
             return redirect('valves:backup-management')
 
         elif action == 'verify':
@@ -1637,9 +1647,9 @@ def backup_management_view(request):
                 archive_path = engine.backup_dir / filename
                 res = engine.verify_backup(archive_path)
                 if res.get('valid'):
-                    messages.success(request, f"Integrity Verified: {filename} matches SHA-256 and has zero corruption.")
+                    messages.success(request, f"تم التحقق من سلامة النسخة: {filename} مطابقة بنسبة 100% لبصمة SHA-256 وخالية من أي تلف.")
                 else:
-                    messages.error(request, f"Verification Failed for {filename}: {res.get('error')}")
+                    messages.error(request, f"فشل التحقق من النسخة {filename}: {res.get('error')}")
             return redirect('valves:backup-management')
 
     backups = engine.list_backups()
@@ -1654,6 +1664,7 @@ def backup_management_view(request):
     return render(request, 'valves/backup_management.html', context)
 
 
+@login_required
 def backup_download_view(request, filename):
     """Secure point-in-time backup archive export."""
     engine = backup_manager.get_backup_engine()
