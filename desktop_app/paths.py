@@ -109,6 +109,8 @@ def init_desktop_environment():
             BUNDLED_MEDIA,
             BUNDLE_DIR.parent / 'media',
             Path(getattr(sys, '_MEIPASS', '')) / 'media' if getattr(sys, '_MEIPASS', '') else None,
+            Path(sys.argv[0]).resolve().parent / 'media' if sys.argv else None,
+            Path.cwd() / 'media',
             Path(r"D:\Projects\Valve_syste\valves_app\Valvesystem\Valvesystem\media"),
         ]:
             if candidate and candidate.exists() and candidate.is_dir():

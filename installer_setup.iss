@@ -78,22 +78,31 @@ begin
   end;
 end;
 
-// Ensure media assets are automatically linked on post install
+// Ensure media assets are automatically linked or copied on post install
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   DataMediaDir: string;
-  SourceMediaDir: string;
+  SrcMediaDir: string;
+  DevMediaDir: string;
   ResultCode: Integer;
 begin
   if CurStep = ssPostInstall then
   begin
     DataMediaDir := ExpandConstant('{userappdata}\ValveWorkshop\media');
-    SourceMediaDir := 'D:\Projects\Valve_syste\valves_app\Valvesystem\Valvesystem\media';
+    SrcMediaDir := ExpandConstant('{src}\media');
+    DevMediaDir := 'D:\Projects\Valve_syste\valves_app\Valvesystem\Valvesystem\media';
+    
     if not DirExists(DataMediaDir) then
     begin
-      if DirExists(SourceMediaDir) then
+      // 1. Check if media folder is present next to installer (e.g. on USB drive or deployment folder)
+      if DirExists(SrcMediaDir) then
       begin
-        Exec('cmd.exe', '/C mklink /J "' + DataMediaDir + '" "' + SourceMediaDir + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+        Exec('cmd.exe', '/C robocopy "' + SrcMediaDir + '" "' + DataMediaDir + '" /E /R:1 /W:1 /NFL /NDL /NJH /NJS', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      end
+      // 2. Fallback to local dev junction if on developer workstation
+      else if DirExists(DevMediaDir) then
+      begin
+        Exec('cmd.exe', '/C mklink /J "' + DataMediaDir + '" "' + DevMediaDir + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
       end;
     end;
   end;
