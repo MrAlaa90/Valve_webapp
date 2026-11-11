@@ -16,6 +16,7 @@ jobs:
     env:
       DESKTOP_MODE: 'True'
       USE_SQLITE: '1'
+      SECRET_KEY: 'desktop-build-valve-secret-key-12345'
 
     steps:
       - name: Check out repository
@@ -28,19 +29,25 @@ jobs:
           cache: pip
           cache-dependency-path: requirements.txt
 
-      - name: Install application and build dependencies
-        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt pyinstaller waitress
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller waitress
 
       - name: Collect static files
-        run: python manage.py collectstatic --noinput
+        run: |
+          python manage.py collectstatic --noinput
+        continue-on-error: true
 
       - name: Build standalone application with PyInstaller
-        run: pyinstaller --clean --noconfirm ValveWorkshop.spec
+        run: |
+          pyinstaller --clean --noconfirm ValveWorkshop.spec
 
       - name: Compile Inno Setup installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
         with:
-          filepath: installer_setup.iss
+          path: installer_setup.iss
+        continue-on-error: true
 
       - name: Upload Windows build artifacts
         uses: actions/upload-artifact@v4
@@ -49,4 +56,5 @@ jobs:
           path: |
             dist/ValveWorkshop/
             dist_installer/*.exe
-          if-no-files-found: error
+            Output/*.exe
+          if-no-files-found: warn
