@@ -181,7 +181,6 @@ def main(headless: bool = False) -> int:
         host='127.0.0.1',
         port=port,
         threads=8,
-        _quiet=True,
     )
     server_thread = threading.Thread(
         target=server.run,
