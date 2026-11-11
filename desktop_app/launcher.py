@@ -40,12 +40,35 @@ def find_available_port(start_port: int = 8000, max_attempts: int = 100) -> int:
     """Find an unused TCP port on localhost."""
     for port in range(start_port, start_port + max_attempts):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            if sock.connect_ex(('127.0.0.1', port)) != 0:
+            try:
+                sock.bind(('127.0.0.1', port))
                 return port
+            except OSError:
+                continue
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.bind(('127.0.0.1', 0))
         return sock.getsockname()[1]
+
+
+def wait_for_server(url: str, timeout_seconds: float = 12.0) -> bool:
+    """Poll the local application until it responds or timeout expires."""
+    import urllib.request
+    import urllib.error
+    start_time = time.time()
+    while time.time() - start_time < timeout_seconds:
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'ValveWorkshopDesktop/1.0'})
+            with urllib.request.urlopen(req, timeout=1.0) as resp:
+                if resp.status in (200, 301, 302, 403, 404):
+                    return True
+        except urllib.error.HTTPError as e:
+            if e.code in (200, 301, 302, 403, 404):
+                return True
+        except Exception:
+            pass
+        time.sleep(0.2)
+    return False
 
 
 def run_django_migrations() -> None:
@@ -97,14 +120,27 @@ def browser_candidates() -> list[Path]:
     ]
 
 
-def launch_browser(url: str) -> subprocess.Popen | None:
-    """Open URL in Edge/Chrome app mode, falling back to the default browser."""
+def launch_browser(url: str, data_dir: Path) -> subprocess.Popen | None:
+    """Open URL in Edge/Chrome app mode with an isolated user profile, falling back to default browser."""
+    profile_dir = data_dir / 'browser_profile'
+    profile_dir.mkdir(parents=True, exist_ok=True)
+
+    flags = [
+        f'--user-data-dir={profile_dir}',
+        f'--app={url}',
+        '--start-maximized',
+        '--no-first-run',
+        '--no-default-browser-check',
+        '--disable-background-networking',
+        '--disable-features=Translate,OptimizationHints',
+    ]
+
     for executable in browser_candidates():
         if executable.is_file():
-            logger.info("Launching browser app window with %s", executable)
+            logger.info("Launching browser app window with %s (profile: %s)", executable, profile_dir)
             try:
                 return subprocess.Popen(
-                    [str(executable), f'--app={url}', '--start-maximized'],
+                    [str(executable)] + flags,
                     close_fds=True,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
@@ -198,7 +234,11 @@ def main(headless: bool = False) -> int:
     )
     server_thread.start()
 
-    time.sleep(1.5)
+    ready = wait_for_server(server_url, timeout_seconds=12.0)
+    if not ready:
+        logger.warning("Server did not respond within timeout; proceeding anyway at %s", server_url)
+    else:
+        logger.info("WSGI server is live and responding at %s", server_url)
 
     if headless or os.environ.get('VALVE_HEADLESS_TEST') == 'True':
         logger.info("Running in headless test mode; performing self-diagnostic request...")
@@ -224,16 +264,33 @@ def main(headless: bool = False) -> int:
         server_thread.join(timeout=5)
         return exit_code
 
-    browser_process = launch_browser(server_url)
+    browser_process = launch_browser(server_url, paths['data_dir'])
     if browser_process is None:
+        logger.info("Browser launched in default external browser; WSGI server running...")
         server_thread.join()
         return 0
 
+    start_time = time.time()
     try:
         browser_process.wait()
     except KeyboardInterrupt:
         logger.info("Shutdown requested")
     finally:
+        elapsed = time.time() - start_time
+        # Safeguard: If the browser process exited in under 3.5 seconds,
+        # it was delegated to an existing broker or detached.
+        # Do NOT terminate the server in this case, or the user's window will get ERR_CONNECTION_REFUSED.
+        if elapsed < 3.5:
+            logger.warning(
+                "Browser process exited quickly (%.2fs - likely delegated/detached). "
+                "Maintaining server alive in background to prevent connection loss.",
+                elapsed,
+            )
+            try:
+                server_thread.join()
+            except KeyboardInterrupt:
+                logger.info("Shutdown requested")
+
         shutdown(backup_engine, server)
         server_thread.join(timeout=5)
 
