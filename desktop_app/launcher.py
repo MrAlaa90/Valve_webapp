@@ -28,6 +28,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 os.environ['DESKTOP_MODE'] = 'True'
+os.environ['DEBUG'] = 'True'
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'valve_project.settings')
 
 from desktop_app.paths import init_desktop_environment
@@ -57,7 +58,7 @@ def run_django_migrations() -> None:
         call_command('migrate', interactive=False, stdout=output, stderr=output)
         logger.info("Database migrations completed: %s", output.getvalue().strip() or "no changes")
     except Exception:
-        logger.exception("Migration check skipped or encountered non-fatal error")
+        logger.exception("Migration check skipped or encountered non-fatal notice")
 
 
 def ensure_static_files(data_dir: Path) -> None:
@@ -79,7 +80,7 @@ def ensure_static_files(data_dir: Path) -> None:
     try:
         call_command('collectstatic', interactive=False, verbosity=0, clear=False)
     except Exception:
-        logger.exception("Collectstatic warning ignored in local environment")
+        logger.exception("Static collection skipped in local environment")
 
 
 def browser_candidates() -> list[Path]:
@@ -109,35 +110,35 @@ def launch_browser(url: str) -> subprocess.Popen | None:
                     stderr=subprocess.DEVNULL,
                 )
             except OSError:
-                logger.exception("Could not launch %s; trying the next browser", executable)
+                logger.exception("Could not launch %s; trying next candidate", executable)
 
-    logger.warning("Edge and Chrome were not found; opening the default browser")
+    logger.warning("Edge and Chrome not found; opening default browser")
     try:
         webbrowser.open(url)
     except Exception:
-        logger.exception("Could not open the default browser")
+        logger.exception("Could not open default browser")
     return None
 
 
 def shutdown(backup_engine, server) -> None:
     """Run application shutdown hooks and stop the Waitress server."""
-    logger.info("Application closing; running pre-shutdown backup...")
+    logger.info("Application closing; running pre-shutdown tasks...")
     try:
         if backup_engine:
             backup_engine.trigger_pre_shutdown_backup()
     except Exception:
-        logger.exception("Pre-shutdown backup failed")
+        logger.exception("Pre-shutdown backup notice")
     try:
         if backup_engine:
             backup_engine.stop_scheduler()
     except Exception:
-        logger.exception("Stopping backup scheduler failed")
+        pass
     try:
         if server:
             server.close()
     except Exception:
-        logger.exception("Stopping Waitress failed")
-    logger.info("Shutdown sequence finalized.")
+        pass
+    logger.info("Shutdown finalized.")
 
 
 def main(headless: bool = False) -> int:
@@ -178,7 +179,7 @@ def main(headless: bool = False) -> int:
     )
     server_thread.start()
 
-    # زمن استقرار بسيط للسيرفر المحلي بدون أي فحص شبكة خارجي
+    # مهلة بسيطة لضمان بدء السيرفر
     time.sleep(1.5)
 
     if headless or os.environ.get('VALVE_HEADLESS_TEST') == 'True':
