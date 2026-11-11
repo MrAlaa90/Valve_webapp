@@ -81,10 +81,11 @@ def init_desktop_environment():
     Initializes persistent directories in %APPDATA%/ValveWorkshop.
     Preserves existing data and seeds defaults on initial execution.
     """
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    MEDIA_DIR.mkdir(parents=True, exist_ok=True)
-    LOGS_DIR.mkdir(parents=True, exist_ok=True)
-    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    for d in (DATA_DIR, MEDIA_DIR, LOGS_DIR, BACKUP_DIR):
+        try:
+            d.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            logger.warning(f"Directory check for {d}: {e}")
 
     # 1. Database Initialization
     if not DB_PATH.exists():
@@ -124,30 +125,14 @@ def init_desktop_environment():
         if source_media:
             logger.info(f"Initializing media assets from {source_media} -> {MEDIA_DIR}")
             try:
-                # On Windows, try creating an instant, zero-footprint directory junction
-                if sys.platform == 'win32':
-                    try:
-                        if MEDIA_DIR.exists() and not any(MEDIA_DIR.iterdir()):
-                            MEDIA_DIR.rmdir()
-                    except OSError:
-                        pass
-                    try:
-                        import _winapi
-                        _winapi.CreateJunction(str(source_media.resolve()), str(MEDIA_DIR.resolve()))
-                        logger.info(f"Created instant directory junction to {source_media}")
-                    except Exception as je:
-                        logger.warning(f"Could not create junction: {je}; falling back to copy")
-
-                # Fallback copy if junction was not created
-                if not (MEDIA_DIR.exists() and any(MEDIA_DIR.iterdir())):
-                    MEDIA_DIR.mkdir(parents=True, exist_ok=True)
-                    for item in source_media.iterdir():
-                        dest = MEDIA_DIR / item.name
-                        if not dest.exists():
-                            if item.is_dir():
-                                shutil.copytree(item, dest)
-                            else:
-                                shutil.copy2(item, dest)
+                MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+                for item in source_media.iterdir():
+                    dest = MEDIA_DIR / item.name
+                    if not dest.exists():
+                        if item.is_dir():
+                            shutil.copytree(item, dest)
+                        else:
+                            shutil.copy2(item, dest)
             except Exception as e:
                 logger.error(f"Error copying initial media files: {e}")
 

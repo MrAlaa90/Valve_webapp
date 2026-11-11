@@ -78,7 +78,7 @@ begin
   end;
 end;
 
-// Ensure media assets are automatically linked or copied on post install
+// Ensure media assets are automatically copied on post install (real files, never junctions)
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   DataMediaDir: string;
@@ -97,12 +97,12 @@ begin
       // 1. Check if media folder is present next to installer (e.g. on USB drive or deployment folder)
       if DirExists(SrcMediaDir) then
       begin
-        Exec('cmd.exe', '/C robocopy "' + SrcMediaDir + '" "' + DataMediaDir + '" /E /R:1 /W:1 /NFL /NDL /NJH /NJS', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+        Exec('cmd.exe', '/C robocopy "' + SrcMediaDir + '" "' + DataMediaDir + '" /E /R:1 /W:1 /NFL /NDL /NJH /NJS /MT:8', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
       end
-      // 2. Fallback to local dev junction if on developer workstation
+      // 2. Fallback to developer media directory if running on dev workstation
       else if DirExists(DevMediaDir) then
       begin
-        Exec('cmd.exe', '/C mklink /J "' + DataMediaDir + '" "' + DevMediaDir + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+        Exec('cmd.exe', '/C robocopy "' + DevMediaDir + '" "' + DataMediaDir + '" /E /R:1 /W:1 /NFL /NDL /NJH /NJS /MT:8', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
       end;
     end;
   end;
