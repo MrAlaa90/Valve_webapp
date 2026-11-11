@@ -14,6 +14,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 import webbrowser
 from pathlib import Path
 
@@ -58,7 +59,7 @@ def run_django_migrations() -> None:
         call_command('migrate', interactive=False, stdout=output, stderr=output)
         logger.info("Database migrations completed: %s", output.getvalue().strip() or "no changes")
     except Exception:
-        logger.exception("Migration check skipped or encountered non-fatal notice")
+        logger.exception("Migration execution notice")
 
 
 def ensure_static_files(data_dir: Path) -> None:
@@ -164,10 +165,30 @@ def main(headless: bool = False) -> int:
     logger.info("Binding WSGI server to %s", server_url)
 
     from waitress import create_server
-    from valve_project.wsgi import application
+    from valve_project.wsgi import application as django_app
+
+    # Interceptor Middleware to capture and render any Django internal crashes directly in the browser
+    def debug_application(environ, start_response):
+        try:
+            return django_app(environ, start_response)
+        except Exception:
+            err_trace = traceback.format_exc()
+            logger.critical("Critical error handling WSGI request:\n%s", err_trace)
+            body = (
+                f"<html><head><title>System Error</title></head>"
+                f"<body style='font-family:sans-serif;padding:30px;background:#1e1e1e;color:#f1f1f1;'>"
+                f"<h2 style='color:#ff5555;'>Django Application Crash (Traceback)</h2>"
+                f"<pre style='background:#111;padding:15px;border-radius:5px;overflow-x:auto;color:#ffb86c;font-size:13px;line-height:1.4;'>{err_trace}</pre>"
+                f"</body></html>"
+            ).encode('utf-8')
+            start_response('500 Internal Server Error', [
+                ('Content-Type', 'text/html; charset=utf-8'),
+                ('Content-Length', str(len(body)))
+            ])
+            return [body]
 
     server = create_server(
-        application,
+        debug_application,
         host='127.0.0.1',
         port=port,
         threads=8,
@@ -179,7 +200,6 @@ def main(headless: bool = False) -> int:
     )
     server_thread.start()
 
-    # مهلة بسيطة لضمان بدء السيرفر
     time.sleep(1.5)
 
     if headless or os.environ.get('VALVE_HEADLESS_TEST') == 'True':
