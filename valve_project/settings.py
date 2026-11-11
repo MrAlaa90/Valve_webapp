@@ -94,6 +94,7 @@ INSTALLED_APPS = [
     'djoser',
     'django_extensions',
     'django_filters',  # django-filter
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

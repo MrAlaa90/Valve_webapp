@@ -35,7 +35,7 @@ for source, destination in (
     if source.exists():
         added_datas.append((str(source), destination))
 
-for package in ('crispy_forms', 'crispy_bootstrap5', 'rest_framework', 'djoser'):
+for package in ('crispy_forms', 'crispy_bootstrap5', 'rest_framework', 'djoser', 'widget_tweaks'):
     added_datas += collect_data_files(package)
 
 hidden_imports = [
@@ -93,6 +93,9 @@ hidden_imports = [
     'django.views.static',
     'django_extensions',
     'django_filters',
+    'widget_tweaks',
+    'widget_tweaks.templatetags',
+    'widget_tweaks.templatetags.widget_tweaks',
     'psycopg2',
     'sqlite3',
     'openpyxl',
@@ -127,6 +130,7 @@ for package in (
     'rest_framework',
     'djoser',
     'django_filters',
+    'widget_tweaks',
     'openpyxl',
     'valves',
     'valve_project',
