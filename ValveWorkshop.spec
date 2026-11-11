@@ -10,14 +10,18 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
 BASE_DIR = Path.cwd()
+import sys
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
 os.environ['DESKTOP_MODE'] = 'True'
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'valve_project.settings')
 
 try:
     import django
     django.setup()
-except Exception:
-    pass
+except Exception as e:
+    print(f"Warning during django.setup() in spec: {e}")
 
 added_datas = []
 for source, destination in (
@@ -56,7 +60,37 @@ hidden_imports = [
     'crispy_bootstrap5',
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework.urls',
+    'rest_framework.routers',
+    'rest_framework.views',
+    'rest_framework.response',
+    'rest_framework.request',
+    'rest_framework.serializers',
+    'rest_framework.permissions',
+    'rest_framework.authentication',
+    'rest_framework.parsers',
+    'rest_framework.renderers',
+    'rest_framework.negotiation',
+    'rest_framework.metadata',
+    'rest_framework.schemas',
     'djoser',
+    'djoser.urls',
+    'djoser.urls.authtoken',
+    'djoser.urls.base',
+    'djoser.urls.jwt',
+    'djoser.views',
+    'djoser.serializers',
+    'djoser.conf',
+    'djoser.constants',
+    'djoser.email',
+    'djoser.permissions',
+    'djoser.signals',
+    'djoser.compat',
+    'djoser.auth_backends',
+    'djoser.webauthn',
+    'django.conf.urls.i18n',
+    'django.views.i18n',
+    'django.views.static',
     'django_extensions',
     'django_filters',
     'psycopg2',

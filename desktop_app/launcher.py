@@ -201,10 +201,28 @@ def main(headless: bool = False) -> int:
     time.sleep(1.5)
 
     if headless or os.environ.get('VALVE_HEADLESS_TEST') == 'True':
-        logger.info("Running in headless test mode")
+        logger.info("Running in headless test mode; performing self-diagnostic request...")
+        import urllib.request
+        import urllib.error
+        exit_code = 0
+        try:
+            req = urllib.request.Request(server_url, headers={"User-Agent": "ValveHeadlessTester"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                logger.info("WSGI self-test succeeded with HTTP %d", resp.status)
+        except urllib.error.HTTPError as he:
+            if he.code == 500:
+                err_body = he.read().decode('utf-8', errors='replace')
+                logger.critical("WSGI self-test failed with HTTP 500:\n%s", err_body)
+                print(f"CRITICAL 500 ERROR:\n{err_body}", file=sys.stderr)
+                exit_code = 1
+            else:
+                logger.info("WSGI self-test returned HTTP %d (acceptable)", he.code)
+        except Exception as e:
+            logger.error("WSGI self-test request notice: %s", e)
+
         shutdown(backup_engine, server)
         server_thread.join(timeout=5)
-        return 0
+        return exit_code
 
     browser_process = launch_browser(server_url)
     if browser_process is None:

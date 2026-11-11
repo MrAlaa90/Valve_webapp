@@ -6,6 +6,12 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.views.static import serve
 
+# Explicit imports to ensure PyInstaller bundles dynamic URL configs
+import djoser.urls
+import djoser.urls.authtoken
+import rest_framework.urls
+import django.conf.urls.i18n
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),  # For browsable API login
