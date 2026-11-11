@@ -50,6 +50,16 @@ Filename: "{tmp}\MicrosoftEdgeWebview2Setup.exe"; Parameters: "/silent /install"
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent
 
 [Code]
+// Terminate any running ValveWorkshop process before installation begins
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ResultCode: Integer;
+begin
+  Exec('taskkill.exe', '/F /IM ValveWorkshop.exe /T', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Sleep(500);
+  Result := '';
+end;
+
 // Check if Microsoft Edge WebView2 Evergreen Runtime is installed on the machine
 function IsWebView2RuntimeNeeded(): Boolean;
 var
@@ -73,9 +83,12 @@ procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   DataDir: string;
   UserChoice: Integer;
+  ResultCode: Integer;
 begin
   if CurUninstallStep = usUninstall then
   begin
+    Exec('taskkill.exe', '/F /IM ValveWorkshop.exe /T', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Sleep(500);
     DataDir := ExpandConstant('{userappdata}\ValveWorkshop');
     if DirExists(DataDir) then
     begin
