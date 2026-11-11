@@ -98,23 +98,54 @@ def init_desktop_environment():
             logger.info("No bundled database found. An empty database will be initialized via migrations.")
 
     # 2. Media Assets Initialization
-    if BUNDLED_MEDIA.exists() and BUNDLED_MEDIA.is_dir():
-        # If MEDIA_DIR is empty or newly created, copy over bundled media
-        try:
-            has_media = any(MEDIA_DIR.iterdir())
-        except Exception:
-            has_media = False
+    try:
+        has_media = MEDIA_DIR.exists() and any(MEDIA_DIR.iterdir())
+    except Exception:
+        has_media = False
 
-        if not has_media:
-            logger.info(f"Seeding initial media files from {BUNDLED_MEDIA} -> {MEDIA_DIR}")
+    if not has_media:
+        source_media = None
+        for candidate in [
+            BUNDLED_MEDIA,
+            BUNDLE_DIR.parent / 'media',
+            Path(getattr(sys, '_MEIPASS', '')) / 'media' if getattr(sys, '_MEIPASS', '') else None,
+            Path(r"D:\Projects\Valve_syste\valves_app\Valvesystem\Valvesystem\media"),
+        ]:
+            if candidate and candidate.exists() and candidate.is_dir():
+                try:
+                    if any(candidate.iterdir()):
+                        source_media = candidate
+                        break
+                except Exception:
+                    pass
+
+        if source_media:
+            logger.info(f"Initializing media assets from {source_media} -> {MEDIA_DIR}")
             try:
-                for item in BUNDLED_MEDIA.iterdir():
-                    dest = MEDIA_DIR / item.name
-                    if not dest.exists():
-                        if item.is_dir():
-                            shutil.copytree(item, dest)
-                        else:
-                            shutil.copy2(item, dest)
+                # On Windows, try creating an instant, zero-footprint directory junction
+                if sys.platform == 'win32':
+                    try:
+                        if MEDIA_DIR.exists() and not any(MEDIA_DIR.iterdir()):
+                            MEDIA_DIR.rmdir()
+                    except OSError:
+                        pass
+                    try:
+                        import _winapi
+                        _winapi.CreateJunction(str(source_media.resolve()), str(MEDIA_DIR.resolve()))
+                        logger.info(f"Created instant directory junction to {source_media}")
+                    except Exception as je:
+                        logger.warning(f"Could not create junction: {je}; falling back to copy")
+
+                # Fallback copy if junction was not created
+                if not (MEDIA_DIR.exists() and any(MEDIA_DIR.iterdir())):
+                    MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+                    for item in source_media.iterdir():
+                        dest = MEDIA_DIR / item.name
+                        if not dest.exists():
+                            if item.is_dir():
+                                shutil.copytree(item, dest)
+                            else:
+                                shutil.copy2(item, dest)
             except Exception as e:
                 logger.error(f"Error copying initial media files: {e}")
 

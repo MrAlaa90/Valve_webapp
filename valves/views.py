@@ -674,24 +674,29 @@ def get_valves_by_factory(request):
 @login_required
 def shutdown_report(request):
     """
-    Handle creation and display of shutdown reports, focusing ONLY on shutdown records.
+    Handle creation and display of shutdown reports.
+    If shutdown-flagged records exist, focus on them; otherwise fall back to all
+    maintenance records so historical data is preserved and visible.
     """
-    # Only show records marked as is_shutdown=True
-    maintenance_records_list = MaintenanceHistory.objects.filter(is_shutdown=True).select_related(
+    base_records = MaintenanceHistory.objects.select_related(
         'valve', 'valve__factory', 'technician'
     ).prefetch_related('maintenancepart_set__part_code')
 
     selected_factory = request.GET.get('factory')
     selected_period = request.GET.get('period')
 
+    if selected_period:
+        maintenance_records_list = base_records.filter(
+            valve__shutdown__name=selected_period
+        ).distinct()
+    elif MaintenanceHistory.objects.filter(is_shutdown=True).exists():
+        maintenance_records_list = base_records.filter(is_shutdown=True)
+    else:
+        maintenance_records_list = base_records.all()
+
     # Apply filters
     if selected_factory:
         maintenance_records_list = maintenance_records_list.filter(valve__factory__name=selected_factory)
-
-    if selected_period:
-        maintenance_records_list = maintenance_records_list.filter(
-            valve__shutdown__name=selected_period
-        ).distinct()
 
     maintenance_records_list = maintenance_records_list.order_by('-maintenance_date')
 
@@ -701,7 +706,7 @@ def shutdown_report(request):
     maintenance_records = paginator.get_page(page_number)
 
     # Get distinct shutdown names (Months/Years) for the period dropdown
-    periods = Shutdown.objects.values_list('name', flat=True).distinct().order_by('-start_date')
+    periods = [p for p in Shutdown.objects.values_list('name', flat=True).distinct().order_by('-start_date') if p]
 
     context = {
         'maintenance_records': maintenance_records,

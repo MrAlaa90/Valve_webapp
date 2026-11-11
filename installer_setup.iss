@@ -78,6 +78,27 @@ begin
   end;
 end;
 
+// Ensure media assets are automatically linked on post install
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  DataMediaDir: string;
+  SourceMediaDir: string;
+  ResultCode: Integer;
+begin
+  if CurStep = ssPostInstall then
+  begin
+    DataMediaDir := ExpandConstant('{userappdata}\ValveWorkshop\media');
+    SourceMediaDir := 'D:\Projects\Valve_syste\valves_app\Valvesystem\Valvesystem\media';
+    if not DirExists(DataMediaDir) then
+    begin
+      if DirExists(SourceMediaDir) then
+      begin
+        Exec('cmd.exe', '/C mklink /J "' + DataMediaDir + '" "' + SourceMediaDir + '"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      end;
+    end;
+  end;
+end;
+
 // Zero-loss uninstallation handler: Prompts the user before touching %APPDATA%\ValveWorkshop
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
