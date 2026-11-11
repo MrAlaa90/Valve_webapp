@@ -57,12 +57,12 @@ class GFSBackupEngine:
     """
 
     RETENTION_LIMITS = {
-        "daily": 7,
+        "daily": 7,      # Strict 7-day rolling backup window (1 week retention, deletes day 1 on day 8)
         "weekly": 4,
         "monthly": 12,
         "yearly": 5,
-        "manual": 15,
-        "shutdown": 3,
+        "manual": 7,
+        "shutdown": 2,
     }
 
     def __init__(self, data_dir: Path = None, backup_dir: Path = None):
@@ -98,21 +98,9 @@ class GFSBackupEngine:
 
     def determine_backup_category(self, target_date: datetime = None) -> str:
         """
-        Determines GFS backup type based on calendar date:
-        - Jan 1st -> Yearly
-        - 1st of any month -> Monthly
-        - Sunday -> Weekly
-        - Other days -> Daily
+        Determines backup category. Defaults to 'daily' for strict 7-day rolling window retention.
         """
-        dt = target_date or datetime.now()
-        if dt.month == 1 and dt.day == 1:
-            return "yearly"
-        elif dt.day == 1:
-            return "monthly"
-        elif dt.weekday() == 6:  # Sunday
-            return "weekly"
-        else:
-            return "daily"
+        return "daily"
 
     def create_atomic_db_snapshot(self, temp_dest: Path) -> bool:
         """
@@ -159,6 +147,11 @@ class GFSBackupEngine:
             archive_stem = f"valve_backup_{category}_{timestamp_str}"
             archive_filename = f"{archive_stem}.zip"
             archive_path = self.backup_dir / archive_filename
+            counter = 1
+            while archive_path.exists():
+                archive_filename = f"{archive_stem}_{counter}.zip"
+                archive_path = self.backup_dir / archive_filename
+                counter += 1
             checksum_path = self.backup_dir / f"{archive_filename}.sha256"
 
             temp_dir = self.backup_dir / f"_temp_{timestamp_str}"
@@ -488,8 +481,8 @@ class GFSBackupEngine:
                 for b in backups
             )
             if not already_done:
-                logger.info(f"Running automated scheduled GFS backup for {today}...")
-                self.create_backup()
+                logger.info(f"Running automated scheduled daily backup for {today} (Strict 7-day rolling retention)...")
+                self.create_backup(backup_type="daily", note=f"Daily automated snapshot for {today}")
         except Exception as e:
             logger.error(f"Scheduler check failed: {e}")
 

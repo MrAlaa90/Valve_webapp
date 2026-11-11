@@ -60,4 +60,10 @@ urlpatterns = [
     path('users/<int:pk>/update/', views.user_update_view, name='user-update'),
     path('users/<int:pk>/delete/', views.user_delete_view, name='user-delete'),
     path('users/<int:pk>/toggle-status/', views.user_toggle_status_view, name='user-toggle-status'),
+
+    # Universal Data Exchange (Import / Export / Excel Templates)
+    path('data-exchange/', views.data_exchange_dashboard_view, name='data-exchange'),
+    path('data-exchange/templates/', views.download_excel_templates_view, name='download-excel-templates'),
+    path('data-exchange/export/<str:table_key>/', views.export_table_view, name='export-table'),
+    path('data-exchange/import/<str:table_key>/', views.import_table_view, name='import-table'),
 ]

@@ -1746,6 +1746,8 @@ def user_create_view(request):
             factory = form.cleaned_data.get('factory')
             technician = form.cleaned_data.get('technician')
             phone_number = form.cleaned_data.get('phone_number', '')
+            can_export = form.cleaned_data.get('can_export', True)
+            can_import = form.cleaned_data.get('can_import', False)
             notes = form.cleaned_data.get('notes', '')
             is_active = form.cleaned_data.get('is_active', True)
 
@@ -1768,6 +1770,8 @@ def user_create_view(request):
             profile.factory = factory
             profile.technician = technician
             profile.phone_number = phone_number
+            profile.can_export = can_export
+            profile.can_import = can_import
             profile.notes = notes
             profile.save()
 
@@ -1838,6 +1842,8 @@ def user_update_view(request, pk):
             profile.factory = form.cleaned_data.get('factory')
             profile.technician = form.cleaned_data.get('technician')
             profile.phone_number = form.cleaned_data.get('phone_number', '')
+            profile.can_export = form.cleaned_data.get('can_export', True)
+            profile.can_import = form.cleaned_data.get('can_import', False)
             profile.notes = form.cleaned_data.get('notes', '')
             profile.save()
 
@@ -1852,6 +1858,8 @@ def user_update_view(request, pk):
             'factory': profile.factory,
             'technician': profile.technician,
             'phone_number': profile.phone_number,
+            'can_export': profile.can_export,
+            'can_import': profile.can_import,
             'notes': profile.notes,
             'is_active': target_user.is_active,
         })
@@ -1899,6 +1907,134 @@ def user_toggle_status_view(request, pk):
     status_str = "تفعيل" if target_user.is_active else "تعطيل"
     messages.success(request, f"تم {status_str} حساب المستخدم ({target_user.username}) بنجاح.")
     return redirect('valves:user-list')
+
+
+# ==============================================================================
+# UNIVERSAL DATA EXCHANGE (IMPORT / EXPORT / EXCEL TEMPLATES)
+# ==============================================================================
+
+def check_user_export_perm(user):
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    profile = getattr(user, 'profile', None)
+    return profile.has_export_perm() if profile else False
+
+
+def check_user_import_perm(user):
+    if not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    profile = getattr(user, 'profile', None)
+    return profile.has_import_perm() if profile else False
+
+
+@login_required
+def data_exchange_dashboard_view(request):
+    """Central dashboard for exporting, importing, and downloading templates."""
+    from .data_exchange import SUPPORTED_TABLES, get_supported_tables_metadata, import_table_data
+
+    can_export = check_user_export_perm(request.user)
+    can_import = check_user_import_perm(request.user)
+
+    if not can_export and not can_import:
+        messages.error(request, "عذراً، ليس لديك صلاحية الوصول لمركز استيراد وتصدير البيانات.")
+        return redirect('valves:home')
+
+    import_result = None
+
+    if request.method == 'POST' and 'import_file' in request.FILES:
+        if not can_import:
+            messages.error(request, "ليس لديك صلاحية استيراد البيانات إلى المنظومة.")
+            return redirect('valves:data-exchange')
+
+        table_key = request.POST.get('table_key', '').strip()
+        uploaded_file = request.FILES['import_file']
+        import_result = import_table_data(table_key, uploaded_file)
+
+        if import_result.get('success'):
+            messages.success(
+                request,
+                f"اكتمل الاستيراد لجدول ({import_result['table_name_ar']}): "
+                f"تم إنشاء {import_result['created_count']} سجل جديد، وتحديث {import_result['updated_count']} سجل."
+            )
+        else:
+            messages.error(request, import_result.get('error', 'حدث خطأ أثناء الاستيراد.'))
+
+    tables_meta = get_supported_tables_metadata()
+
+    context = {
+        'tables_meta': tables_meta,
+        'supported_tables': SUPPORTED_TABLES,
+        'can_export': can_export,
+        'can_import': can_import,
+        'import_result': import_result,
+    }
+    return render(request, 'valves/data_exchange.html', context)
+
+
+@login_required
+def download_excel_templates_view(request):
+    """Downloads the comprehensive multi-sheet Excel Data Dictionary & Templates."""
+    if not check_user_export_perm(request.user) and not check_user_import_perm(request.user):
+        messages.error(request, "ليس لديك صلاحية لتحميل قوالب البيانات.")
+        return redirect('valves:home')
+
+    from .data_exchange import generate_excel_templates_workbook
+    excel_bytes = generate_excel_templates_workbook()
+
+    filename = f"ValveWorkshop_Data_Dictionary_And_Templates_{datetime.now().strftime('%Y%m%d')}.xlsx"
+    response = HttpResponse(
+        excel_bytes,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+@login_required
+def export_table_view(request, table_key):
+    """Exports any supported table to Excel (.xlsx) or CSV."""
+    if not check_user_export_perm(request.user):
+        messages.error(request, "ليس لديك صلاحية تصدير البيانات.")
+        return redirect('valves:data-exchange')
+
+    from .data_exchange import export_table_to_response, SUPPORTED_TABLES
+    if table_key not in SUPPORTED_TABLES:
+        messages.error(request, f"الجدول '{table_key}' غير مدعوم للتصدير.")
+        return redirect('valves:data-exchange')
+
+    file_format = request.GET.get('format', 'xlsx').lower()
+    if file_format not in ['xlsx', 'csv']:
+        file_format = 'xlsx'
+
+    return export_table_to_response(table_key, file_format=file_format)
+
+
+@login_required
+def import_table_view(request, table_key):
+    """Direct import endpoint for specific screen actions."""
+    if not check_user_import_perm(request.user):
+        messages.error(request, "ليس لديك صلاحية استيراد البيانات.")
+        return redirect('valves:data-exchange')
+
+    if request.method == 'POST' and 'import_file' in request.FILES:
+        from .data_exchange import import_table_data
+        result = import_table_data(table_key, request.FILES['import_file'])
+        if result.get('success'):
+            messages.success(
+                request,
+                f"تم الاستيراد بنجاح: إضافة {result['created_count']} وتحديث {result['updated_count']} سجل."
+            )
+        else:
+            messages.error(request, result.get('error', 'فشلت عملية الاستيراد.'))
+
+    # Redirect back to referring page or data exchange
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or 'valves:data-exchange'
+    return redirect(next_url)
+
 
 
 

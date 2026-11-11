@@ -388,6 +388,18 @@ class UserCreateForm(forms.Form):
         required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '01xxxxxxxxx'})
     )
+    can_export = forms.BooleanField(
+        label="صلاحية تصدير البيانات (Excel/CSV)",
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    can_import = forms.BooleanField(
+        label="صلاحية استيراد وتحديث البيانات (Excel/CSV)",
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
     notes = forms.CharField(
         label="ملاحظات وتكليفات خاصة",
         required=False,
@@ -467,6 +479,16 @@ class UserUpdateForm(forms.Form):
         max_length=50,
         required=False,
         widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    can_export = forms.BooleanField(
+        label="صلاحية تصدير البيانات (Excel/CSV)",
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    can_import = forms.BooleanField(
+        label="صلاحية استيراد وتحديث البيانات (Excel/CSV)",
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
     notes = forms.CharField(
         label="ملاحظات وتكليفات خاصة",

@@ -29,7 +29,6 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 os.environ['DESKTOP_MODE'] = 'True'
-os.environ['DEBUG'] = 'True'
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'valve_project.settings')
 
 from desktop_app.paths import init_desktop_environment
@@ -167,7 +166,6 @@ def main(headless: bool = False) -> int:
     from waitress import create_server
     from valve_project.wsgi import application as django_app
 
-    # Interceptor Middleware to capture and render any Django internal crashes directly in the browser
     def debug_application(environ, start_response):
         try:
             return django_app(environ, start_response)

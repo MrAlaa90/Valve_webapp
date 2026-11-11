@@ -186,6 +186,8 @@ class UserProfile(models.Model):
     factory = models.ForeignKey(Factory, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="المصنع المسؤول عنه")
     technician = models.ForeignKey(Technician, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="فني الصيانة المرتبط")
     phone_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="رقم الهاتف")
+    can_export = models.BooleanField(default=True, verbose_name="صلاحية تصدير البيانات (Excel/CSV)")
+    can_import = models.BooleanField(default=False, verbose_name="صلاحية استيراد البيانات (Excel/CSV)")
     notes = models.TextField(blank=True, null=True, verbose_name="ملاحظات وتكليفات")
     created_at = models.DateTimeField(auto_now_add=True, null=True)
 
@@ -206,6 +208,18 @@ class UserProfile(models.Model):
         }
         return colors.get(self.role, 'info')
 
+    def has_export_perm(self):
+        """التحقق من صلاحية تصدير البيانات"""
+        if self.user.is_superuser or self.role == 'admin':
+            return True
+        return self.can_export
+
+    def has_import_perm(self):
+        """التحقق من صلاحية استيراد البيانات"""
+        if self.user.is_superuser or self.role == 'admin':
+            return True
+        return self.can_import
+
     @property
     def permissions_summary(self):
         """قائمة الصلاحيات الفعلية الممنوحة للمستخدم داخل المنظومة"""
@@ -217,29 +231,44 @@ class UserProfile(models.Model):
                 "إدارة قطع الغيار وأكواد SAP/Oracle والمخزون",
                 "توليد وطباعة تقارير العمرة والشداون",
                 "إنشاء واستعادة النسخ الاحتياطية وتصديرها لـ USB",
+                "تصدير واستيراد بيانات كافة الجداول (Excel / CSV)",
+                "تحميل قوالب الجداول المعتمدة للاستيراد والتصدير",
                 "الوصول للوحة تحكم إدارة دجانغو (Admin Panel)",
             ]
         elif self.role == 'supervisor':
-            return [
+            perms = [
                 "إدارة وتعديل الصمامات والمواصفات الفنية",
                 "تسجيل وتعديل سجلات الصيانة وقراءات الاختبار",
                 "إدارة قطع الغيار وأكواد SAP/Oracle والمخزون",
                 "توليد وطباعة تقارير العمرة والشداون",
                 "إنشاء نسخ احتياطية يدوية للنظام",
             ]
+            if self.has_export_perm():
+                perms.append("تصدير بيانات الجداول (Excel / CSV)")
+            if self.has_import_perm():
+                perms.append("استيراد بيانات الجداول (Excel / CSV)")
+            return perms
         elif self.role == 'technician':
-            return [
+            perms = [
                 "تسجيل عمليات الصيانة الميدانية وربط قطع الغيار المستخدمة",
                 "رفع صور الصيانة (قبل وبعد الإصلاح)",
                 "البحث واستعراض الصمامات وقطع الغيار",
                 "الاطلاع على مستندات ومخططات P&ID",
             ]
+            if self.has_export_perm():
+                perms.append("تصدير سجلات الصيانة والجداول (Excel / CSV)")
+            if self.has_import_perm():
+                perms.append("استيراد بيانات الجداول (Excel / CSV)")
+            return perms
         else:  # viewer
-            return [
+            perms = [
                 "استعراض الصمامات والبحث في المواصفات الهندسية",
                 "استعراض سجلات الصيانة السابقة للمصانع",
                 "الاطلاع على التقارير والمستندات (للقراءة فقط)",
             ]
+            if self.has_export_perm():
+                perms.append("تصدير بيانات الجداول (Excel / CSV)")
+            return perms
 
 
 @receiver(post_save, sender=User)

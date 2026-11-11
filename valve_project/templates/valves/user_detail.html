@@ -85,6 +85,19 @@
                             {% endif %}
                         </div>
                         <div class="mb-2">
+                            <span class="text-muted small d-block">صلاحيات تبادل البيانات (Excel):</span>
+                            {% if profile.has_export_perm %}
+                                <span class="badge bg-success me-1"><i class="fas fa-file-export me-1"></i>تصدير متاح</span>
+                            {% else %}
+                                <span class="badge bg-secondary me-1">تصدير معطل</span>
+                            {% endif %}
+                            {% if profile.has_import_perm %}
+                                <span class="badge bg-primary"><i class="fas fa-file-import me-1"></i>استيراد متاح</span>
+                            {% else %}
+                                <span class="badge bg-secondary">استيراد معطل</span>
+                            {% endif %}
+                        </div>
+                        <div class="mb-2">
                             <span class="text-muted small d-block">تاريخ الإنشاء:</span>
                             <small class="text-muted">{{ target_user.date_joined|date:"Y-m-d H:i" }}</small>
                         </div>
@@ -274,3 +287,4 @@
     </div>
 </div>
 {% endblock %}
+

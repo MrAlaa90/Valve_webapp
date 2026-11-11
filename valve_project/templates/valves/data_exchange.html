@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}مركز استيراد وتصدير البيانات - Valve Workshop{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4" dir="rtl">
+    <!-- Header & Breadcrumbs -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-7">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'valves:home' %}">الرئيسية</a></li>
+                    <li class="breadcrumb-item active">مركز استيراد وتصدير البيانات</li>
+                </ol>
+            </nav>
+            <h2 class="h3 fw-bold mb-1">
+                <i class="fas fa-file-excel text-success me-2"></i>مركز استيراد وتصدير البيانات (Data Exchange)
+            </h2>
+            <p class="text-muted mb-0">تصدير واستيراد بيانات الصمامات، الصيانة، قطع الغيار، وتحميل قوالب الإكسيل المعتمدة</p>
+        </div>
+        <div class="col-md-5 text-md-start mt-3 mt-md-0">
+            <a href="{% url 'valves:download-excel-templates' %}" class="btn btn-success btn-lg shadow-sm">
+                <i class="fas fa-download me-2"></i>تحميل قالب الإكسيل المعتمد وفهرس الجداول
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert / Status Messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-info-circle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Import Result Modal / Card (If just imported) -->
+    {% if import_result %}
+    <div class="card border-0 shadow-sm mb-4 {% if import_result.success %}border-start border-success border-4{% else %}border-start border-danger border-4{% endif %}">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">
+                    <i class="fas fa-tasks me-2 text-primary"></i>تقرير نتيجة الاستيراد: {{ import_result.table_name_ar }}
+                </h5>
+                <span class="badge {% if import_result.success %}bg-success{% else %}bg-danger{% endif %} fs-6 px-3 py-2">
+                    {% if import_result.success %}اكتمل بنجاح{% else %}توقف بسبب خطأ{% endif %}
+                </span>
+            </div>
+
+            <div class="row g-3 text-center mb-3">
+                <div class="col-sm-3">
+                    <div class="p-3 bg-light rounded border">
+                        <small class="text-muted d-block">إجمالي الصفوف المقروءة</small>
+                        <span class="fs-4 fw-bold text-dark">{{ import_result.total_rows }}</span>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="p-3 bg-success bg-opacity-10 rounded border border-success">
+                        <small class="text-success d-block fw-bold">سجلات جديدة تمت إضافتها</small>
+                        <span class="fs-4 fw-bold text-success">{{ import_result.created_count }}</span>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="p-3 bg-primary bg-opacity-10 rounded border border-primary">
+                        <small class="text-primary d-block fw-bold">سجلات تم تحديثها (Upsert)</small>
+                        <span class="fs-4 fw-bold text-primary">{{ import_result.updated_count }}</span>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="p-3 bg-warning bg-opacity-10 rounded border border-warning">
+                        <small class="text-warning text-dark d-block fw-bold">صفوف تم تخطيها / أخطاء</small>
+                        <span class="fs-4 fw-bold text-danger">{{ import_result.skipped_count }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {% if import_result.errors %}
+            <div class="mt-3">
+                <h6 class="fw-bold text-danger mb-2"><i class="fas fa-exclamation-triangle me-1"></i>تفاصيل الملاحظات والأخطاء أثناء الاستيراد:</h6>
+                <div class="p-3 bg-light rounded border" style="max-height: 200px; overflow-y: auto;">
+                    <ul class="mb-0 text-muted small ps-3">
+                        {% for err in import_result.errors %}
+                        <li>{{ err }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Operation Panels (Export & Import) -->
+    <div class="row g-4 mb-4">
+        <!-- 1. Universal Export Form -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-file-export me-2"></i>تصدير بيانات أي شاشة أو جدول
+                    </h5>
+                </div>
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <p class="text-muted small mb-4">
+                            اختر الجدول المراد تصديره والصيغة المناسبة (Excel أو CSV). يتم استخراج كافة البيانات والعلاقات والمواصفات بشكل منسق.
+                        </p>
+                        <form id="export-form" method="GET" action="">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">اختر الجدول / الشاشة المراد تصديرها:</label>
+                                <select id="export-table-select" class="form-select form-select-lg" required>
+                                    {% for key, spec in supported_tables.items %}
+                                    <option value="{{ key }}">{{ spec.name_ar }} ({{ spec.name_en }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">صيغة الملف المطلوب:</label>
+                                <div class="d-flex gap-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="export_format" id="fmt_xlsx" value="xlsx" checked>
+                                        <label class="form-check-label fw-bold" for="fmt_xlsx">
+                                            <i class="fas fa-file-excel text-success me-1"></i>Excel Workbook (.xlsx)
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="export_format" id="fmt_csv" value="csv">
+                                        <label class="form-check-label fw-bold" for="fmt_csv">
+                                            <i class="fas fa-file-csv text-primary me-1"></i>CSV Text File (.csv)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div>
+                        {% if can_export %}
+                        <button type="button" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" onclick="triggerExport()">
+                            <i class="fas fa-download me-2"></i>تصدير وتحميل الملف فوراً
+                        </button>
+                        {% else %}
+                        <button class="btn btn-secondary btn-lg w-100" disabled>
+                            <i class="fas fa-lock me-2"></i>صلاحية التصدير معطلة لحسابك
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Universal Import Form -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-file-import me-2"></i>استيراد وتحديث البيانات (Excel / CSV)
+                    </h5>
+                </div>
+                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <p class="text-muted small mb-3">
+                            قم برفع ملف Excel أو CSV مطابق لقالب الجداول. يتعامل النظام بذكاء مع السجلات الموجودة مسبقاً ويقوم بتحديثها دون إتلاف أي بيانات.
+                        </p>
+                        {% if can_import %}
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">الجدول المستهدف للاستيراد:</label>
+                                <select name="table_key" class="form-select form-select-lg" required>
+                                    {% for key, spec in supported_tables.items %}
+                                    <option value="{{ key }}">{{ spec.name_ar }} ({{ spec.name_en }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">اختر ملف البيانات (.xlsx أو .csv):</label>
+                                <input type="file" name="import_file" class="form-control form-control-lg" accept=".xlsx,.csv" required>
+                                <small class="text-muted">الحد الأقصى لحجم الملف: 50 ميجابايت</small>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-lg w-100 fw-bold shadow-sm" onclick="return confirm('هل أنت متأكد من رغبتك في استيراد وتحديث البيانات في الجدول المحدد؟');">
+                                <i class="fas fa-upload me-2"></i>بدء الاستيراد والمعالجة
+                            </button>
+                        </form>
+                        {% else %}
+                        <div class="alert alert-warning py-3 text-center my-auto">
+                            <i class="fas fa-shield-alt fa-2x mb-2 d-block"></i>
+                            <strong>صلاحية الاستيراد غير مفعلة لحسابك</strong>
+                            <p class="small text-muted mb-0 mt-1">يرجى مراجعة مدير النظام لمنحك صلاحية استيراد البيانات.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supported Tables Catalog Grid -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fas fa-table me-2 text-primary"></i>فهرس الجداول المدعومة في الاستيراد والتصدير ({{ tables_meta|length }})
+            </h5>
+            <a href="{% url 'valves:download-excel-templates' %}" class="btn btn-sm btn-outline-success fw-bold">
+                <i class="fas fa-file-excel me-1"></i>تحميل الملف الشامل لكافة القوالب
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-end ps-4">اسم الجدول والشاشة</th>
+                            <th>كود الجدول</th>
+                            <th>عدد السجلات الحالية</th>
+                            <th>مفتاح التحقق الفريد</th>
+                            <th>عدد الأعمدة</th>
+                            <th>إجراءات التصدير السريع</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tables_meta %}
+                        <tr>
+                            <td class="text-end ps-4">
+                                <strong class="text-dark d-block">{{ t.name_ar }}</strong>
+                                <small class="text-muted">{{ t.name_en }}</small>
+                            </td>
+                            <td><code>{{ t.key }}</code></td>
+                            <td>
+                                <span class="badge bg-primary bg-opacity-10 text-primary fs-6 px-3 py-1 border border-primary">
+                                    {{ t.count }} سجل
+                                </span>
+                            </td>
+                            <td><span class="badge bg-secondary">{{ t.unique_field }}</span></td>
+                            <td><span class="badge bg-light text-dark border">{{ t.columns_count }} حقل</span></td>
+                            <td>
+                                {% if can_export %}
+                                <a href="{% url 'valves:export-table' t.key %}?format=xlsx" class="btn btn-sm btn-outline-success me-1" title="تصدير Excel">
+                                    <i class="fas fa-file-excel me-1"></i>Excel
+                                </a>
+                                <a href="{% url 'valves:export-table' t.key %}?format=csv" class="btn btn-sm btn-outline-primary" title="تصدير CSV">
+                                    <i class="fas fa-file-csv me-1"></i>CSV
+                                </a>
+                                {% else %}
+                                <span class="text-muted small">غير مصرح</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function triggerExport() {
+    const tableSelect = document.getElementById('export-table-select');
+    const tableKey = tableSelect.value;
+    const formatRadios = document.getElementsByName('export_format');
+    let chosenFormat = 'xlsx';
+    for (const r of formatRadios) {
+        if (r.checked) {
+            chosenFormat = r.value;
+            break;
+        }
+    }
+    const exportUrl = "{% url 'valves:export-table' 'TABLE_KEY' %}".replace('TABLE_KEY', tableKey) + "?format=" + chosenFormat;
+    window.location.href = exportUrl;
+}
+</script>
+{% endblock %}
+

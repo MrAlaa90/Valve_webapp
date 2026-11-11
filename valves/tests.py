@@ -1,3 +1,4 @@
+import sqlite3
 from django.test import TestCase
 from django.contrib.auth.models import User
 from valves.models import Valve, MaintenanceHistory, PartCode, Technician
@@ -226,6 +227,124 @@ class UserManagementTest(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, "normal_test")
         self.assertContains(resp, "الصلاحيات")
+
+
+class DailyBackupStrictRetentionTest(TestCase):
+    """
+    Verifies that daily backups enforce a strict 7-day rolling window:
+    On the 8th daily backup, the 1st backup from the previous week is deleted,
+    and exactly 7 daily backups remain.
+    """
+    def setUp(self):
+        self.temp_dir = Path(tempfile.mkdtemp())
+        self.db_path = self.temp_dir / "db.sqlite3"
+        conn = sqlite3.connect(self.db_path)
+        conn.execute("CREATE TABLE test_data (id INT);")
+        conn.commit()
+        conn.close()
+
+        self.backup_dir = self.temp_dir / "backups"
+        self.engine = backup_manager.GFSBackupEngine(
+            data_dir=self.temp_dir,
+            backup_dir=self.backup_dir
+        )
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
+
+    def test_eight_daily_backups_prune_oldest_leaving_seven(self):
+        import time
+        created_archives = []
+
+        # Create 8 consecutive daily backups
+        for day in range(1, 9):
+            res = self.engine.create_backup(backup_type="daily", note=f"Daily backup day {day}")
+            self.assertTrue(res["success"])
+            created_archives.append(res["filename"])
+            time.sleep(0.05)  # slight pause so timestamps differ
+
+        daily_backups = [b for b in self.engine.list_backups() if b["category"] == "daily"]
+
+        # Exactly 7 daily backups must remain
+        self.assertEqual(len(daily_backups), 7)
+
+        # The 1st created archive must have been deleted
+        remaining_filenames = [b["filename"] for b in daily_backups]
+        self.assertNotIn(created_archives[0], remaining_filenames, "Oldest day 1 backup must be deleted on day 8")
+        # The 8th (latest) must be present
+        self.assertIn(created_archives[-1], remaining_filenames, "Newest day 8 backup must be present")
+
+
+from valves.data_exchange import (
+    generate_excel_templates_workbook,
+    export_table_to_response,
+    import_table_data,
+    SUPPORTED_TABLES
+)
+import io
+from django.core.files.uploadedfile import SimpleUploadedFile
+
+
+class DataExchangeTest(TestCase):
+    def setUp(self):
+        self.factory = Factory.objects.create(name="AFC I")
+        self.valve = Valve.objects.create(
+            tag_number="EXCH-001",
+            name="Data Exchange Valve",
+            factory=self.factory
+        )
+        self.admin = User.objects.create_superuser("admin_exch", "admin@exch.com", "pass123")
+        self.viewer = User.objects.create_user("viewer_exch", "viewer@exch.com", "pass123")
+        self.viewer.profile.role = 'viewer'
+        self.viewer.profile.can_export = False
+        self.viewer.profile.can_import = False
+        self.viewer.profile.save()
+
+    def test_excel_templates_generation(self):
+        """Test multi-sheet templates workbook generator"""
+        wb_bytes = generate_excel_templates_workbook()
+        self.assertTrue(len(wb_bytes) > 5000)
+
+    def test_export_table_xlsx_and_csv(self):
+        """Test export to Excel and CSV responses"""
+        resp_xlsx = export_table_to_response('valves', file_format='xlsx')
+        self.assertEqual(resp_xlsx.status_code, 200)
+        self.assertEqual(resp_xlsx['Content-Type'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+        resp_csv = export_table_to_response('valves', file_format='csv')
+        self.assertEqual(resp_csv.status_code, 200)
+        self.assertEqual(resp_csv['Content-Type'], 'text/csv; charset=utf-8-sig')
+        self.assertIn(b"EXCH-001", resp_csv.content)
+
+    def test_import_valves_from_csv(self):
+        """Test importing valves from a CSV file"""
+        csv_data = (
+            "tag_number,name,location,factory,valve_type,status\n"
+            "IMP-001,Imported Valve 1,Unit 10,AFC I,Globe,Operational\n"
+            "IMP-002,Imported Valve 2,Unit 20,AFC II,Ball,Operational\n"
+        ).encode('utf-8')
+
+        uploaded = SimpleUploadedFile("valves_test.csv", csv_data, content_type="text/csv")
+        result = import_table_data('valves', uploaded)
+
+        self.assertTrue(result['success'])
+        self.assertEqual(result['created_count'], 2)
+        self.assertTrue(Valve.objects.filter(tag_number="IMP-001").exists())
+        self.assertTrue(Valve.objects.filter(tag_number="IMP-002").exists())
+
+    def test_dashboard_access_permissions(self):
+        """Test data exchange access permissions"""
+        # Viewer with can_export=False, can_import=False is blocked
+        self.client.login(username="viewer_exch", password="pass123")
+        resp = self.client.get(reverse('valves:data-exchange'))
+        self.assertEqual(resp.status_code, 302)
+
+        # Admin gets 200 OK
+        self.client.login(username="admin_exch", password="pass123")
+        resp = self.client.get(reverse('valves:data-exchange'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "مركز استيراد وتصدير البيانات")
+
 
 
 

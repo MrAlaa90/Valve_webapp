@@ -36,6 +36,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 ; Dist folder containing PyInstaller compiled standalone executable and dependencies
 Source: "dist\ValveWorkshop\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "app_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
+; Microsoft Edge WebView2 Bootstrapper for Windows 10 compatibility
+Source: "MicrosoftEdgeWebview2Setup.exe"; DestDir: "{tmp}"; Flags: ignoreversion deleteafterinstall; Check: IsWebView2RuntimeNeeded
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\app_icon.ico"
@@ -43,9 +45,29 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\app_icon.ico"; Tasks: desktopicon
 
 [Run]
+; Auto-install WebView2 Runtime on Windows 10 if missing
+Filename: "{tmp}\MicrosoftEdgeWebview2Setup.exe"; Parameters: "/silent /install"; StatusMsg: "Configuring Microsoft Edge Chromium Engine..."; Flags: waituntilterminated; Check: IsWebView2RuntimeNeeded
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; Flags: nowait postinstall skipifsilent
 
 [Code]
+// Check if Microsoft Edge WebView2 Evergreen Runtime is installed on the machine
+function IsWebView2RuntimeNeeded(): Boolean;
+var
+  Version: string;
+begin
+  Result := True;
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'pv', Version) or
+     RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'pv', Version) or
+     RegQueryStringValue(HKEY_CURRENT_USER, 'SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}', 'pv', Version) then
+  begin
+    if (Version <> '') and (Version <> '0.0.0.0') then
+    begin
+      Log('WebView2 Runtime detected: ' + Version);
+      Result := False;
+    end;
+  end;
+end;
+
 // Zero-loss uninstallation handler: Prompts the user before touching %APPDATA%\ValveWorkshop
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
